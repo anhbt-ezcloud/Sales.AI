@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Context Menu - AI Sales Agent</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config: giữ nguyên màu sắc design gốc -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-tint":              "#4d44e3",
+            "on-secondary-fixed-variant":"#005236",
+            "error":                     "#ba1a1a",
+            "on-surface":                "#0b1c30",
+            "tertiary":                  "#684000",
+            "outline":                   "#777587",
+            "on-tertiary-fixed":         "#2a1700",
+            "surface-container-lowest":  "#ffffff",
+            "secondary-fixed":           "#6ffbbe",
+            "tertiary-container":        "#885500",
+            "primary-fixed":             "#e2dfff",
+            "secondary":                 "#006c49",
+            "on-tertiary-container":     "#ffd4a4",
+            "inverse-surface":           "#213145",
+            "on-background":             "#0b1c30",
+            "tertiary-fixed":            "#ffddb8",
+            "surface-container-highest": "#d3e4fe",
+            "on-primary":                "#ffffff",
+            "on-error":                  "#ffffff",
+            "surface-dim":               "#cbdbf5",
+            "on-tertiary":               "#ffffff",
+            "primary":                   "#3525cd",
+            "error-container":           "#ffdad6",
+            "secondary-fixed-dim":       "#4edea3",
+            "on-tertiary-fixed-variant": "#653e00",
+            "surface-variant":           "#d3e4fe",
+            "on-surface-variant":        "#464555",
+            "inverse-on-surface":        "#eaf1ff",
+            "surface-bright":            "#f8f9ff",
+            "secondary-container":       "#6cf8bb",
+            "primary-fixed-dim":         "#c3c0ff",
+            "surface-container-low":     "#eff4ff",
+            "on-primary-fixed":          "#0f0069",
+            "primary-container":         "#4f46e5",
+            "on-secondary-fixed":        "#002113",
+            "on-error-container":        "#93000a",
+            "surface-container-high":    "#dce9ff",
+            "tertiary-fixed-dim":        "#ffb95f",
+            "on-primary-fixed-variant":  "#3323cc",
+            "surface":                   "#f8f9ff",
+            "surface-container":         "#e5eeff",
+            "on-secondary":              "#ffffff",
+            "background":                "#f8f9ff",
+            "on-secondary-container":    "#00714d",
+            "on-primary-container":      "#dad7ff",
+            "inverse-primary":           "#c3c0ff",
+            "outline-variant":           "#c7c4d8"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body":     ["Inter"],
+            "label":    ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+      font-size: 20px;
+    }
+
+    /* === Glass panel === */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+
+    /* === Popover: xuất hiện === */
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.94) translateY(-6px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+    .popover-panel { animation: popIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* === Submenu === */
+    .submenu-parent:hover .submenu { display: block; }
+    .submenu { display: none; }
+
+    /* === Modal === */
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+    .modal-panel { animation: modalIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* === Toast === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .toast-anim { animation: fadeInUp 0.25s ease-out; }
+
+    /* === Transition toàn cục === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s,
+                             box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+
+    /* === Tab active underline === */
+    .top-tab.active { color: #3525cd; border-bottom-color: #3525cd; font-weight: 600; }
+
+    /* === Background chat cards hover === */
+    .chat-card:hover { background-color: #f8f9ff; }
+  </style>
+</head>
+
+<body class="bg-background text-on-background min-h-screen overflow-hidden">
+
+<!-- ============================================================
+     BACKGROUND: Chat interface (blurred / dimmed)
+     ============================================================ -->
+
+
+<!-- TopBar (mờ) -->
+<header class="bg-white/80 backdrop-blur-[15px] text-sm flex items-center justify-between
+               w-full px-6 sticky top-0 z-10  h-16 shadow-sm opacity-40
+               select-none pointer-events-none" style="width: calc(100% - 240px);">
+  <div class="flex items-center gap-4">
+    <h2 class="font-bold text-[#3525cd] text-lg">Chat Tài Liệu</h2>
+    <div class="h-4 w-px bg-outline-variant/30"></div>
+    <nav class="flex gap-4">
+      <span class="text-[#3525cd] border-b-2 border-[#3525cd] font-semibold py-5">Tất cả</span>
+      <span class="text-slate-500 py-5">Gần đây</span>
+      <span class="text-slate-500 py-5">Đã ghim</span>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="bg-surface-container rounded-full px-3 py-1.5 flex items-center gap-2 w-64">
+      <span class="material-symbols-outlined text-slate-400">search</span>
+      <div class="h-4 w-32 bg-slate-100 rounded"></div>
+    </div>
+    <div class="w-8 h-8 rounded-full bg-surface-container-highest"></div>
+  </div>
+</header>
+
+<!-- Main content (mờ) -->
+<main class=" p-6 min-h-[calc(100vh-64px)] relative bg-surface opacity-40 pointer-events-none select-none">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Chat card giả -->
+    <div class="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
+          <span class="material-symbols-outlined">description</span>
+        </div>
+        <div>
+          <h3 class="font-semibold text-sm">Phân tích Báo cáo Quý 4 - 2023</h3>
+          <p class="text-xs text-slate-500">Cập nhật 2 giờ trước • 3 tài liệu</p>
+        </div>
+      </div>
+      <button class="p-2 bg-slate-100 rounded-lg">
+        <span class="material-symbols-outlined">more_vert</span>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div class="flex gap-4">
+        <div class="w-8 h-8 rounded-full bg-slate-200 shrink-0"></div>
+        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm max-w-2xl">
+          <p class="text-sm">Dựa trên các tài liệu bạn đã tải lên, doanh thu quý 4 tăng trưởng 15%...</p>
+        </div>
+      </div>
+      <div class="flex gap-4 flex-row-reverse">
+        <div class="w-8 h-8 rounded-full bg-primary shrink-0"></div>
+        <div class="bg-primary text-white p-4 rounded-2xl rounded-tr-none shadow-sm max-w-2xl">
+          <p class="text-sm">Có, hãy xuất cho tôi báo cáo so sánh các thị trường chính.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Dimming layer -->
+<div class="fixed inset-0 bg-slate-900/5 backdrop-blur-[1px] pointer-events-none z-20"></div>
+
+<!-- ============================================================
+     CONTEXT MENU POPOVER (the core UI)
+     ============================================================ -->
+<div class="fixed inset-0 z-50 flex justify-end items-start pt-20 pr-24">
+
+  <!-- Popover container -->
+  <div id="contextMenu"
+       class="popover-panel w-[280px] bg-white rounded-xl shadow-2xl border border-outline-variant/20
+              overflow-visible ring-1 ring-black/5 flex flex-col py-1.5">
+
+    <!-- Header (tên cuộc chat) -->
+    <div class="px-4 py-2.5 border-b border-slate-100 mb-1">
+      <p class="text-xs font-bold text-outline uppercase tracking-wider">Cuộc chat</p>
+      <p class="text-sm font-semibold text-on-surface mt-0.5 truncate" id="chatNameDisplay">
+        Phân tích Báo cáo Quý 4 - 2023
+      </p>
+    </div>
+
+    <!-- ---- Option 1: Đổi tên ---- -->
+    <button id="renameBtn"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                   hover:bg-slate-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
+        edit
+      </span>
+      <span class="flex-1">✏ Đổi tên cuộc chat</span>
+    </button>
+
+    <!-- ---- Option 2: Ghim cuộc chat ---- -->
+    <button id="pinBtn"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                   hover:bg-slate-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors"
+            id="pinIcon">push_pin</span>
+      <span class="flex-1" id="pinLabel">📌 Ghim cuộc chat</span>
+    </button>
+
+    <!-- ---- Option 3: Quản lý tài liệu ---- -->
+    <a href="man-hinh-4.html"
+       class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+              hover:bg-slate-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
+        attach_file
+      </span>
+      <span class="flex-1">📎 Quản lý tài liệu đính kèm</span>
+    </a>
+
+    <!-- ---- Option 4: Xuất lịch sử (with submenu) ---- -->
+    <div class="submenu-parent relative">
+      <button class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                     hover:bg-slate-50 transition-colors text-left w-full group">
+        <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
+          download
+        </span>
+        <span class="flex-1">⬇ Xuất lịch sử chat</span>
+        <span class="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
+      </button>
+
+      <!-- Submenu -->
+      <div class="submenu absolute left-full top-0 ml-1 w-36 bg-white rounded-xl shadow-xl
+                  border border-outline-variant/20 py-1.5 ring-1 ring-black/5 z-10">
+        <button class="w-full px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 text-left
+                       flex items-center gap-2 transition-colors"
+                onclick="exportChat('PDF')">
+          <span class="material-symbols-outlined text-rose-500" style="font-size:14px;">picture_as_pdf</span>
+          PDF
+        </button>
+        <button class="w-full px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 text-left
+                       flex items-center gap-2 transition-colors"
+                onclick="exportChat('Markdown')">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px;">code</span>
+          Markdown
+        </button>
+        <button class="w-full px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 text-left
+                       flex items-center gap-2 transition-colors"
+                onclick="exportChat('JSON')">
+          <span class="material-symbols-outlined text-blue-500" style="font-size:14px;">data_object</span>
+          JSON
+        </button>
+        <button class="w-full px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 text-left
+                       flex items-center gap-2 transition-colors"
+                onclick="exportChat('TXT')">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px;">article</span>
+          Plain Text
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- Option 5: Chia sẻ ---- -->
+    <button id="shareBtn"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                   hover:bg-slate-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
+        person_add
+      </span>
+      <span class="flex-1">👥 Chia sẻ với thành viên</span>
+    </button>
+
+    <!-- ---- Option 6: Xem tài liệu nguồn ---- -->
+    <a href="man-hinh-5.html"
+       class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+              hover:bg-slate-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">
+        description
+      </span>
+      <span class="flex-1">📄 Xem tài liệu nguồn</span>
+    </a>
+
+    <!-- Divider -->
+    <div class="h-px bg-slate-100 my-1.5 mx-2"></div>
+
+    <!-- ---- Option 7: Xóa (màu đỏ) ---- -->
+    <button id="deleteBtn"
+            class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#EF4444]
+                   hover:bg-red-50 transition-colors text-left w-full group">
+      <span class="material-symbols-outlined text-[#EF4444]/60 group-hover:text-[#EF4444] transition-colors">
+        delete
+      </span>
+      <span class="flex-1 font-medium">🗑 Xóa cuộc chat</span>
+    </button>
+
+    <!-- Dismiss -->
+    <div class="px-4 pt-1 pb-1">
+      <a href="man-hinh-2.html"
+         class="block text-center text-xs text-outline hover:text-primary py-1.5 transition-colors">
+        Đóng menu
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: Đổi tên cuộc chat
+     ============================================================ -->
+<div id="renameModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" id="renameBackdrop"></div>
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <h3 class="font-bold text-on-surface text-base mb-1">Đổi tên cuộc chat</h3>
+    <p class="text-sm text-on-surface-variant mb-4">Nhập tên mới cho cuộc trò chuyện này.</p>
+    <input id="renameInput" type="text"
+           class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30
+                  rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40
+                  placeholder:text-outline/60 mb-4"
+           placeholder="Tên cuộc chat..."/>
+    <div class="flex gap-3">
+      <button id="cancelRename"
+              class="flex-1 py-2.5 border border-outline-variant/40 rounded-xl text-sm
+                     font-semibold hover:bg-surface-container transition-colors">
+        Hủy
+      </button>
+      <button id="confirmRename"
+              class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold
+                     hover:bg-primary-container active:scale-[0.98] transition-all">
+        Lưu tên
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: Chia sẻ cuộc chat
+     ============================================================ -->
+<div id="shareModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" id="shareBackdrop"></div>
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <h3 class="font-bold text-on-surface text-base mb-1">Chia sẻ cuộc chat</h3>
+    <p class="text-sm text-on-surface-variant mb-4">Mời thành viên tham gia xem cuộc trò chuyện.</p>
+
+    <!-- Invite input -->
+    <div class="flex gap-2 mb-4">
+      <input id="shareEmail" type="email"
+             class="flex-1 px-4 py-2.5 bg-surface-container-low border border-outline-variant/30
+                    rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/40
+                    placeholder:text-outline/60"
+             placeholder="Email hoặc tên thành viên..."/>
+      <button id="inviteBtn"
+              class="px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold
+                     hover:bg-primary-container active:scale-[0.98] transition-all whitespace-nowrap">
+        Mời
+      </button>
+    </div>
+
+    <!-- Current members -->
+    <div class="space-y-2 mb-4">
+      <p class="text-xs font-bold text-outline uppercase tracking-wider mb-2">Đã chia sẻ với</p>
+      <div id="membersList" class="space-y-2">
+        <div class="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-full bg-indigo-200 flex items-center justify-center
+                        text-[10px] font-bold text-indigo-700">MP</div>
+            <div>
+              <p class="text-xs font-semibold">Minh Phan</p>
+              <p class="text-[10px] text-outline">Chủ sở hữu</p>
+            </div>
+          </div>
+          <span class="text-[10px] text-outline px-2 py-0.5 bg-surface-container rounded-full">
+            Quản trị
+          </span>
+        </div>
+        <div class="flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-full bg-emerald-200 flex items-center justify-center
+                        text-[10px] font-bold text-emerald-700">LA</div>
+            <div>
+              <p class="text-xs font-semibold">Lan Anh</p>
+              <p class="text-[10px] text-outline">minhlan@company.vn</p>
+            </div>
+          </div>
+          <button class="text-[10px] text-outline hover:text-error px-2 py-0.5
+                         bg-surface-container rounded-full hover:bg-error-container transition-colors">
+            Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copy link -->
+    <div class="flex items-center gap-2 p-3 bg-surface-container-low rounded-xl mb-4 border border-outline-variant/20">
+      <span class="material-symbols-outlined text-sm text-outline">link</span>
+      <span class="text-xs text-on-surface-variant flex-1 truncate" id="shareLink">
+        https://app.concierge.ai/chat/q4-bao-cao-2023
+      </span>
+      <button onclick="copyShareLink()"
+              class="text-xs font-semibold text-primary hover:underline whitespace-nowrap">
+        Sao chép
+      </button>
+    </div>
+
+    <button id="closeShare"
+            class="w-full py-2.5 border border-outline-variant/40 rounded-xl text-sm
+                   font-semibold hover:bg-surface-container transition-colors">
+      Xong
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: Xác nhận xóa
+     ============================================================ -->
+<div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" id="deleteBackdrop"></div>
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center">
+        <span class="material-symbols-outlined text-error"
+              style="font-variation-settings: 'FILL' 1;">delete</span>
+      </div>
+      <h3 class="font-bold text-on-surface text-base">Xóa cuộc chat?</h3>
+    </div>
+    <p class="text-sm text-on-surface-variant mb-6 leading-relaxed">
+      Cuộc chat <strong class="text-on-surface" id="deleteChatName">này</strong> sẽ bị xóa vĩnh viễn.
+      Lịch sử tin nhắn và tài liệu đính kèm sẽ không thể khôi phục.
+    </p>
+    <div class="flex gap-3">
+      <button id="cancelDelete"
+              class="flex-1 py-2.5 border border-outline-variant/40 rounded-xl text-sm
+                     font-semibold hover:bg-surface-container transition-colors">
+        Giữ lại
+      </button>
+      <button id="confirmDelete"
+              class="flex-1 py-2.5 bg-error text-white rounded-xl text-sm font-semibold
+                     hover:bg-error/90 active:scale-[0.98] transition-all">
+        Xóa vĩnh viễn
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer"
+     class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300]
+            flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // State
+  let currentChatName = 'Phân tích Báo cáo Quý 4 - 2023';
+  let isPinned        = false;
+
+  // ================================================================
+  // HELPER: Open / Close dialog
+  // ================================================================
+  function openModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+  }
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+  }
+
+  // Đóng modal khi click backdrop
+  ['renameBackdrop','shareBackdrop','deleteBackdrop'].forEach(id => {
+    document.getElementById(id).addEventListener('click', () => {
+      closeModal(id.replace('Backdrop','Modal'));
+    });
+  });
+
+  // ================================================================
+  // OPTION 1: Đổi tên cuộc chat
+  // ================================================================
+  document.getElementById('renameBtn').addEventListener('click', () => {
+    document.getElementById('renameInput').value = currentChatName;
+    openModal('renameModal');
+  });
+
+  document.getElementById('cancelRename').addEventListener('click', () => closeModal('renameModal'));
+
+  document.getElementById('renameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('confirmRename').click();
+  });
+
+  document.getElementById('confirmRename').addEventListener('click', () => {
+    const newName = document.getElementById('renameInput').value.trim();
+    if (!newName) return;
+    currentChatName = newName;
+    document.getElementById('chatNameDisplay').textContent = newName;
+    document.getElementById('deleteChatName').textContent  = `"${newName}"`;
+    closeModal('renameModal');
+    showToast('Đã đổi tên cuộc chat thành công!');
+  });
+
+  // ================================================================
+  // OPTION 2: Ghim / Bỏ ghim cuộc chat
+  // ================================================================
+  document.getElementById('pinBtn').addEventListener('click', () => {
+    isPinned = !isPinned;
+    const icon  = document.getElementById('pinIcon');
+    const label = document.getElementById('pinLabel');
+    if (isPinned) {
+      icon.textContent  = 'push_pin';
+      icon.style.color  = '#3525cd';
+      label.textContent = '📌 Bỏ ghim cuộc chat';
+      showToast('Đã ghim cuộc chat!');
+    } else {
+      icon.style.color  = '';
+      label.textContent = '📌 Ghim cuộc chat';
+      showToast('Đã bỏ ghim cuộc chat!');
+    }
+  });
+
+  // ================================================================
+  // OPTION 4: Xuất lịch sử chat
+  // ================================================================
+  function exportChat(format) {
+    showToast(`Đang xuất lịch sử chat dưới dạng ${format}...`);
+  }
+
+  // ================================================================
+  // OPTION 5: Chia sẻ
+  // ================================================================
+  document.getElementById('shareBtn').addEventListener('click', () => {
+    document.getElementById('deleteChatName').textContent = `"${currentChatName}"`;
+    openModal('shareModal');
+  });
+
+  document.getElementById('closeShare').addEventListener('click', () => closeModal('shareModal'));
+
+  document.getElementById('inviteBtn').addEventListener('click', () => {
+    const emailInput = document.getElementById('shareEmail');
+    const email      = emailInput.value.trim();
+    if (!email) { emailInput.focus(); return; }
+
+    const initials = email.slice(0, 2).toUpperCase();
+    const colors   = ['bg-purple-200 text-purple-700', 'bg-rose-200 text-rose-700',
+                      'bg-amber-200 text-amber-700',  'bg-cyan-200 text-cyan-700'];
+    const color    = colors[Math.floor(Math.random() * colors.length)];
+
+    const memberItem = document.createElement('div');
+    memberItem.className = 'flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-xl';
+    memberItem.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full ${color} flex items-center justify-center text-[10px] font-bold">
+          ${initials}
+        </div>
+        <div>
+          <p class="text-xs font-semibold">${escHtml(email)}</p>
+          <p class="text-[10px] text-outline">Vừa được mời</p>
+        </div>
+      </div>
+      <button class="text-[10px] text-outline hover:text-error px-2 py-0.5
+                     bg-surface-container rounded-full hover:bg-error-container transition-colors"
+              onclick="this.closest('.flex').parentElement.remove()">
+        Xóa
+      </button>`;
+    document.getElementById('membersList').appendChild(memberItem);
+    emailInput.value = '';
+    showToast(`Đã mời ${email} thành công!`);
+  });
+
+  function copyShareLink() {
+    const link = document.getElementById('shareLink').textContent.trim();
+    navigator.clipboard?.writeText(link).then(() => showToast('Đã sao chép liên kết!'));
+  }
+
+  // ================================================================
+  // OPTION 7: Xóa cuộc chat
+  // ================================================================
+  document.getElementById('deleteBtn').addEventListener('click', () => {
+    document.getElementById('deleteChatName').textContent = `"${currentChatName}"`;
+    openModal('deleteModal');
+  });
+
+  document.getElementById('cancelDelete').addEventListener('click', () => closeModal('deleteModal'));
+
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+    closeModal('deleteModal');
+    showToast('Đã xóa cuộc chat!', 'error');
+    // Sau 1.5s redirect về màn hình danh sách chat
+    setTimeout(() => { window.location.href = 'man-hinh-2.html'; }, 1500);
+  });
+
+  // ================================================================
+  // KEYBOARD: Escape đóng popover → man-hinh-2.html
+  // ================================================================
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      // Ưu tiên đóng modal đang mở
+      const modals = ['renameModal','shareModal','deleteModal'];
+      const anyOpen = modals.some(id => !document.getElementById(id).classList.contains('hidden'));
+      if (anyOpen) {
+        modals.forEach(id => closeModal(id));
+      } else {
+        window.location.href = 'man-hinh-2.html';
+      }
+    }
+  });
+
+  // ================================================================
+  // TOAST NOTIFICATION
+  // ================================================================
+  function showToast(message, type = 'success') {
+    const colors   = type === 'error' ? 'bg-error text-white' : 'bg-inverse-surface text-inverse-on-surface';
+    const iconName = type === 'error' ? 'error' : 'check_circle';
+    const iconColor= type === 'error' ? 'text-white' : 'text-secondary-container';
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto toast-anim flex items-center gap-2 px-5 py-3
+                       rounded-xl shadow-xl text-sm font-medium ${colors}
+                       opacity-0 transition-opacity duration-300`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${iconColor}"
+            style="font-variation-settings: 'FILL' 1;">${iconName}</span>
+      ${message}`;
+    document.getElementById('toastContainer').appendChild(toast);
+    requestAnimationFrame(() => toast.classList.replace('opacity-0', 'opacity-100'));
+    setTimeout(() => {
+      toast.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 2800);
+  }
+
+  // ================================================================
+  // TIỆN ÍCH
+  // ================================================================
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // Init
+  document.getElementById('deleteChatName').textContent = `"${currentChatName}"`;
+</script>
+
+</body>
+</html>

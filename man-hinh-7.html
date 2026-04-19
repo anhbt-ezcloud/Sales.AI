@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>CRM & Công việc - AI Sales Agent</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#3525cd", "primary-container": "#4f46e5", "primary-fixed": "#e2dfff",
+            "primary-fixed-dim": "#c3c0ff", "on-primary": "#ffffff", "on-primary-container": "#dad7ff",
+            "on-primary-fixed": "#0f0069", "on-primary-fixed-variant": "#3323cc",
+            "secondary": "#006c49", "secondary-container": "#6cf8bb", "secondary-fixed": "#6ffbbe",
+            "secondary-fixed-dim": "#4edea3", "on-secondary": "#ffffff", "on-secondary-container": "#00714d",
+            "on-secondary-fixed": "#002113", "on-secondary-fixed-variant": "#005236",
+            "tertiary": "#684000", "tertiary-container": "#885500", "tertiary-fixed": "#ffddb8",
+            "tertiary-fixed-dim": "#ffb95f", "on-tertiary": "#ffffff", "on-tertiary-container": "#ffd4a4",
+            "on-tertiary-fixed": "#2a1700", "on-tertiary-fixed-variant": "#653e00",
+            "error": "#ba1a1a", "error-container": "#ffdad6", "on-error": "#ffffff", "on-error-container": "#93000a",
+            "surface": "#f8f9ff", "surface-dim": "#cbdbf5", "surface-bright": "#f8f9ff",
+            "surface-container-lowest": "#ffffff", "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff", "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe", "surface-variant": "#d3e4fe", "surface-tint": "#4d44e3",
+            "on-surface": "#0b1c30", "on-surface-variant": "#464555",
+            "background": "#f8f9ff", "on-background": "#0b1c30",
+            "outline": "#777587", "outline-variant": "#c7c4d8",
+            "inverse-surface": "#213145", "inverse-on-surface": "#eaf1ff", "inverse-primary": "#c3c0ff"
+          },
+          borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+          fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+    .scale-98:active { transform: scale(0.98); }
+    a, button { transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, transform .15s; }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .fade-in { animation: fadeInUp .3s ease-out; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+    .deal-row:hover { background: #f8f9ff; }
+    @keyframes toast-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .toast-anim { animation: toast-in .25s ease-out; }
+  </style>
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+
+<!-- ===============================================================
+     SIDEBAR
+     =============================================================== -->
+<aside class="w-[240px] h-screen sticky top-0 flex flex-col py-6 px-4 bg-[#eff4ff] shrink-0">
+  <div class="mb-6 px-2 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+    </div>
+    <div>
+      <h1 class="text-base font-bold text-primary leading-tight">Quản gia AI</h1>
+      <p class="text-[10px] uppercase tracking-widest text-slate-500">Sales Intelligence</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 space-y-0.5 text-sm overflow-y-auto">
+    <!-- ── MODULE 1: Chat tài liệu ── -->
+    <button id="trigger-module1" aria-expanded="false" aria-controls="submenu-module1"
+      onclick="toggleMenu('module1')" onkeydown="handleMenuKey(event,'module1')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">chat</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">Chat tài liệu</span>
+      <span id="chevron-module1" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div id="submenu-module1" role="region" aria-labelledby="trigger-module1"
+      class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-1.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">chat_bubble</span><span>Chat tài liệu</span>
+        </a>
+        <a href="man-hinh-2.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">forum</span><span>Concierge AI</span>
+        </a>
+        <a href="man-hinh-4.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">description</span><span>Thư viện tài liệu</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="border-t border-outline-variant/20 my-1 mx-2"></div>
+
+    <!-- ── MODULE 2: CRM & Công việc ── -->
+    <button id="trigger-module2" aria-expanded="false" aria-controls="submenu-module2"
+      onclick="toggleMenu('module2')" onkeydown="handleMenuKey(event,'module2')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">business_center</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">CRM &amp; Công việc</span>
+      <span id="chevron-module2" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div id="submenu-module2" role="region" aria-labelledby="trigger-module2"
+      class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-7.html" class="flex items-center gap-3 px-3 py-2 rounded-md bg-[#4f46e5] text-white">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">dashboard</span><span>Dashboard CRM</span>
+        </a>
+        <a href="man-hinh-8.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">assignment</span><span>CRM Hub</span>
+        </a>
+        <a href="man-hinh-11.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">support_agent</span><span>Chat CRM</span>
+        </a>
+        <a href="man-hinh-12.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span><span>AI Gợi ý</span>
+        </a>
+        <a href="man-hinh-10.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">view_kanban</span><span>Kanban Deals</span>
+        </a>
+        <a href="man-hinh-9.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">notifications</span>
+          <span class="flex-1">Thông báo</span>
+          <span class="bg-error text-white text-[10px] font-bold px-1.5 rounded-full">5</span>
+        </a>
+        <a href="man-hinh-15.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+          <span class="material-symbols-outlined text-sm">settings</span><span>Cấu hình CRM</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="pt-4 border-t border-outline-variant/20 mt-2 space-y-1 text-sm">
+    <a href="man-hinh-17.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+      <span class="material-symbols-outlined text-sm">manage_accounts</span><span>Cài đặt</span>
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+      <span class="material-symbols-outlined">help</span><span>Trợ giúp</span>
+    </a>
+    <a href="man-hinh-16.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+      <span class="material-symbols-outlined text-sm">logout</span><span>Đăng xuất</span>
+    </a>
+    <div class="flex items-center gap-3 px-2 pt-2">
+      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">QL</div>
+      <div class="overflow-hidden">
+        <p class="text-xs font-bold truncate">Quản lý Bán hàng</p>
+        <p class="text-[10px] text-slate-500 truncate">admin@aisales.vn</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===============================================================
+     MAIN CONTENT
+     =============================================================== -->
+<main class="flex-1 flex flex-col min-w-0">
+  <!-- Top Nav -->
+  <header class="h-16 sticky top-0 z-50 bg-white/80 backdrop-blur-[15px] border-b border-outline-variant/10
+                 flex justify-between items-center px-6">
+    <div class="flex items-center gap-4 flex-1 max-w-xl">
+      <div class="w-full bg-surface-container-low rounded-full px-4 py-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+        <input id="globalSearch" class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-outline/50"
+               placeholder="Tìm kiếm deal, khách hàng hoặc công việc..." type="text"/>
+      </div>
+    </div>
+    <div class="flex items-center gap-6">
+      <span class="text-sm font-bold text-primary">CRM &amp; Công việc</span>
+      <div class="flex items-center gap-3 text-slate-500">
+        <a href="man-hinh-9.html" class="relative hover:text-primary">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+        </a>
+        <button class="hover:text-primary"><span class="material-symbols-outlined">account_circle</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="p-8 space-y-8 max-w-7xl mx-auto w-full">
+
+    <!-- KPI Row -->
+    <div class="grid grid-cols-3 gap-6">
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-secondary fade-in">
+        <div class="flex justify-between items-start mb-2">
+          <span class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Doanh thu tháng</span>
+          <span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">trending_up</span>+12.5%
+          </span>
+        </div>
+        <div class="text-2xl font-extrabold" id="kpiRevenue">1,240,000,000 ₫</div>
+        <p class="text-slate-400 text-[11px] mt-1">So với 1,102,000,000 ₫ tháng trước</p>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-primary fade-in">
+        <div class="flex justify-between items-start mb-2">
+          <span class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Số deal mới</span>
+          <span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">trending_up</span>+8
+          </span>
+        </div>
+        <div class="text-2xl font-extrabold" id="kpiDeals">42 Deals</div>
+        <p class="text-slate-400 text-[11px] mt-1">Hoạt động mạnh nhất trong tuần này</p>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-tertiary fade-in">
+        <div class="flex justify-between items-start mb-2">
+          <span class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Tỉ lệ chốt</span>
+          <span class="bg-error-container text-on-error-container px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">trending_down</span>-2%
+          </span>
+        </div>
+        <div class="text-2xl font-extrabold">24.8%</div>
+        <p class="text-slate-400 text-[11px] mt-1">Trung bình ngành: 22.0%</p>
+      </div>
+    </div>
+
+    <!-- Middle Row: AI Suggestions + Deal Health -->
+    <div class="grid grid-cols-3 gap-6">
+      <!-- AI Action Suggestions -->
+      <div class="col-span-2 bg-surface-container-highest/30 backdrop-blur-sm p-8 rounded-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-[0.06] pointer-events-none select-none">
+          <span class="material-symbols-outlined text-[140px] text-primary">auto_awesome</span>
+        </div>
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white">
+            <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+          </div>
+          <h2 class="font-bold text-on-surface">Gợi ý hành động tiếp theo</h2>
+          <div class="ml-auto flex items-center gap-1.5 text-xs text-secondary font-semibold">
+            <span class="w-2 h-2 rounded-full bg-secondary pulse-dot"></span>AI đang phân tích
+          </div>
+        </div>
+
+        <div class="space-y-4 relative z-10" id="aiSuggestions">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Deal Health Chart -->
+      <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm flex flex-col justify-between">
+        <div>
+          <h3 class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">Phân tích sức khỏe Deal</h3>
+          <div class="flex items-center justify-center py-4">
+            <div class="relative w-32 h-32">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <circle class="text-surface-container" cx="18" cy="18" fill="none" r="14" stroke="currentColor" stroke-width="3.5"/>
+                <circle class="text-primary" cx="18" cy="18" fill="none" r="14" stroke="currentColor"
+                        stroke-dasharray="87.96" stroke-dashoffset="19.35" stroke-linecap="round" stroke-width="3.5"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <div class="text-2xl font-black text-primary">78%</div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase">Tốt</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex justify-between text-xs items-center">
+            <span class="text-slate-500 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-error"></span>Deal có rủi ro cao:
+            </span>
+            <span class="font-bold text-error">03</span>
+          </div>
+          <div class="flex justify-between text-xs items-center">
+            <span class="text-slate-500 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-secondary"></span>Deal đang tiến triển:
+            </span>
+            <span class="font-bold text-secondary">32</span>
+          </div>
+          <div class="flex justify-between text-xs items-center">
+            <span class="text-slate-500 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>Deal mới tháng này:
+            </span>
+            <span class="font-bold text-primary">8</span>
+          </div>
+          <a href="man-hinh-10.html"
+             class="block text-center mt-2 py-2 bg-surface-container rounded-lg text-xs font-semibold
+                    text-primary hover:bg-surface-container-high transition-colors">
+            Xem Kanban Board →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Deals Table + Chat Widget -->
+    <div class="grid grid-cols-4 gap-6">
+      <!-- Recent Deals Table -->
+      <div class="col-span-3 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-surface-container flex justify-between items-center">
+          <h3 class="font-bold text-on-surface">Các Deal gần đây</h3>
+          <div class="flex items-center gap-3">
+            <input id="dealSearch" type="text" placeholder="Tìm deal..."
+                   class="bg-surface-container-low border-none rounded-full px-3 py-1.5 text-xs focus:ring-1 focus:ring-primary/30 w-40"/>
+            <a href="man-hinh-10.html" class="text-xs text-primary font-bold hover:underline">Xem tất cả</a>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-surface-container-low/50 text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <tr>
+                <th class="px-6 py-4 cursor-pointer hover:text-primary" onclick="sortDeals('name')">Tên Deal / Khách hàng</th>
+                <th class="px-6 py-4 cursor-pointer hover:text-primary" onclick="sortDeals('value')">Giá trị</th>
+                <th class="px-6 py-4">Trạng thái</th>
+                <th class="px-6 py-4">Người phụ trách</th>
+                <th class="px-6 py-4"></th>
+              </tr>
+            </thead>
+            <tbody id="dealsTableBody" class="text-sm divide-y divide-surface-container">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CRM Q&A Chat Widget -->
+      <div class="bg-white rounded-xl shadow-lg border border-surface-container overflow-hidden flex flex-col h-[460px]">
+        <div class="bg-primary p-4 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">forum</span>
+            <span class="text-xs font-bold uppercase tracking-wider">Hỏi đáp CRM</span>
+          </div>
+          <span class="w-2 h-2 bg-secondary-fixed rounded-full pulse-dot"></span>
+        </div>
+        <div id="crmChatMessages" class="flex-1 p-4 space-y-4 overflow-y-auto bg-surface-container-low/30 text-xs">
+          <div class="flex flex-col items-start">
+            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm leading-relaxed border-l-2 border-primary/20">
+              Xin chào! Tôi là Sales AI Assistant. Bạn muốn biết thông tin gì về hệ thống CRM hôm nay?
+            </div>
+            <span class="text-[9px] text-slate-400 mt-1">10:42 AM</span>
+          </div>
+          <div class="flex flex-col items-end">
+            <div class="bg-primary-container text-white p-3 rounded-lg rounded-tr-none shadow-sm leading-relaxed">
+              Tình trạng deal VinGroup hiện tại thế nào?
+            </div>
+            <span class="text-[9px] text-slate-400 mt-1">10:43 AM</span>
+          </div>
+          <div class="flex flex-col items-start">
+            <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm leading-relaxed border-l-2 border-primary">
+              Deal <strong>VinGroup Q4</strong> đang ở trạng thái <strong>Thương thảo</strong>. Hoàng Mai vừa cập nhật:
+              "Đang chờ sếp duyệt chiết khấu 5%". Giá trị dự kiến 450M₫.
+            </div>
+            <span class="text-[9px] text-slate-400 mt-1">AI phản hồi ngay</span>
+          </div>
+        </div>
+        <div class="p-3 border-t border-surface-container bg-white">
+          <div class="relative flex items-center">
+            <input id="crmChatInput"
+                   class="w-full bg-surface-container-low border-none rounded-md py-2 px-3 text-xs
+                          focus:ring-1 focus:ring-primary pr-10"
+                   placeholder="Nhập câu hỏi..." type="text"/>
+            <button onclick="sendCrmMessage()"
+                    class="absolute right-2 text-primary hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-[18px]">send</span>
+            </button>
+          </div>
+          <!-- Quick chips -->
+          <div class="flex gap-1.5 mt-2 flex-wrap">
+            <button onclick="fillCrmChat('Top 5 deals tháng này?')"
+                    class="text-[9px] bg-surface-container px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
+              Top 5 deals tháng này?
+            </button>
+            <button onclick="fillCrmChat('Pipeline tháng sau?')"
+                    class="text-[9px] bg-surface-container px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
+              Pipeline tháng sau?
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Toast -->
+<div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<script>
+// ========== DATA ==========
+const DEALS = [
+  { name: 'Hợp đồng VinGroup Q4',       client: 'Vingroup JSC',     value: 450000000, status: 'Negotiating', statusColor: 'bg-surface-container text-on-surface',       owner: 'Hoàng Mai',  initials: 'HM', color: 'bg-indigo-200 text-indigo-700' },
+  { name: 'Triển khai SaaS - Techcom',   client: 'Techcombank',      value: 820000000, status: 'Won',         statusColor: 'bg-secondary-container text-on-secondary-container', owner: 'Anh Tuấn',   initials: 'AT', color: 'bg-emerald-200 text-emerald-700' },
+  { name: 'Cung cấp giải pháp AI - FPT', client: 'FPT Software',     value: 210000000, status: 'Pipeline',    statusColor: 'bg-primary-fixed text-on-primary-fixed-variant',   owner: 'Linh Lê',    initials: 'LL', color: 'bg-sky-200 text-sky-700' },
+  { name: 'Dịch vụ CRM - Momo',          client: 'Momo Group',       value: 350000000, status: 'Qualified',   statusColor: 'bg-indigo-100 text-indigo-700',                    owner: 'Lan Anh',    initials: 'LA', color: 'bg-rose-200 text-rose-700' },
+  { name: 'Nền tảng AI - VNG',           client: 'VNG Corporation',  value: 670000000, status: 'Proposal',    statusColor: 'bg-purple-100 text-purple-700',                    owner: 'Minh Đức',   initials: 'MD', color: 'bg-violet-200 text-violet-700' },
+  { name: 'Automation - Grab Delivery',  client: 'Grab Vietnam',     value: 180000000, status: 'Lead',        statusColor: 'bg-slate-100 text-slate-600',                      owner: 'Hoàng Mai',  initials: 'HM', color: 'bg-indigo-200 text-indigo-700' },
+  { name: 'Analytics Suite - BIDV',      client: 'BIDV Bank',        value: 920000000, status: 'Won',         statusColor: 'bg-secondary-container text-on-secondary-container', owner: 'Anh Tuấn',   initials: 'AT', color: 'bg-emerald-200 text-emerald-700' },
+  { name: 'AI Concierge - Shopee VN',    client: 'Shopee Vietnam',   value: 310000000, status: 'Negotiating', statusColor: 'bg-surface-container text-on-surface',            owner: 'Linh Lê',    initials: 'LL', color: 'bg-sky-200 text-sky-700' },
+  { name: 'ERP Integration - Vincom',    client: 'Vincom Retail',    value: 540000000, status: 'Pipeline',    statusColor: 'bg-primary-fixed text-on-primary-fixed-variant',   owner: 'Lan Anh',    initials: 'LA', color: 'bg-rose-200 text-rose-700' },
+  { name: 'Cloud Migration - Tiki',      client: 'Tiki Corporation', value: 280000000, status: 'Qualified',   statusColor: 'bg-indigo-100 text-indigo-700',                    owner: 'Minh Đức',   initials: 'MD', color: 'bg-violet-200 text-violet-700' },
+  { name: 'HR Automation - FRT',         client: 'FPT Retail',       value: 430000000, status: 'Proposal',    statusColor: 'bg-purple-100 text-purple-700',                    owner: 'Hoàng Mai',  initials: 'HM', color: 'bg-indigo-200 text-indigo-700' },
+  { name: 'Data Platform - Zalopay',     client: 'Zalo Corp',        value: 760000000, status: 'Won',         statusColor: 'bg-secondary-container text-on-secondary-container', owner: 'Anh Tuấn', initials: 'AT', color: 'bg-emerald-200 text-emerald-700' },
+];
+
+const AI_SUGGESTIONS = [
+  { icon: 'phone_callback', title: 'Follow up với Công ty ABC', desc: 'Deal đang ở giai đoạn thương thảo, họ vừa xem báo giá lần 3.', btn: 'Thực hiện', color: 'bg-secondary-container/30 text-secondary', deal: '450M₫' },
+  { icon: 'calendar_today', title: 'Đặt lịch demo cho Deal XYZ', desc: 'Khách hàng phản hồi tích cực qua email sáng nay.', btn: 'Lên lịch', color: 'bg-primary-fixed text-primary', deal: '320M₫' },
+  { icon: 'mail', title: 'Soạn đề xuất cho VNG Corp', desc: 'Chưa gửi đề xuất trong 7 ngày qua. Khuyến nghị: soạn proposal mới.', btn: 'Soạn ngay', color: 'bg-tertiary-fixed text-tertiary', deal: '670M₫' },
+];
+
+const CRM_RESPONSES = [
+  'Deal <strong>Top 5 tháng này</strong>: VinGroup (450M), BIDV (920M), Zalopay (760M), VNG (670M), Techcom (820M). Tổng: 3,620M₫.',
+  'Pipeline tháng sau dự kiến đạt <strong>2.1 tỷ ₫</strong> với 14 deals đang active. Có 3 deals rủi ro cao cần chú ý.',
+  'Win rate trung bình <strong>24.8%</strong>, cao hơn baseline ngành 2.8%. Tiếp tục duy trì strategy follow-up nhanh.',
+  'Có <strong>2 deal</strong> sắp hết hạn trong 7 ngày tới. FPT Retail cần ký gia hạn trước ngày 30/4.',
+];
+
+let dealSortDir = 1;
+let crmResIdx = 0;
+
+// ========== RENDER DEALS ==========
+function renderDeals(data) {
+  const fmt = n => n.toLocaleString('vi-VN') + ' ₫';
+  document.getElementById('dealsTableBody').innerHTML = data.map(d => `
+    <tr class="deal-row transition-colors cursor-default">
+      <td class="px-6 py-4">
+        <div class="font-bold">${d.name}</div>
+        <div class="text-xs text-slate-400">${d.client}</div>
+      </td>
+      <td class="px-6 py-4 font-medium">${fmt(d.value)}</td>
+      <td class="px-6 py-4">
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${d.statusColor}">${d.status}</span>
+      </td>
+      <td class="px-6 py-4">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-full ${d.color} flex items-center justify-center text-[9px] font-bold">${d.initials}</div>
+          <span>${d.owner}</span>
+        </div>
+      </td>
+      <td class="px-6 py-4 text-right">
+        <button class="material-symbols-outlined text-slate-300 hover:text-primary transition-colors">more_vert</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ========== SORT ==========
+function sortDeals(field) {
+  dealSortDir *= -1;
+  const sorted = [...DEALS].sort((a, b) => {
+    if (field === 'name') return dealSortDir * a.name.localeCompare(b.name);
+    return dealSortDir * (a.value - b.value);
+  });
+  renderDeals(sorted);
+}
+
+// ========== SEARCH DEALS ==========
+document.getElementById('dealSearch').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  renderDeals(DEALS.filter(d => d.name.toLowerCase().includes(q) || d.client.toLowerCase().includes(q)));
+});
+
+// ========== AI SUGGESTIONS ==========
+function renderSuggestions() {
+  document.getElementById('aiSuggestions').innerHTML = AI_SUGGESTIONS.map(s => `
+    <div class="group flex items-center justify-between p-4 bg-white/60 hover:bg-white rounded-lg
+                transition-all border border-transparent hover:border-primary/20 shadow-sm">
+      <div class="flex gap-4 items-center">
+        <div class="w-10 h-10 rounded-full ${s.color} flex items-center justify-center">
+          <span class="material-symbols-outlined">${s.icon}</span>
+        </div>
+        <div>
+          <p class="font-bold text-on-surface">${s.title} <span class="text-xs font-normal text-outline">(${s.deal})</span></p>
+          <p class="text-xs text-slate-500">${s.desc}</p>
+        </div>
+      </div>
+      <button onclick="showToast('Đã thực hiện: ${s.title}!')"
+              class="px-4 py-1.5 bg-primary-container text-white text-xs font-bold rounded-md
+                     hover:shadow-md transition-shadow ml-4 whitespace-nowrap">${s.btn}</button>
+    </div>`).join('');
+}
+
+// ========== CRM CHAT ==========
+function sendCrmMessage() {
+  const input = document.getElementById('crmChatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const box = document.getElementById('crmChatMessages');
+  const now = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+  // User message
+  box.insertAdjacentHTML('beforeend', `
+    <div class="flex flex-col items-end">
+      <div class="bg-primary-container text-white p-3 rounded-lg rounded-tr-none shadow-sm leading-relaxed">${msg}</div>
+      <span class="text-[9px] text-slate-400 mt-1">${now}</span>
+    </div>`);
+
+  // Typing indicator
+  box.insertAdjacentHTML('beforeend', `
+    <div id="typing" class="flex gap-1.5 items-center p-3 bg-white rounded-lg rounded-tl-none shadow-sm w-14">
+      <span class="w-1.5 h-1.5 bg-slate-300 rounded-full pulse-dot"></span>
+      <span class="w-1.5 h-1.5 bg-slate-300 rounded-full pulse-dot" style="animation-delay:.2s"></span>
+      <span class="w-1.5 h-1.5 bg-slate-300 rounded-full pulse-dot" style="animation-delay:.4s"></span>
+    </div>`);
+  box.scrollTop = box.scrollHeight;
+
+  setTimeout(() => {
+    document.getElementById('typing')?.remove();
+    const reply = CRM_RESPONSES[crmResIdx % CRM_RESPONSES.length];
+    crmResIdx++;
+    box.insertAdjacentHTML('beforeend', `
+      <div class="flex flex-col items-start">
+        <div class="bg-white p-3 rounded-lg rounded-tl-none shadow-sm leading-relaxed border-l-2 border-primary">${reply}</div>
+        <span class="text-[9px] text-slate-400 mt-1">AI phản hồi ngay</span>
+      </div>`);
+    box.scrollTop = box.scrollHeight;
+  }, 1200);
+}
+
+function fillCrmChat(text) {
+  document.getElementById('crmChatInput').value = text;
+  sendCrmMessage();
+}
+
+document.getElementById('crmChatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendCrmMessage();
+});
+
+// ========== TOAST ==========
+function showToast(msg, type = 'success') {
+  const colors = type === 'error' ? 'bg-error text-white' : 'bg-inverse-surface text-inverse-on-surface';
+  const t = document.createElement('div');
+  t.className = `pointer-events-auto toast-anim flex items-center gap-2 px-5 py-3 rounded-xl
+                 shadow-xl text-sm font-medium ${colors} opacity-0 transition-opacity`;
+  t.innerHTML = `<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">check_circle</span>${msg}`;
+  document.getElementById('toastContainer').appendChild(t);
+  requestAnimationFrame(() => t.classList.replace('opacity-0', 'opacity-100'));
+  setTimeout(() => { t.classList.replace('opacity-100', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+// ========== INIT ==========
+renderDeals(DEALS);
+renderSuggestions();
+</script>
+<script>
+  /* ═══════════════════════════════════════════════════
+     SIDEBAR ACCORDION — Vanilla JS
+     ═══════════════════════════════════════════════════ */
+  const menuState = { module1: false, module2: false };
+
+  function toggleMenu(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    const chevron  = document.getElementById('chevron-' + id);
+    const trigger  = document.getElementById('trigger-' + id);
+    if (!submenu) return;
+    menuState[id] = !menuState[id];
+    if (menuState[id]) {
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    } else {
+      submenu.style.maxHeight = '0';
+      if (chevron) chevron.style.transform = '';
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function handleMenuKey(e, id) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+  }
+
+  function initSidebarAccordion() {
+    ['module1', 'module2'].forEach(function(id) {
+      const submenu = document.getElementById('submenu-' + id);
+      if (!submenu) return;
+      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
+        submenu.style.transition = 'none';
+        menuState[id] = true;
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        var chev = document.getElementById('chevron-' + id);
+        var trig = document.getElementById('trigger-' + id);
+        if (chev) chev.style.transform = 'rotate(90deg)';
+        if (trig) trig.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+  } else {
+    initSidebarAccordion();
+  }
+</script>
+</body>
+</html>

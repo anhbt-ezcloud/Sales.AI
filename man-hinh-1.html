@@ -1,0 +1,1031 @@
+ <!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>AI Sales Agent - Chat tài liệu</title>
+
+  <!-- Tailwind CSS via CDN (giống file gốc) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined (icons) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config: giữ nguyên màu sắc từ design gốc -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-container": "#ffd4a4",
+            "primary-fixed": "#e2dfff",
+            "outline-variant": "#c7c4d8",
+            "on-primary-container": "#dad7ff",
+            "tertiary-container": "#885500",
+            "on-surface-variant": "#464555",
+            "error-container": "#ffdad6",
+            "surface-tint": "#4d44e3",
+            "surface-dim": "#cbdbf5",
+            "inverse-primary": "#c3c0ff",
+            "surface-bright": "#f8f9ff",
+            "background": "#f8f9ff",
+            "on-primary-fixed": "#0f0069",
+            "on-tertiary-fixed": "#2a1700",
+            "on-primary-fixed-variant": "#3323cc",
+            "primary": "#3525cd",
+            "primary-container": "#4f46e5",
+            "secondary-container": "#6cf8bb",
+            "tertiary-fixed": "#ffddb8",
+            "on-secondary-container": "#00714d",
+            "secondary-fixed": "#6ffbbe",
+            "secondary-fixed-dim": "#4edea3",
+            "on-surface": "#0b1c30",
+            "on-secondary-fixed-variant": "#005236",
+            "error": "#ba1a1a",
+            "on-background": "#0b1c30",
+            "inverse-on-surface": "#eaf1ff",
+            "surface-container-low": "#eff4ff",
+            "on-secondary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-fixed-variant": "#653e00",
+            "surface": "#f8f9ff",
+            "on-primary": "#ffffff",
+            "primary-fixed-dim": "#c3c0ff",
+            "on-secondary-fixed": "#002113",
+            "surface-container-highest": "#d3e4fe",
+            "on-error": "#ffffff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "outline": "#777587",
+            "tertiary-fixed-dim": "#ffb95f",
+            "inverse-surface": "#213145",
+            "surface-variant": "#d3e4fe",
+            "surface-container": "#e5eeff",
+            "tertiary": "#684000",
+            "secondary": "#006c49",
+            "surface-container-high": "#dce9ff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel { backdrop-filter: blur(15px); }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* === Hiệu ứng xuất hiện tin nhắn === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .message-appear { animation: fadeInUp 0.28s ease-out; }
+
+    /* === Typing dots === */
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+    .typing-dot { animation: blink 1.3s infinite ease-in-out; }
+    .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+    /* === Hover transition toàn cục === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+
+    /* === Modal animation === */
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-panel { animation: modalIn 0.22s ease-out; }
+
+    /* === Toast === */
+    .toast-enter { animation: fadeInUp 0.25s ease-out; }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen flex overflow-hidden">
+
+<!-- ============================================================
+     SIDEBAR NAV
+     ============================================================ -->
+<aside id="sidebar"
+       class="w-[240px] h-screen sticky top-0 left-0 bg-[#eff4ff] dark:bg-slate-900
+              flex flex-col p-4 space-y-2 shrink-0 z-40 border-r border-outline-variant/10">
+
+  <!-- Brand -->
+  <div class="mb-6 px-2 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+    </div>
+    <div>
+      <h1 class="text-base font-bold text-primary leading-tight">Quản gia AI</h1>
+      <p class="text-[10px] uppercase tracking-widest text-slate-500">Sales Intelligence</p>
+    </div>
+  </div>
+
+  <!-- Navigation chính -->
+  <nav class="flex-1 space-y-0.5 overflow-y-auto">
+    <!-- ── MODULE 1: Chat tài liệu (accordion) ── -->
+    <button
+      id="trigger-module1"
+      aria-expanded="false"
+      aria-controls="submenu-module1"
+      onclick="toggleMenu('module1')"
+      onkeydown="handleMenuKey(event,'module1')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+    >
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">chat</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">Chat tài liệu</span>
+      <span id="chevron-module1" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div
+      id="submenu-module1"
+      role="region"
+      aria-labelledby="trigger-module1"
+      class="overflow-hidden"
+      style="max-height:0;transition:max-height 0.3s ease-in-out;"
+    >
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-1.html" class="flex items-center gap-3 px-3 py-2 rounded-md bg-[#4f46e5] text-white text-sm">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">chat_bubble</span><span>Chat tài liệu</span>
+        </a>
+        <a href="man-hinh-2.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">forum</span><span>Concierge AI</span>
+        </a>
+        <a href="man-hinh-4.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">description</span><span>Thư viện tài liệu</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="border-t border-outline-variant/20 my-1 mx-1"></div>
+
+    <!-- ── MODULE 2: CRM & Công việc (accordion) ── -->
+    <button
+      id="trigger-module2"
+      aria-expanded="false"
+      aria-controls="submenu-module2"
+      onclick="toggleMenu('module2')"
+      onkeydown="handleMenuKey(event,'module2')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+    >
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">business_center</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">CRM &amp; Công việc</span>
+      <span id="chevron-module2" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div
+      id="submenu-module2"
+      role="region"
+      aria-labelledby="trigger-module2"
+      class="overflow-hidden"
+      style="max-height:0;transition:max-height 0.3s ease-in-out;"
+    >
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-7.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">dashboard</span><span>Dashboard CRM</span>
+        </a>
+        <a href="man-hinh-8.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">assignment</span><span>CRM Hub</span>
+        </a>
+        <a href="man-hinh-11.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">support_agent</span><span>Chat CRM</span>
+        </a>
+        <a href="man-hinh-12.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span><span>AI Gợi ý</span>
+        </a>
+        <a href="man-hinh-10.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">view_kanban</span><span>Kanban Deals</span>
+        </a>
+        <a href="man-hinh-9.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">notifications</span>
+          <span class="flex-1">Thông báo</span>
+          <span class="bg-error text-white text-[10px] font-bold px-1.5 rounded-full">5</span>
+        </a>
+        <a href="man-hinh-15.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors text-sm">
+          <span class="material-symbols-outlined text-sm">settings</span><span>Cấu hình CRM</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Footer nav -->
+  <div class="pt-4 border-t border-outline-variant/20 space-y-1">
+    <a href="man-hinh-17.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60 text-sm">
+      <span class="material-symbols-outlined text-sm">manage_accounts</span><span>Cài đặt</span>
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60 text-sm">
+      <span class="material-symbols-outlined">help</span><span>Trợ giúp</span>
+    </a>
+    <a href="man-hinh-16.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60 text-sm">
+      <span class="material-symbols-outlined text-sm">logout</span><span>Đăng xuất</span>
+    </a>
+    <div class="flex items-center gap-3 px-2 pt-2">
+      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold shrink-0">QL</div>
+      <div class="overflow-hidden">
+        <p class="text-xs font-bold truncate">Quản lý Bán hàng</p>
+        <p class="text-[10px] text-slate-500 truncate">admin@aisales.vn</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+  <!-- ---- TOP NAV BAR ---- -->
+  <header class="h-16 w-full sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80
+                 backdrop-blur-[15px] flex justify-between items-center px-6
+                 border-b border-outline-variant/10">
+
+    <!-- Search -->
+    <div class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full w-full max-w-md">
+      <span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+      <input id="globalSearch" type="text"
+             class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400"
+             placeholder="Tìm kiếm tài liệu hoặc tin nhắn..."/>
+    </div>
+
+    <!-- Right controls -->
+    <div class="flex items-center gap-4 ml-4 shrink-0">
+
+      <!-- Company switcher -->
+      <button class="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg
+                     hover:bg-surface-variant transition-colors">
+        <div class="w-2 h-2 bg-secondary rounded-full"></div>
+        <span class="text-xs font-medium text-on-surface">Global Corp S.A.</span>
+        <span class="material-symbols-outlined text-sm">unfold_more</span>
+      </button>
+
+      <!-- Notifications + Account -->
+      <div class="flex items-center gap-1">
+        <button id="notifBtn"
+                class="relative p-2 hover:bg-surface-container-low rounded-full"
+                title="Thông báo">
+          <span class="material-symbols-outlined text-slate-500">notifications</span>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+        </button>
+        <button class="p-2 hover:bg-surface-container-low rounded-full" title="Tài khoản">
+          <span class="material-symbols-outlined text-slate-500">account_circle</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ---- CONTENT CANVAS (2 cột: Thư viện + Chat) ---- -->
+  <section class="flex-1 flex overflow-hidden">
+
+    <!-- ================================================
+         THƯ VIỆN TÀI LIỆU (Document Library)
+         ================================================ -->
+    <div id="docLibrary"
+         class="w-80 bg-surface-container-low/50 border-r border-outline-variant/10
+                flex flex-col p-6 space-y-4 shrink-0">
+
+      <!-- Header thư viện -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Thư viện</h2>
+        <button id="uploadBtn"
+                class="bg-primary hover:bg-primary-container text-white px-3 py-1.5 rounded-xl
+                       text-xs font-semibold flex items-center gap-1.5 shadow-sm
+                       hover:shadow-md active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-sm">add</span>
+          Tải lên
+        </button>
+      </div>
+
+      <!-- Tìm kiếm tài liệu -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+        <input id="docSearch" type="text"
+               class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl
+                      pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20
+                      focus:border-primary/30 placeholder:text-outline/60 transition-all"
+               placeholder="Tìm tài liệu..."/>
+      </div>
+
+      <!-- Danh sách tài liệu (scrollable) -->
+      <div id="docList" class="space-y-3 overflow-y-auto pr-1 scrollbar-hide flex-1">
+
+        <!-- === Doc 1: Processed === -->
+        <div class="doc-card p-4 bg-surface-container-lowest rounded-xl
+                    shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)]
+                    border border-transparent hover:border-primary/20 cursor-pointer
+                    hover:shadow-[0_6px_24px_-8px_rgba(53,37,205,0.18)]
+                    active:scale-[0.99] transition-all"
+             data-name="Hợp đồng A.pdf">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary">description</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate text-on-surface">Hợp đồng A.pdf</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">2.4 MB • 12 phút trước</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="status-badge px-2 py-0.5 bg-secondary-container text-on-secondary-container
+                         text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+            <button class="p-1 hover:text-primary text-slate-400" title="Tuỳ chọn">
+              <span class="material-symbols-outlined text-xs">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- === Doc 2: Processing (không thể click) === -->
+        <div class="doc-card p-4 bg-surface-container-lowest rounded-xl
+                    shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)]
+                    opacity-70 border border-transparent transition-all"
+             data-name="Quy trình sales.docx">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-slate-400">article</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate text-on-surface">Quy trình sales.docx</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">1.1 MB • 1 giờ trước</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center">
+            <span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container
+                         text-[10px] font-bold rounded-full uppercase tracking-tighter">Processing</span>
+          </div>
+        </div>
+
+        <!-- === Doc 3: Processed === -->
+        <div class="doc-card p-4 bg-surface-container-lowest rounded-xl
+                    shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)]
+                    border border-transparent hover:border-primary/20 cursor-pointer
+                    hover:shadow-[0_6px_24px_-8px_rgba(53,37,205,0.18)]
+                    active:scale-[0.99] transition-all"
+             data-name="Báo cáo Q3-2023.pdf">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary">picture_as_pdf</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate text-on-surface">Báo cáo Q3-2023.pdf</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">5.8 MB • 3 giờ trước</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="status-badge px-2 py-0.5 bg-secondary-container text-on-secondary-container
+                         text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+            <button class="p-1 hover:text-primary text-slate-400" title="Tuỳ chọn">
+              <span class="material-symbols-outlined text-xs">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- === Doc 4: Processed === -->
+        <div class="doc-card p-4 bg-surface-container-lowest rounded-xl
+                    shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)]
+                    border border-transparent hover:border-primary/20 cursor-pointer
+                    hover:shadow-[0_6px_24px_-8px_rgba(53,37,205,0.18)]
+                    active:scale-[0.99] transition-all"
+             data-name="Bảng giá 2024.xlsx">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined" style="color:#15803d;">table_chart</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate text-on-surface">Bảng giá 2024.xlsx</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">0.8 MB • 5 giờ trước</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="status-badge px-2 py-0.5 bg-secondary-container text-on-secondary-container
+                         text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+            <button class="p-1 hover:text-primary text-slate-400" title="Tuỳ chọn">
+              <span class="material-symbols-outlined text-xs">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- === Doc 5: Processed === -->
+        <div class="doc-card p-4 bg-surface-container-lowest rounded-xl
+                    shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)]
+                    border border-transparent hover:border-primary/20 cursor-pointer
+                    hover:shadow-[0_6px_24px_-8px_rgba(53,37,205,0.18)]
+                    active:scale-[0.99] transition-all"
+             data-name="Hợp đồng B - Đại lý.pdf">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary">description</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate text-on-surface">Hợp đồng B - Đại lý.pdf</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">3.2 MB • 1 ngày trước</p>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="status-badge px-2 py-0.5 bg-secondary-container text-on-secondary-container
+                         text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+            <button class="p-1 hover:text-primary text-slate-400" title="Tuỳ chọn">
+              <span class="material-symbols-outlined text-xs">more_vert</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty state khi search không có kết quả -->
+        <div id="docEmptyState" class="hidden text-center py-12 text-slate-400">
+          <span class="material-symbols-outlined text-4xl mb-3 block">search_off</span>
+          <p class="text-sm">Không tìm thấy tài liệu</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================
+         CHAT INTERFACE
+         ================================================ -->
+    <div class="flex-1 bg-white flex flex-col min-w-0">
+
+      <!-- Chat header -->
+      <div class="px-8 py-4 border-b border-outline-variant/10 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary-container flex items-center
+                      justify-center text-white shadow-lg shrink-0">
+            <span class="material-symbols-outlined"
+                  style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-on-surface">Trợ lý AI Sales</h3>
+            <p id="aiStatus" class="text-xs text-secondary font-medium">Trực tuyến • Sẵn sàng hỗ trợ</p>
+          </div>
+        </div>
+
+        <div class="flex gap-1">
+          <button class="p-2 hover:bg-surface-container-low rounded-lg text-slate-400 hover:text-primary"
+                  title="Chia sẻ cuộc trò chuyện">
+            <span class="material-symbols-outlined text-sm">share</span>
+          </button>
+          <button class="p-2 hover:bg-surface-container-low rounded-lg text-slate-400 hover:text-primary"
+                  title="Tải xuống lịch sử chat">
+            <span class="material-symbols-outlined text-sm">download</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ---- Chat messages body ---- -->
+      <div id="chatBody" class="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+
+        <!-- Tin nhắn chào của bot -->
+        <div class="flex gap-4 max-w-3xl message-appear">
+          <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center
+                      justify-center shrink-0 border border-outline-variant/20">
+            <span class="material-symbols-outlined text-primary text-sm"
+                  style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          </div>
+          <div class="space-y-4">
+            <div class="bg-surface-container-low p-6 rounded-2xl rounded-tl-none
+                        leading-relaxed text-on-surface text-sm">
+              Chào bạn! Tôi đã phân tích xong tài liệu <strong>"Hợp đồng A.pdf"</strong>.
+              Bạn có muốn biết về các điều khoản thanh toán hay các mốc bàn giao dự án không?
+            </div>
+          </div>
+        </div>
+
+        <!-- Tin nhắn người dùng -->
+        <div class="flex gap-4 max-w-3xl ml-auto flex-row-reverse message-appear">
+          <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-md">
+            <span class="material-symbols-outlined text-white text-sm">person</span>
+          </div>
+          <div class="bg-primary text-white p-6 rounded-2xl rounded-tr-none text-sm shadow-sm">
+            Cho tôi biết thời hạn thanh toán tối đa được quy định trong hợp đồng này là bao lâu?
+          </div>
+        </div>
+
+        <!-- Phản hồi bot có trích dẫn -->
+        <div class="flex gap-4 max-w-3xl message-appear">
+          <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center
+                      justify-center shrink-0 border border-outline-variant/20">
+            <span class="material-symbols-outlined text-primary text-sm"
+                  style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          </div>
+          <div class="space-y-4">
+            <div class="bg-surface-container-low p-6 rounded-2xl rounded-tl-none
+                        leading-relaxed text-on-surface text-sm">
+              <p>Theo Điều 4, Khoản 2 của <strong>Hợp đồng A.pdf</strong>,
+                 thời hạn thanh toán được quy định như sau:</p>
+              <ul class="list-disc ml-4 mt-2 space-y-1">
+                <li>Thời hạn thanh toán tối đa là <strong>30 ngày làm việc</strong>
+                    kể từ ngày nhận được hóa đơn hợp lệ.</li>
+                <li>Nếu quá hạn, bên mua sẽ phải chịu mức lãi suất chậm trả là
+                    <strong>0.05% mỗi ngày</strong>.</li>
+              </ul>
+              <!-- Trích dẫn nguồn -->
+              <div class="mt-4 pt-4 border-t border-outline-variant/20">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  Nguồn trích dẫn
+                </p>
+                <div class="flex gap-2 flex-wrap">
+                  <button class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-lg
+                                 text-xs flex items-center gap-2 hover:shadow-md hover:border-primary/30
+                                 cursor-pointer transition-all">
+                    <span class="material-symbols-outlined text-primary text-xs">bookmark</span>
+                    <span>Trang 4, Mục 4.2</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end #chatBody -->
+
+      <!-- ---- Input area ---- -->
+      <div class="p-8 border-t border-outline-variant/5 shrink-0">
+        <div class="max-w-4xl mx-auto relative group">
+          <!-- Glow ambient -->
+          <div class="absolute inset-0 bg-primary/5 rounded-2xl blur-xl
+                      group-focus-within:bg-primary/10 transition-all pointer-events-none"></div>
+
+          <!-- Input box -->
+          <div class="relative bg-white border border-outline-variant/30 rounded-2xl shadow-sm
+                      flex items-end p-2 focus-within:border-primary/50 focus-within:shadow-md transition-all">
+            <button class="p-3 text-slate-400 hover:text-primary" title="Đính kèm tệp">
+              <span class="material-symbols-outlined">attach_file</span>
+            </button>
+
+            <textarea id="chatInput"
+                      class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2
+                             resize-none max-h-32 scrollbar-hide placeholder:text-slate-400"
+                      placeholder="Hỏi AI về tài liệu của bạn..." rows="1"></textarea>
+
+            <button class="p-3 text-slate-400 hover:text-primary" title="Nhập giọng nói">
+              <span class="material-symbols-outlined">mic</span>
+            </button>
+
+            <button id="sendBtn"
+                    class="bg-primary text-white p-3 rounded-xl shadow-lg
+                           hover:scale-105 hover:shadow-primary/30 active:scale-95
+                           transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              <span class="material-symbols-outlined"
+                    style="font-variation-settings: 'FILL' 1;">send</span>
+            </button>
+          </div>
+
+          <p class="text-center text-[10px] text-slate-400 mt-4 font-medium uppercase tracking-widest">
+            AI có thể nhầm lẫn. Vui lòng kiểm tra lại thông tin quan trọng.
+          </p>
+        </div>
+      </div>
+
+    </div><!-- end chat interface -->
+  </section>
+</main>
+
+<!-- ============================================================
+     MODAL: TẢI LÊN TÀI LIỆU
+     ============================================================ -->
+<div id="uploadModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+  <!-- Backdrop -->
+  <div id="modalBackdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+  <!-- Modal panel -->
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/10">
+      <h3 class="font-bold text-on-surface">Tải lên tài liệu</h3>
+      <button id="closeModal"
+              class="p-1.5 hover:bg-surface-container-low rounded-lg text-slate-400 hover:text-on-surface">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+
+    <!-- Dropzone -->
+    <div class="p-6">
+      <div id="dropzone"
+           class="border-2 border-dashed border-outline-variant/40 rounded-xl p-10 text-center
+                  hover:border-primary/40 hover:bg-primary/[0.02] transition-all cursor-pointer">
+        <span class="material-symbols-outlined text-5xl text-slate-300 mb-4 block"
+              style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+        <p class="text-sm font-semibold text-on-surface">Kéo thả tệp vào đây</p>
+        <p class="text-xs text-slate-400 mt-1">hoặc</p>
+        <label for="fileInput"
+               class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary text-white
+                      text-xs font-semibold rounded-xl cursor-pointer hover:bg-primary-container">
+          <span class="material-symbols-outlined text-sm">folder_open</span>
+          Chọn tệp
+        </label>
+        <input id="fileInput" type="file" class="hidden"
+               accept=".pdf,.doc,.docx,.xlsx,.xls,.txt,.ppt,.pptx" multiple/>
+        <p class="text-[10px] text-slate-400 mt-3">PDF, DOCX, XLSX, PPT • Tối đa 50 MB</p>
+      </div>
+
+      <!-- File preview list -->
+      <div id="filePreview" class="mt-4 space-y-2 hidden">
+        <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tệp đã chọn</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex gap-3 px-6 py-4 border-t border-outline-variant/10 bg-surface-container-low/30">
+      <button id="cancelUpload"
+              class="flex-1 py-2.5 border border-outline-variant/30 text-sm font-semibold
+                     rounded-xl hover:bg-surface-container transition-colors">
+        Hủy
+      </button>
+      <button id="confirmUpload"
+              class="flex-1 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl
+                     hover:bg-primary-container active:scale-[0.98] disabled:opacity-40
+                     disabled:cursor-not-allowed transition-all"
+              disabled>
+        Tải lên
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // ================================================================
+  // DỮ LIỆU MẪU: Phản hồi AI demo
+  // ================================================================
+  const AI_RESPONSES = [
+    {
+      text: `Theo tài liệu, điều khoản này được quy định tại mục 3.1. Cụ thể, bên cung cấp có
+             nghĩa vụ hoàn thành công việc trong vòng <strong>14 ngày làm việc</strong>
+             kể từ ngày ký hợp đồng.`,
+      citation: 'Trang 3, Mục 3.1'
+    },
+    {
+      text: `Theo <strong>Điều khoản 7</strong>, các bên có quyền chấm dứt hợp đồng với thông báo
+             trước <strong>30 ngày</strong> bằng văn bản. Trong trường hợp vi phạm nghiêm trọng,
+             thời gian này có thể được rút ngắn xuống còn <strong>5 ngày</strong>.`,
+      citation: 'Trang 7, Điều khoản 7'
+    },
+    {
+      text: `Dựa trên bảng giá, gói dịch vụ tiêu chuẩn có mức phí là
+             <strong>15,000,000 VNĐ/năm</strong>. Gói cao cấp là
+             <strong>45,000,000 VNĐ/năm</strong> và bao gồm hỗ trợ ưu tiên 24/7.`,
+      citation: 'Trang 12, Bảng giá dịch vụ'
+    },
+    {
+      text: `Theo quy trình sales, có <strong>5 bước chính</strong>:
+             (1) Tìm kiếm khách hàng tiềm năng, (2) Tiếp cận ban đầu,
+             (3) Trình bày giải pháp, (4) Đàm phán, (5) Chốt hợp đồng.`,
+      citation: 'Trang 2, Quy trình tổng quan'
+    },
+    {
+      text: `Tỷ lệ chuyển đổi trung bình trong Q3-2023 đạt <strong>24.7%</strong>,
+             tăng <strong>+3.2%</strong> so với cùng kỳ năm ngoái. Doanh thu tổng đạt
+             <strong>4.8 tỷ VNĐ</strong>, vượt chỉ tiêu 12%.`,
+      citation: 'Trang 5, Báo cáo hiệu suất'
+    },
+  ];
+
+  let aiResponseIdx = 0;
+
+  // ================================================================
+  // SEARCH: Lọc tài liệu real-time
+  // ================================================================
+  const docSearch = document.getElementById('docSearch');
+  const docCards  = document.querySelectorAll('.doc-card');
+  const docEmpty  = document.getElementById('docEmptyState');
+
+  docSearch.addEventListener('input', () => {
+    const q = docSearch.value.toLowerCase().trim();
+    let count = 0;
+
+    docCards.forEach(card => {
+      const name = (card.dataset.name || '').toLowerCase();
+      const show = name.includes(q);
+      card.classList.toggle('hidden', !show);
+      if (show) count++;
+    });
+
+    docEmpty.classList.toggle('hidden', count > 0);
+  });
+
+  // ================================================================
+  // CLICK TÀI LIỆU: Highlight card + cập nhật context trong header
+  // ================================================================
+  docCards.forEach(card => {
+    card.addEventListener('click', () => {
+      // Chỉ cho phép click tài liệu đã xử lý xong (có status-badge)
+      if (!card.querySelector('.status-badge')) return;
+
+      // Reset tất cả
+      docCards.forEach(c => {
+        c.classList.remove('border-primary/30', '!shadow-[0_6px_24px_-8px_rgba(53,37,205,0.25)]');
+      });
+
+      // Highlight card được chọn
+      card.classList.add('border-primary/30');
+
+      const docName = card.dataset.name;
+      const statusEl = document.getElementById('aiStatus');
+      statusEl.textContent = `Đang phân tích: ${docName}`;
+      statusEl.classList.replace('text-secondary', 'text-tertiary');
+
+      setTimeout(() => {
+        statusEl.textContent = 'Trực tuyến • Sẵn sàng hỗ trợ';
+        statusEl.classList.replace('text-tertiary', 'text-secondary');
+      }, 2000);
+    });
+  });
+
+  // ================================================================
+  // CHAT: Gửi tin nhắn
+  // ================================================================
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn   = document.getElementById('sendBtn');
+  const chatBody  = document.getElementById('chatBody');
+
+  // Auto-resize textarea
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + 'px';
+  });
+
+  // Enter gửi, Shift+Enter xuống dòng
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    appendMessage('user', text);
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+
+    const typingId = showTypingIndicator();
+
+    // Giả lập AI suy nghĩ 1.2–2s
+    setTimeout(() => {
+      removeTypingIndicator(typingId);
+      const resp = AI_RESPONSES[aiResponseIdx % AI_RESPONSES.length];
+      aiResponseIdx++;
+      appendMessage('bot', resp.text, resp.citation);
+    }, 1200 + Math.random() * 800);
+  }
+
+  /** Thêm bong bóng tin nhắn vào chat */
+  function appendMessage(role, html, citation = null) {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('message-appear');
+
+    if (role === 'user') {
+      wrapper.classList.add('flex', 'gap-4', 'max-w-3xl', 'ml-auto', 'flex-row-reverse');
+      wrapper.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-md">
+          <span class="material-symbols-outlined text-white text-sm">person</span>
+        </div>
+        <div class="bg-primary text-white p-6 rounded-2xl rounded-tr-none text-sm shadow-sm">
+          ${escapeHtml(html)}
+        </div>`;
+    } else {
+      wrapper.classList.add('flex', 'gap-4', 'max-w-3xl');
+
+      const citationHtml = citation ? `
+        <div class="mt-4 pt-4 border-t border-outline-variant/20">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Nguồn trích dẫn</p>
+          <div class="flex gap-2 flex-wrap">
+            <button class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-lg
+                           text-xs flex items-center gap-2 hover:shadow-md hover:border-primary/30 transition-all">
+              <span class="material-symbols-outlined text-primary text-xs">bookmark</span>
+              <span>${citation}</span>
+            </button>
+          </div>
+        </div>` : '';
+
+      wrapper.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center
+                    shrink-0 border border-outline-variant/20">
+          <span class="material-symbols-outlined text-primary text-sm"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-surface-container-low p-6 rounded-2xl rounded-tl-none leading-relaxed text-on-surface text-sm">
+            ${html}${citationHtml}
+          </div>
+        </div>`;
+    }
+
+    chatBody.appendChild(wrapper);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  /** Hiển thị typing indicator, trả về id để xoá sau */
+  function showTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const div = document.createElement('div');
+    div.id = id;
+    div.classList.add('flex', 'gap-4', 'max-w-3xl', 'message-appear');
+    div.innerHTML = `
+      <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center
+                  shrink-0 border border-outline-variant/20">
+        <span class="material-symbols-outlined text-primary text-sm"
+              style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+      </div>
+      <div class="bg-surface-container-low px-5 py-4 rounded-2xl rounded-tl-none flex items-center gap-1.5">
+        <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+        <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+        <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+      </div>`;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  /** Escape HTML để tránh XSS từ input người dùng */
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // ================================================================
+  // MODAL: Tải lên tài liệu
+  // ================================================================
+  const uploadBtn    = document.getElementById('uploadBtn');
+  const uploadModal  = document.getElementById('uploadModal');
+  const modalBack    = document.getElementById('modalBackdrop');
+  const closeModal   = document.getElementById('closeModal');
+  const cancelUpload = document.getElementById('cancelUpload');
+  const confirmUpload= document.getElementById('confirmUpload');
+  const fileInput    = document.getElementById('fileInput');
+  const filePreview  = document.getElementById('filePreview');
+  const dropzone     = document.getElementById('dropzone');
+
+  function openUploadModal()  {
+    uploadModal.classList.remove('hidden');
+    uploadModal.classList.add('flex');
+  }
+
+  function closeUploadModal() {
+    uploadModal.classList.add('hidden');
+    uploadModal.classList.remove('flex');
+    fileInput.value = '';
+    filePreview.innerHTML =
+      '<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tệp đã chọn</p>';
+    filePreview.classList.add('hidden');
+    confirmUpload.disabled = true;
+    confirmUpload.textContent = 'Tải lên';
+  }
+
+  uploadBtn.addEventListener('click', openUploadModal);
+  closeModal.addEventListener('click', closeUploadModal);
+  cancelUpload.addEventListener('click', closeUploadModal);
+  modalBack.addEventListener('click', closeUploadModal);
+
+  // Xử lý chọn file
+  fileInput.addEventListener('change', () => renderFilePreview(fileInput.files));
+
+  // Drag & drop
+  dropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropzone.classList.add('border-primary/60', 'bg-primary/[0.04]');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]');
+  });
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]');
+    renderFilePreview(e.dataTransfer.files);
+  });
+
+  function renderFilePreview(files) {
+    if (!files || files.length === 0) return;
+    filePreview.innerHTML =
+      '<p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Tệp đã chọn</p>';
+    filePreview.classList.remove('hidden');
+
+    Array.from(files).forEach(f => {
+      const size = (f.size / 1024 / 1024).toFixed(2);
+      const item = document.createElement('div');
+      item.className = 'flex items-center gap-3 p-3 bg-surface-container-low rounded-xl';
+      item.innerHTML = `
+        <span class="material-symbols-outlined text-primary text-sm">description</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold truncate">${escapeHtml(f.name)}</p>
+          <p class="text-[10px] text-slate-500">${size} MB</p>
+        </div>
+        <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>`;
+      filePreview.appendChild(item);
+    });
+
+    confirmUpload.disabled = false;
+  }
+
+  // Xác nhận tải lên (demo)
+  confirmUpload.addEventListener('click', () => {
+    confirmUpload.textContent = 'Đang tải lên...';
+    confirmUpload.disabled = true;
+
+    setTimeout(() => {
+      closeUploadModal();
+      showToast('Tải lên thành công! Đang xử lý tài liệu...');
+    }, 1800);
+  });
+
+  // ================================================================
+  // TOAST NOTIFICATION
+  // ================================================================
+  function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = [
+      'fixed bottom-6 left-1/2 -translate-x-1/2',
+      'bg-on-surface text-inverse-on-surface',
+      'px-5 py-3 rounded-xl shadow-xl z-[200]',
+      'text-sm font-medium flex items-center gap-2',
+      'opacity-0 translate-y-4 transition-all duration-300'
+    ].join(' ');
+    toast.innerHTML = `<span class="material-symbols-outlined text-sm text-secondary-container">check_circle</span> ${message}`;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.replace('opacity-0', 'opacity-100');
+      toast.classList.replace('translate-y-4', 'translate-y-0');
+    });
+
+    setTimeout(() => {
+      toast.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════════
+     SIDEBAR ACCORDION — Vanilla JS
+     ═══════════════════════════════════════════════════ */
+  const menuState = { module1: false, module2: false };
+
+  function toggleMenu(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    const chevron  = document.getElementById('chevron-' + id);
+    const trigger  = document.getElementById('trigger-' + id);
+    if (!submenu) return;
+    menuState[id] = !menuState[id];
+    if (menuState[id]) {
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    } else {
+      submenu.style.maxHeight = '0';
+      if (chevron) chevron.style.transform = '';
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function handleMenuKey(e, id) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+  }
+
+  function initSidebarAccordion() {
+    ['module1', 'module2'].forEach(function(id) {
+      const submenu = document.getElementById('submenu-' + id);
+      if (!submenu) return;
+      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
+        submenu.style.transition = 'none';
+        menuState[id] = true;
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        var chev = document.getElementById('chevron-' + id);
+        var trig = document.getElementById('trigger-' + id);
+        if (chev) chev.style.transform = 'rotate(90deg)';
+        if (trig) trig.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+  } else {
+    initSidebarAccordion();
+  }
+</script>
+</body>
+</html>

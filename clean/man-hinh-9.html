@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Thông báo & Inbox - AI Sales Agent</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#3525cd", "primary-container": "#4f46e5", "primary-fixed": "#e2dfff",
+            "primary-fixed-dim": "#c3c0ff", "on-primary": "#ffffff", "on-primary-container": "#dad7ff",
+            "on-primary-fixed": "#0f0069", "on-primary-fixed-variant": "#3323cc",
+            "secondary": "#006c49", "secondary-container": "#6cf8bb", "secondary-fixed": "#6ffbbe",
+            "on-secondary": "#ffffff", "on-secondary-container": "#00714d",
+            "tertiary": "#684000", "tertiary-fixed": "#ffddb8",
+            "on-tertiary": "#ffffff", "on-tertiary-fixed": "#2a1700",
+            "error": "#ba1a1a", "error-container": "#ffdad6", "on-error": "#ffffff", "on-error-container": "#93000a",
+            "surface": "#f8f9ff", "surface-container-lowest": "#ffffff", "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff", "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe", "surface-variant": "#d3e4fe", "surface-tint": "#4d44e3",
+            "on-surface": "#0b1c30", "on-surface-variant": "#464555",
+            "background": "#f8f9ff", "on-background": "#0b1c30",
+            "outline": "#777587", "outline-variant": "#c7c4d8",
+            "inverse-surface": "#213145", "inverse-on-surface": "#eaf1ff", "inverse-primary": "#c3c0ff"
+          },
+          borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+          fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+    a, button { transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, transform .15s; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation: fadeInUp .3s ease-out both; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse-glow { animation: pulse-dot 1.8s ease-in-out infinite; }
+    @keyframes toast-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .toast-anim { animation: toast-in .25s ease-out; }
+    .notif-card.read .unread-dot { display: none; }
+    .notif-card.read { opacity: 0.75; }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+
+<!-- ===============================================================
+     TOPBAR
+     =============================================================== -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-outline-variant/10
+               flex justify-between items-center h-16 px-6">
+  <div class="flex items-center gap-6">
+    <a href="man-hinh-7.html" class="flex items-center gap-2 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+        <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+      </div>
+      <span class="text-base font-bold text-primary">Quản gia AI</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-1">
+      <!-- Module 1: Chat tài liệu -->
+      <div class="flex items-center gap-1 px-2 py-1 rounded-md">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Chat tài liệu:</span>
+        <a href="man-hinh-1.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Chat</a>
+        <a href="man-hinh-2.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Concierge</a>
+        <a href="man-hinh-4.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Thư viện</a>
+      </div>
+      <div class="h-6 w-px bg-slate-200 mx-1"></div>
+      <!-- Module 2: CRM & Công việc -->
+      <div class="flex items-center gap-1 px-2 py-1 rounded-md">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CRM &amp; Công việc:</span>
+        <a href="man-hinh-7.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Dashboard</a>
+        <a href="man-hinh-8.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">CRM Hub</a>
+        <a href="man-hinh-9.html" class="text-primary bg-indigo-50 font-semibold px-2 h-8 flex items-center text-xs rounded">Thông báo</a>
+        <a href="man-hinh-10.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Kanban</a>
+        <a href="man-hinh-11.html" class="text-slate-500 hover:text-primary px-2 h-8 flex items-center text-xs transition-colors rounded">Chat CRM</a>
+      </div>
+    </nav>
+  </div>
+  <div class="flex items-center gap-4">
+    <button class="relative p-2 hover:bg-surface-container rounded-full text-primary">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">notifications</span>
+      <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+    </button>
+    <a href="man-hinh-1.html" class="p-2 hover:bg-surface-container rounded-full text-slate-500">
+      <span class="material-symbols-outlined">chat_bubble</span>
+    </a>
+    <a href="#" class="p-2 hover:bg-surface-container rounded-full text-slate-500">
+      <span class="material-symbols-outlined">settings</span>
+    </a>
+    <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">QL</div>
+  </div>
+</header>
+
+<!-- ===============================================================
+     MAIN LAYOUT
+     =============================================================== -->
+<main class="pt-20 px-6 max-w-[1400px] mx-auto flex gap-6 pb-12">
+
+  <!-- ====== LEFT: Filter Sidebar ====== -->
+  <aside class="w-[260px] flex-shrink-0">
+    <div class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-6 sticky top-24">
+
+      <!-- Search -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+        <input id="notifSearch" type="text" placeholder="Tìm thông báo..."
+               class="w-full pl-9 pr-4 py-2 bg-white border-none rounded-lg text-sm
+                      focus:ring-2 focus:ring-primary/20 shadow-sm"/>
+      </div>
+
+      <!-- Trạng thái -->
+      <section>
+        <h3 class="text-[11px] font-bold uppercase tracking-widest text-outline mb-3">Trạng thái</h3>
+        <nav class="flex flex-col gap-1" id="statusFilters">
+          <button data-filter="all"
+                  class="filter-btn active flex justify-between items-center px-3 py-2 bg-indigo-50 text-primary
+                         rounded-lg text-sm font-medium text-left">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">inbox</span>Tất cả</span>
+            <span id="countAll" class="text-xs font-bold">0</span>
+          </button>
+          <button data-filter="unread"
+                  class="filter-btn flex justify-between items-center px-3 py-2 text-slate-600
+                         hover:bg-slate-100/60 rounded-lg text-sm transition-colors text-left">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">mark_email_unread</span>Chưa đọc</span>
+            <span id="countUnread" class="text-xs bg-error text-white px-1.5 rounded-full font-bold">0</span>
+          </button>
+          <button data-filter="mentioned"
+                  class="filter-btn flex justify-between items-center px-3 py-2 text-slate-600
+                         hover:bg-slate-100/60 rounded-lg text-sm transition-colors text-left">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">alternate_email</span>Được nhắc tới</span>
+          </button>
+          <button data-filter="resolved"
+                  class="filter-btn flex justify-between items-center px-3 py-2 text-slate-600
+                         hover:bg-slate-100/60 rounded-lg text-sm transition-colors text-left">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">check_circle</span>Đã xử lý</span>
+          </button>
+        </nav>
+      </section>
+
+      <!-- Mức độ -->
+      <section>
+        <h3 class="text-[11px] font-bold uppercase tracking-widest text-outline mb-3">Mức độ</h3>
+        <div class="flex flex-col gap-1">
+          <button data-urgency="urgent" onclick="filterByUrgency(this)"
+                  class="urgency-btn flex items-center justify-between px-3 py-2 text-sm text-on-surface-variant
+                         hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="flex items-center gap-3">
+              <span class="w-2 h-2 rounded-full bg-error pulse-glow"></span>Khẩn cấp
+            </span>
+            <span class="text-xs font-semibold" id="urgCount">2</span>
+          </button>
+          <button data-urgency="normal" onclick="filterByUrgency(this)"
+                  class="urgency-btn flex items-center justify-between px-3 py-2 text-sm text-on-surface-variant
+                         hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Bình thường</span>
+            <span class="text-xs">15</span>
+          </button>
+          <button data-urgency="info" onclick="filterByUrgency(this)"
+                  class="urgency-btn flex items-center justify-between px-3 py-2 text-sm text-on-surface-variant
+                         hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-slate-400"></span>Thông tin</span>
+            <span class="text-xs">7</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Loại thông báo -->
+      <section>
+        <h3 class="text-[11px] font-bold uppercase tracking-widest text-outline mb-3">Loại thông báo</h3>
+        <div class="flex flex-col gap-1" id="typeFilters">
+          <button data-type="deal" class="type-btn flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="material-symbols-outlined text-sm">trending_up</span>Deal cập nhật
+          </button>
+          <button data-type="task" class="type-btn flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="material-symbols-outlined text-sm">task_alt</span>Task đến hạn
+          </button>
+          <button data-type="email" class="type-btn flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="material-symbols-outlined text-sm">mail</span>Email khách hàng
+          </button>
+          <button data-type="ai" class="type-btn flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="material-symbols-outlined text-sm">auto_awesome</span>AI gợi ý
+          </button>
+          <button data-type="system" class="type-btn flex items-center gap-3 px-3 py-2 text-sm text-on-surface-variant hover:bg-slate-100/60 rounded-lg w-full text-left transition-colors">
+            <span class="material-symbols-outlined text-sm">settings_input_component</span>System
+          </button>
+        </div>
+      </section>
+
+      <!-- Nguồn CRM -->
+      <section>
+        <h3 class="text-[11px] font-bold uppercase tracking-widest text-outline mb-3">Nguồn CRM</h3>
+        <div class="flex flex-col gap-3 px-1">
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" checked class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary"/>
+            <span class="text-sm text-on-surface-variant group-hover:text-primary transition-colors">Salesforce</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" checked class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary"/>
+            <span class="text-sm text-on-surface-variant group-hover:text-primary transition-colors">HubSpot</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group">
+            <input type="checkbox" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary"/>
+            <span class="text-sm text-on-surface-variant group-hover:text-primary transition-colors">Pipedrive</span>
+          </label>
+        </div>
+      </section>
+
+      <button onclick="resetFilters()"
+              class="text-xs text-outline hover:text-primary text-center py-2 transition-colors">
+        Xóa bộ lọc
+      </button>
+    </div>
+  </aside>
+
+  <!-- ====== RIGHT: Notifications Feed ====== -->
+  <section class="flex-1 flex flex-col gap-6 min-w-0">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-on-surface">Inbox</h1>
+        <p class="text-sm text-on-surface-variant" id="notifSubtitle">Hiển thị 24 thông báo từ tất cả các nguồn</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="markAllRead()"
+                class="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5 rounded-lg transition-colors">
+          Đánh dấu tất cả đã đọc
+        </button>
+        <div class="relative">
+          <button onclick="toggleSort()"
+                  class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-lg text-sm font-medium
+                         hover:bg-surface-container transition-colors">
+            <span id="sortLabel">Mới nhất</span>
+            <span class="material-symbols-outlined text-sm">expand_more</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification list -->
+    <div id="notifList" class="flex flex-col gap-8">
+      <!-- populated by JS -->
+    </div>
+  </section>
+</main>
+
+<!-- Toast -->
+<div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<script>
+// ========== DATA ==========
+const NOTIFICATIONS = [
+  {
+    group: 'Hôm nay', urgency: 'urgent', type: 'deal',
+    borderColor: 'border-error', iconBg: 'bg-error/10', iconColor: 'text-error', icon: 'trending_up',
+    title: 'Deal VNG Corp chuyển sang Negotiation',
+    body: 'Giá trị deal dự kiến tăng thêm 25% sau buổi họp sáng nay.',
+    source: 'HubSpot', time: '2 phút trước', unread: true,
+    actionLabel: 'Xem deal', actionHref: 'man-hinh-8.html',
+  },
+  {
+    group: 'Hôm nay', urgency: 'normal', type: 'task',
+    borderColor: 'border-amber-500', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-600', icon: 'task_alt',
+    title: 'Task "Gửi hợp đồng" đến hạn vào 14:00 hôm nay',
+    body: 'Deal FPT Retail đang chờ hợp đồng. Cần xử lý trong 2 giờ tới.',
+    source: 'Salesforce', time: '8 phút trước', unread: true,
+    actionLabel: 'Xem task', actionHref: 'man-hinh-8.html',
+  },
+  {
+    group: 'Hôm nay', urgency: 'info', type: 'ai',
+    borderColor: 'border-secondary', iconBg: 'bg-secondary-container/50', iconColor: 'text-on-secondary-container', icon: 'auto_awesome',
+    title: 'AI đề xuất: Follow-up Công ty XYZ trong 24h',
+    body: 'AI phát hiện khách hàng đã mở email 3 lần nhưng chưa phản hồi. Thời điểm ideal để liên hệ.',
+    source: 'AI Insights', time: '15 phút trước', unread: true,
+    actionLabel: 'Xem gợi ý', actionHref: 'man-hinh-8.html',
+  },
+  {
+    group: 'Hôm nay', urgency: 'normal', type: 'email',
+    borderColor: 'border-indigo-400', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', icon: 'mail',
+    title: 'Email mới từ Techcombank - Yêu cầu demo',
+    body: 'Chị Hà Linh (Techcombank) muốn đặt lịch demo giải pháp AI Agent vào tuần tới.',
+    source: 'HubSpot', time: '32 phút trước', unread: false,
+    actionLabel: 'Trả lời email', actionHref: 'man-hinh-8.html',
+  },
+  {
+    group: 'Hôm nay', urgency: 'info', type: 'system',
+    borderColor: 'border-outline-variant', iconBg: 'bg-surface-container', iconColor: 'text-outline', icon: 'sync',
+    title: 'Đồng bộ CRM hoàn tất - 3 records mới',
+    body: '3 contacts mới được import từ HubSpot. Pipeline cập nhật xong lúc 10:30.',
+    source: 'System', time: '1 giờ trước', unread: false,
+    actionLabel: null, actionHref: null,
+  },
+  {
+    group: 'Hôm qua', urgency: 'urgent', type: 'deal',
+    borderColor: 'border-error', iconBg: 'bg-error/10', iconColor: 'text-error', icon: 'warning',
+    title: 'Deal Momo Group - Rủi ro cao cần xử lý ngay',
+    body: 'Không có hoạt động trong 7 ngày. AI dự báo 72% nguy cơ deal bị mất nếu không có follow-up.',
+    source: 'AI Insights', time: 'Hôm qua, 16:42', unread: false,
+    actionLabel: 'Xem deal', actionHref: 'man-hinh-7.html',
+  },
+  {
+    group: 'Hôm qua', urgency: 'normal', type: 'task',
+    borderColor: 'border-secondary', iconBg: 'bg-secondary-container/50', iconColor: 'text-on-secondary-container', icon: 'check_circle',
+    title: 'Task "Soạn proposal" đã hoàn thành',
+    body: 'Anh Tuấn đã hoàn thành và gửi proposal cho VinGroup JSC. Đang chờ phản hồi.',
+    source: 'Salesforce', time: 'Hôm qua, 14:15', unread: false,
+    actionLabel: 'Xem proposal', actionHref: 'man-hinh-5.html',
+  },
+  {
+    group: 'Hôm qua', urgency: 'info', type: 'deal',
+    borderColor: 'border-primary', iconBg: 'bg-primary-fixed', iconColor: 'text-primary', icon: 'handshake',
+    title: 'Hợp đồng BIDV Bank đã ký thành công!',
+    body: 'Giá trị 920,000,000 ₫. Dự án bắt đầu ngày 01/05/2026. Team triển khai đã được thông báo.',
+    source: 'Salesforce', time: 'Hôm qua, 09:30', unread: false,
+    actionLabel: 'Xem hợp đồng', actionHref: 'man-hinh-5.html',
+  },
+  {
+    group: 'Tuần này', urgency: 'normal', type: 'email',
+    borderColor: 'border-tertiary', iconBg: 'bg-tertiary-fixed', iconColor: 'text-tertiary', icon: 'calendar_today',
+    title: 'Lịch demo đã được xác nhận - Grab Delivery',
+    body: 'Demo AI Automation được lên lịch ngày 22/04/2026 lúc 10:00. Phòng họp: Online Meet.',
+    source: 'HubSpot', time: '2 ngày trước', unread: false,
+    actionLabel: 'Thêm vào lịch', actionHref: null,
+  },
+  {
+    group: 'Tuần này', urgency: 'info', type: 'system',
+    borderColor: 'border-outline-variant', iconBg: 'bg-surface-container', iconColor: 'text-outline', icon: 'person_add',
+    title: 'Thành viên mới: Phúc Nguyễn (Sales Executive)',
+    body: 'Phúc Nguyễn đã được thêm vào team Sales. 4 deals đã được phân bổ tự động từ pipeline.',
+    source: 'System', time: '3 ngày trước', unread: false,
+    actionLabel: null, actionHref: null,
+  },
+];
+
+let activeFilter = 'all';
+let searchQuery = '';
+let sortAsc = false;
+
+// ========== RENDER ==========
+function renderNotifications() {
+  let data = [...NOTIFICATIONS];
+
+  // Search filter
+  if (searchQuery) {
+    data = data.filter(n => n.title.toLowerCase().includes(searchQuery) || n.body.toLowerCase().includes(searchQuery));
+  }
+
+  // Status filter
+  if (activeFilter === 'unread') data = data.filter(n => n.unread);
+
+  // Sort
+  if (sortAsc) data.reverse();
+
+  // Group
+  const groups = {};
+  data.forEach(n => {
+    if (!groups[n.group]) groups[n.group] = [];
+    groups[n.group].push(n);
+  });
+
+  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+  document.getElementById('countAll').textContent = data.length;
+  document.getElementById('countUnread').textContent = unreadCount;
+  document.getElementById('notifSubtitle').textContent =
+    `Hiển thị ${data.length} thông báo${searchQuery ? ' (đã lọc)' : ''}`;
+
+  document.getElementById('notifList').innerHTML = Object.entries(groups).map(([group, items]) => `
+    <div class="flex flex-col gap-3 fade-in">
+      <div class="flex items-center gap-4">
+        <h2 class="text-xs font-bold text-outline uppercase tracking-widest whitespace-nowrap">${group}</h2>
+        <div class="h-px w-full bg-outline-variant/30"></div>
+      </div>
+      ${items.map((n, idx) => renderCard(n, idx)).join('')}
+    </div>`).join('');
+
+  // Attach mark-read events
+  document.querySelectorAll('.mark-read-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const card = e.currentTarget.closest('.notif-card');
+      const id = +e.currentTarget.dataset.id;
+      NOTIFICATIONS[id].unread = false;
+      card.classList.add('read');
+      card.querySelector('.unread-dot')?.remove();
+      e.currentTarget.remove();
+      document.getElementById('countUnread').textContent = NOTIFICATIONS.filter(n => n.unread).length;
+      document.getElementById('urgCount').textContent = NOTIFICATIONS.filter(n => n.unread && n.urgency === 'urgent').length;
+    });
+  });
+}
+
+function renderCard(n, localIdx) {
+  const globalIdx = NOTIFICATIONS.indexOf(n);
+  return `
+    <div class="notif-card group relative bg-surface-container-lowest rounded-xl border-l-4 ${n.borderColor}
+                shadow-sm hover:shadow-md transition-all p-4 flex gap-4 ${n.unread ? '' : 'read'}">
+      <div class="w-12 h-12 rounded-full ${n.iconBg} flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined ${n.iconColor}" style="font-variation-settings:'FILL' 1;">${n.icon}</span>
+      </div>
+      <div class="flex-1 flex flex-col gap-1 min-w-0">
+        <div class="flex justify-between items-start gap-2">
+          <h4 class="text-sm font-semibold text-on-surface leading-snug">${n.title}</h4>
+          <span class="text-[11px] text-outline bg-surface-container-high px-2 py-0.5 rounded uppercase font-bold tracking-tighter whitespace-nowrap flex-shrink-0">${n.source}</span>
+        </div>
+        <p class="text-sm text-on-surface-variant leading-relaxed">${n.body}</p>
+        <div class="flex items-center gap-4 mt-2 flex-wrap">
+          ${n.actionLabel ? `<a href="${n.actionHref || '#'}"
+             class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg
+                    hover:bg-primary-container transition-colors shadow-sm">${n.actionLabel}</a>` : ''}
+          <span class="text-xs text-outline flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs">schedule</span>${n.time}
+          </span>
+          ${n.unread ? `<button class="mark-read-btn text-xs text-outline hover:text-primary transition-colors" data-id="${globalIdx}">
+            Đánh dấu đã đọc
+          </button>` : `<span class="text-xs text-outline italic">Đã đọc</span>`}
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-2 flex-shrink-0">
+        ${n.unread ? '<div class="unread-dot w-2.5 h-2.5 bg-primary rounded-full" style="box-shadow:0 0 8px rgba(53,37,205,.4)"></div>' : ''}
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onclick="deleteNotif(this)" class="p-1 hover:bg-surface-container rounded-md text-outline-variant hover:text-on-surface">
+            <span class="material-symbols-outlined text-sm">more_vert</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ========== MARK ALL READ ==========
+function markAllRead() {
+  NOTIFICATIONS.forEach(n => n.unread = false);
+  showToast('Đã đánh dấu tất cả thông báo là đã đọc!');
+  renderNotifications();
+}
+
+// ========== DELETE (more_vert stub) ==========
+function deleteNotif(btn) {
+  showToast('Đã xóa thông báo!');
+  btn.closest('.notif-card').remove();
+}
+
+// ========== FILTER BUTTONS ==========
+document.getElementById('statusFilters').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-filter]');
+  if (!btn) return;
+  activeFilter = btn.dataset.filter;
+  document.querySelectorAll('#statusFilters .filter-btn').forEach(b => {
+    b.classList.remove('bg-indigo-50', 'text-primary', 'font-medium');
+    b.classList.add('text-slate-600');
+  });
+  btn.classList.add('bg-indigo-50', 'text-primary', 'font-medium');
+  btn.classList.remove('text-slate-600');
+  renderNotifications();
+});
+
+document.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('bg-indigo-50', 'text-primary'));
+    btn.classList.toggle('bg-indigo-50');
+    btn.classList.toggle('text-primary');
+    showToast(`Lọc theo: ${btn.textContent.trim()}`);
+  });
+});
+
+function filterByUrgency(btn) {
+  document.querySelectorAll('.urgency-btn').forEach(b => b.classList.remove('bg-indigo-50', 'text-primary'));
+  btn.classList.toggle('bg-indigo-50');
+  btn.classList.toggle('text-primary');
+}
+
+// ========== SEARCH ==========
+document.getElementById('notifSearch').addEventListener('input', e => {
+  searchQuery = e.target.value.toLowerCase().trim();
+  renderNotifications();
+});
+
+// ========== SORT ==========
+let sortMode = 'new';
+function toggleSort() {
+  sortMode = sortMode === 'new' ? 'old' : 'new';
+  sortAsc = sortMode === 'old';
+  document.getElementById('sortLabel').textContent = sortMode === 'new' ? 'Mới nhất' : 'Cũ nhất';
+  renderNotifications();
+}
+
+// ========== RESET ==========
+function resetFilters() {
+  activeFilter = 'all';
+  searchQuery = '';
+  sortAsc = false;
+  sortMode = 'new';
+  document.getElementById('sortLabel').textContent = 'Mới nhất';
+  document.getElementById('notifSearch').value = '';
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('bg-indigo-50', 'text-primary', 'font-medium');
+    b.classList.add('text-slate-600');
+  });
+  document.getElementById('statusFilters').querySelector('[data-filter="all"]').classList.add('bg-indigo-50', 'text-primary', 'font-medium');
+  document.querySelectorAll('.type-btn, .urgency-btn').forEach(b => b.classList.remove('bg-indigo-50', 'text-primary'));
+  renderNotifications();
+  showToast('Đã xóa toàn bộ bộ lọc!');
+}
+
+// ========== TOAST ==========
+function showToast(msg, type = 'success') {
+  const colors = type === 'error' ? 'bg-error text-white' : 'bg-inverse-surface text-inverse-on-surface';
+  const t = document.createElement('div');
+  t.className = `pointer-events-auto toast-anim flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-medium ${colors} opacity-0 transition-opacity`;
+  t.innerHTML = `<span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">check_circle</span>${msg}`;
+  document.getElementById('toastContainer').appendChild(t);
+  requestAnimationFrame(() => t.classList.replace('opacity-0', 'opacity-100'));
+  setTimeout(() => { t.classList.replace('opacity-100', 'opacity-0'); setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+// ========== INIT ==========
+renderNotifications();
+</script>
+</body>
+</html>

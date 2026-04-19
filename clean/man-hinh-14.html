@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cập nhật nhanh - Quick Update - Quản gia AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#3525cd", "background": "#f8f9ff", "secondary": "#006c49",
+          "surface-container-lowest": "#ffffff", "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff", "surface-container": "#e5eeff",
+          "surface-container-high": "#dce9ff", "surface-container-highest": "#d3e4fe",
+          "primary-fixed": "#e2dfff", "secondary-container": "#6cf8bb",
+          "tertiary": "#684000", "tertiary-container": "#885500",
+          "tertiary-fixed": "#ffddb8", "on-tertiary-container": "#ffd4a4",
+          "error": "#ba1a1a", "on-surface-variant": "#464555",
+          "on-primary-container": "#dad7ff", "primary-container": "#4f46e5",
+          "on-error-container": "#93000a", "outline": "#777587",
+          "outline-variant": "#c7c4d8", "on-surface": "#0b1c30",
+          "surface": "#f8f9ff", "on-secondary-container": "#00714d",
+          "surface-bright": "#f8f9ff",
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #d3e4fe; border-radius: 10px; }
+  .typing-dot { animation: typing 1.4s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing { 0%,60%,100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
+  .toast { transition: all 0.3s ease; }
+  .modal { animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .quick-action-btn { transition: all 0.2s ease; }
+  .quick-action-btn:hover { transform: scale(1.05); }
+  .quick-action-btn.active { background-color: #eff4ff; color: #3525cd; }
+</style>
+</head>
+<body class="bg-slate-700 flex items-center justify-center min-h-screen p-4 relative">
+
+<!-- Background CRM (Blurred) -->
+<div class="fixed inset-0 overflow-hidden filter blur-sm opacity-30 pointer-events-none">
+  <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-800 to-slate-900"></div>
+  <!-- Fake dashboard elements -->
+  <div class="absolute top-8 left-8 w-48 h-12 bg-white/10 rounded-xl"></div>
+  <div class="absolute top-8 right-8 w-32 h-10 bg-white/10 rounded-full"></div>
+  <div class="absolute top-28 left-8 right-8 grid grid-cols-4 gap-4">
+    <div class="h-24 bg-white/10 rounded-xl"></div>
+    <div class="h-24 bg-white/10 rounded-xl"></div>
+    <div class="h-24 bg-white/10 rounded-xl"></div>
+    <div class="h-24 bg-white/10 rounded-xl"></div>
+  </div>
+  <div class="absolute top-64 left-8 right-8 h-80 bg-white/10 rounded-xl"></div>
+</div>
+
+<!-- Backdrop Dimmer -->
+<div class="fixed inset-0 bg-on-surface/50 backdrop-blur-[2px] z-0" onclick="goBack()"></div>
+
+<!-- Quick Update Modal -->
+<main id="quickModal" class="modal relative z-10 w-full max-w-[480px] bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden flex flex-col border border-outline-variant/10" style="height: 620px;">
+  
+  <!-- Header -->
+  <header class="bg-white/80 backdrop-blur-md flex justify-between items-center w-full px-4 h-14 shrink-0 shadow-sm border-b border-outline-variant/10">
+    <div class="flex items-center gap-2">
+      <span class="text-indigo-700 font-bold text-lg">⚡</span>
+      <h1 class="text-sm font-semibold tracking-tight text-indigo-700">Cập nhật nhanh</h1>
+    </div>
+    <div class="flex items-center gap-1">
+      <button onclick="minimizeModal()" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors" title="Thu nhỏ">
+        <span class="material-symbols-outlined text-base">minimize</span>
+      </button>
+      <button onclick="goBack()" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors" title="Đóng">
+        <span class="material-symbols-outlined text-base">close</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Context Selector -->
+  <div class="px-4 pt-3 pb-2 shrink-0">
+    <button onclick="toggleDealSelector()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-full hover:bg-surface-container-high transition-colors">
+      <span class="material-symbols-outlined text-[16px] text-primary">target</span>
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant" id="dealContext">Deal hiện tại: Công ty ABC — Negotiation</span>
+      <span class="material-symbols-outlined text-[14px] text-slate-400">expand_more</span>
+    </button>
+    <!-- Deal selector dropdown -->
+    <div id="dealSelector" class="hidden absolute mt-1 bg-white border border-outline-variant/30 rounded-xl shadow-lg z-10 min-w-[280px]">
+      <div class="p-2">
+        <input type="text" placeholder="Tìm deal..." class="w-full px-3 py-2 text-xs border border-outline-variant/30 rounded-lg focus:ring-1 focus:ring-primary focus:outline-none mb-2"/>
+        <button onclick="selectDeal('Công ty ABC', 'Negotiation')" class="w-full px-3 py-2 text-left text-xs hover:bg-indigo-50 hover:text-primary transition-colors rounded-lg font-medium">Công ty ABC — Negotiation</button>
+        <button onclick="selectDeal('VNG Corporation', 'Proposal')" class="w-full px-3 py-2 text-left text-xs hover:bg-indigo-50 hover:text-primary transition-colors rounded-lg">VNG Corporation — Proposal</button>
+        <button onclick="selectDeal('TechCorp Ltd.', 'Qualified')" class="w-full px-3 py-2 text-left text-xs hover:bg-indigo-50 hover:text-primary transition-colors rounded-lg">TechCorp Ltd. — Qualified</button>
+        <button onclick="selectDeal('FPT Software', 'Negotiation')" class="w-full px-3 py-2 text-left text-xs hover:bg-indigo-50 hover:text-primary transition-colors rounded-lg">FPT Software — Negotiation</button>
+        <button onclick="selectDeal('Momo', 'Closed Won')" class="w-full px-3 py-2 text-left text-xs hover:bg-indigo-50 hover:text-primary transition-colors rounded-lg">Momo — Closed Won</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="px-4 py-2 flex justify-between items-center gap-2 shrink-0 border-b border-outline-variant/10">
+    <button onclick="triggerQuickAction('stage')" class="quick-action-btn flex-1 flex flex-col items-center justify-center py-2.5 px-1 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-all rounded-lg group">
+      <span class="material-symbols-outlined mb-1 text-indigo-600">move_up</span>
+      <span class="text-[10px] font-medium uppercase tracking-wider">Đổi stage</span>
+    </button>
+    <button onclick="triggerQuickAction('note')" class="quick-action-btn flex-1 flex flex-col items-center justify-center py-2.5 px-1 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-all rounded-lg group">
+      <span class="material-symbols-outlined mb-1 text-indigo-600">note_add</span>
+      <span class="text-[10px] font-medium uppercase tracking-wider">Thêm note</span>
+    </button>
+    <button onclick="triggerQuickAction('task')" class="quick-action-btn flex-1 flex flex-col items-center justify-center py-2.5 px-1 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-all rounded-lg group">
+      <span class="material-symbols-outlined mb-1 text-indigo-600">task_alt</span>
+      <span class="text-[10px] font-medium uppercase tracking-wider">Tạo task</span>
+    </button>
+    <button onclick="triggerQuickAction('call')" class="quick-action-btn flex-1 flex flex-col items-center justify-center py-2.5 px-1 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-all rounded-lg group">
+      <span class="material-symbols-outlined mb-1 text-indigo-600">call</span>
+      <span class="text-[10px] font-medium uppercase tracking-wider">Log call</span>
+    </button>
+    <button onclick="triggerQuickAction('email')" class="quick-action-btn flex-1 flex flex-col items-center justify-center py-2.5 px-1 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 transition-all rounded-lg group">
+      <span class="material-symbols-outlined mb-1 text-indigo-600">mail</span>
+      <span class="text-[10px] font-medium uppercase tracking-wider">Email</span>
+    </button>
+  </div>
+
+  <!-- Quick Action Panel (context-sensitive) -->
+  <div id="actionPanel" class="hidden px-4 py-3 bg-indigo-50/50 border-b border-outline-variant/10 shrink-0">
+    <div id="actionPanelContent"></div>
+  </div>
+
+  <!-- Chat Area -->
+  <div id="chatArea" class="flex-grow overflow-y-auto custom-scrollbar px-4 py-4 space-y-4 bg-slate-50/30"></div>
+
+  <!-- Suggested Chips -->
+  <div id="chipsContainer" class="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 border-t border-outline-variant/10 bg-white/50">
+    <button onclick="sendChip('Cập nhật deal này sang Closed Won')" class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-full text-[11px] font-medium text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-nowrap shadow-sm">✅ Chốt deal</button>
+    <button onclick="sendChip('Tạo task follow-up cho ngày mai')" class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-full text-[11px] font-medium text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-nowrap shadow-sm">📅 Tạo task follow-up</button>
+    <button onclick="sendChip('Gửi email báo giá cho khách hàng')" class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-full text-[11px] font-medium text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-nowrap shadow-sm">📧 Gửi báo giá</button>
+    <button onclick="sendChip('Lên lịch cuộc họp tiếp theo')" class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-full text-[11px] font-medium text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition-all whitespace-nowrap shadow-sm">📆 Lên lịch họp</button>
+  </div>
+
+  <!-- Input Area -->
+  <div class="p-4 bg-white border-t border-outline-variant/10 shrink-0">
+    <div class="relative flex items-end gap-2 bg-surface-container-low rounded-xl p-2 focus-within:bg-surface-bright transition-colors">
+      <textarea id="chatInput" class="w-full bg-transparent border-none focus:ring-0 text-sm py-2 resize-none max-h-32 min-h-[36px] text-on-surface placeholder-slate-400" placeholder="Viết ghi chú hoặc yêu cầu AI..." rows="1" onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+      <button onclick="sendMessage()" class="bg-primary hover:bg-primary-container text-white w-10 h-10 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+        <span class="material-symbols-outlined text-base">arrow_upward</span>
+      </button>
+    </div>
+    <!-- Sync indicator -->
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-center gap-1.5">
+        <span id="syncIcon" class="material-symbols-outlined text-[12px] text-slate-400">sync</span>
+        <p id="syncText" class="text-[11px] text-slate-400">Mọi thay đổi sẽ đồng bộ về CRM trong 2-3 giây</p>
+      </div>
+      <div class="flex gap-2">
+        <a href="man-hinh-13.html" class="text-[11px] text-primary hover:underline font-medium">Mở chi tiết →</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Minimized FAB (shown when minimized) -->
+<button id="minimizedFab" class="hidden fixed bottom-8 right-8 bg-primary text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 hover:bg-primary-container transition-all z-50" onclick="restoreModal()">
+  <span class="material-symbols-outlined text-base">flash_on</span>
+  <span class="text-sm font-semibold">Cập nhật nhanh</span>
+</button>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium z-[200] opacity-0 pointer-events-none toast flex items-center gap-2">
+  <span class="material-symbols-outlined text-base">check_circle</span>
+  <span id="toastMsg">Thành công</span>
+</div>
+
+<script>
+const INITIAL_MESSAGES = [
+  {
+    type: 'user',
+    text: 'Cập nhật deal này sang Closed Won',
+    time: '10:42 AM'
+  },
+  {
+    type: 'bot',
+    text: 'Đã hiểu. Tôi đang chuẩn bị cập nhật deal <strong class="text-primary">\'Công ty ABC\'</strong> sang <span class="text-secondary font-semibold">Closed Won</span>. Bạn có muốn thêm ghi chú nào không?',
+    time: 'Hệ thống AI',
+    showConfirm: true
+  }
+];
+
+const BOT_RESPONSES = {
+  default: [
+    'Đã cập nhật thành công! Dữ liệu sẽ đồng bộ về CRM trong vài giây.',
+    'Tôi đã ghi nhận yêu cầu. Bạn có muốn tôi tạo thêm task nhắc nhở không?',
+    'Hoàn thành! Tôi cũng phát hiện 2 gợi ý hành động liên quan. Bạn có muốn xem không?',
+    'Đã lưu vào CRM. Deal của bạn đã được cập nhật và team sẽ nhận được thông báo.',
+  ],
+  stage: [
+    'Tôi đã cập nhật stage thành công. Đồng thời tạo task follow-up tự động theo quy trình.',
+    'Stage đã thay đổi! Có 2 template email phù hợp với stage mới này. Bạn muốn dùng không?',
+  ],
+  task: [
+    'Task đã được tạo và gán cho bạn. Nhắc nhở sẽ gửi 1 giờ trước deadline.',
+    'Tôi đã tạo task và liên kết với deal này. Bạn có thể xem trong tab Tasks của deal.',
+  ],
+  call: [
+    'Cuộc gọi đã được log thành công. Tôi đã tóm tắt nội dung và lưu vào lịch sử deal.',
+    'Đã ghi log cuộc gọi! Tôi phát hiện bạn chưa tạo task follow-up sau cuộc gọi này. Tạo ngay không?',
+  ],
+  email: [
+    'Email đã được soạn thảo. Tôi sẽ gửi theo lịch hoặc bạn có thể gửi ngay.',
+    'Tôi đã chuẩn bị email với template phù hợp. Xem trước và chỉnh sửa trước khi gửi nhé.',
+  ],
+  note: [
+    'Ghi chú đã được lưu và gắn tag vào deal. Rất hữu ích cho team sales!',
+    'Đã lưu ghi chú thành công! Tôi sẽ phân tích và đề xuất hành động dựa trên ghi chú này.',
+  ],
+};
+
+let responseIndex = 0;
+let currentActionType = 'default';
+let dealName = 'Công ty ABC';
+let dealStage = 'Negotiation';
+let isSyncing = false;
+
+function renderInitialMessages() {
+  const chatArea = document.getElementById('chatArea');
+  chatArea.innerHTML = '';
+  INITIAL_MESSAGES.forEach(msg => appendMessage(msg));
+}
+
+function appendMessage(msg) {
+  const chatArea = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  
+  if (msg.type === 'user') {
+    div.className = 'flex flex-col items-end';
+    div.innerHTML = `
+      <div class="max-w-[85%] bg-primary-container text-white p-3 rounded-t-xl rounded-bl-xl shadow-sm">
+        <p class="text-sm leading-relaxed">${msg.text}</p>
+      </div>
+      <span class="text-[10px] text-slate-400 mt-1 mr-1 uppercase tracking-wide">${msg.time}</span>
+    `;
+  } else {
+    div.className = 'flex flex-col items-start';
+    div.innerHTML = `
+      <div class="flex gap-2 items-start">
+        <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-indigo-600 text-sm" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+        </div>
+        <div class="max-w-[85%] bg-white border border-outline-variant/30 text-on-surface-variant p-3 rounded-t-xl rounded-br-xl shadow-sm">
+          <p class="text-sm leading-relaxed">${msg.text}</p>
+          ${msg.showConfirm ? `
+            <div class="mt-3 pt-3 border-t border-outline-variant/20 flex gap-2 flex-wrap">
+              <button onclick="confirmAction()" class="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all">✅ Xác nhận cập nhật</button>
+              <button onclick="cancelAction()" class="px-3 py-1.5 border border-outline-variant text-slate-500 rounded-lg text-xs font-medium hover:bg-slate-50 transition-all">Hủy</button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      <span class="text-[10px] text-slate-400 mt-1 ml-10 uppercase tracking-wide">${msg.time}</span>
+    `;
+  }
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function sendChip(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  
+  appendMessage({ type: 'user', text, time: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) });
+  
+  // Show typing
+  const chatArea = document.getElementById('chatArea');
+  const typingDiv = document.createElement('div');
+  typingDiv.id = 'typingIndicator';
+  typingDiv.className = 'flex gap-2 items-start';
+  typingDiv.innerHTML = `
+    <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-indigo-600 text-sm" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+    </div>
+    <div class="bg-white border border-outline-variant/30 px-4 py-3 rounded-t-xl rounded-br-xl shadow-sm">
+      <div class="flex gap-1 items-center h-4">
+        <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full typing-dot"></div>
+        <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full typing-dot"></div>
+        <div class="w-1.5 h-1.5 bg-indigo-500 rounded-full typing-dot"></div>
+      </div>
+    </div>
+  `;
+  chatArea.appendChild(typingDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  
+  // Simulate sync
+  simulateSync();
+  
+  setTimeout(() => {
+    typingDiv.remove();
+    const responses = BOT_RESPONSES[currentActionType] || BOT_RESPONSES.default;
+    const response = responses[responseIndex % responses.length];
+    responseIndex++;
+    
+    const showConfirm = text.toLowerCase().includes('xác nhận') || text.toLowerCase().includes('closed won') || text.toLowerCase().includes('stage');
+    appendMessage({ type: 'bot', text: response, time: 'Hệ thống AI', showConfirm });
+    currentActionType = 'default';
+  }, 1400);
+}
+
+function triggerQuickAction(type) {
+  currentActionType = type;
+  const panel = document.getElementById('actionPanel');
+  const content = document.getElementById('actionPanelContent');
+  
+  const templates = {
+    stage: {
+      label: '📈 Đổi Stage',
+      content: `
+        <p class="text-xs font-semibold text-slate-600 mb-2">Chuyển sang stage:</p>
+        <div class="flex gap-2 flex-wrap">
+          ${['Lead','Qualified','Proposal','Negotiation','Closed Won','Closed Lost'].map(s => `
+            <button onclick="quickStageUpdate('${s}')" class="px-3 py-1.5 bg-white border border-outline-variant/30 text-xs font-medium rounded-lg hover:bg-primary hover:text-white hover:border-primary transition-all ${s === 'Closed Won' ? 'border-secondary text-secondary' : s === 'Closed Lost' ? 'border-error text-error' : ''}">
+              ${s}
+            </button>
+          `).join('')}
+        </div>
+      `
+    },
+    note: {
+      label: '📝 Thêm ghi chú',
+      content: `
+        <textarea id="quickNote" class="w-full text-xs bg-white border border-outline-variant/30 rounded-lg p-2 focus:ring-1 focus:ring-primary focus:outline-none resize-none" rows="2" placeholder="Nhập ghi chú nhanh..."></textarea>
+        <button onclick="saveNote()" class="mt-2 px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all">Lưu ghi chú</button>
+      `
+    },
+    task: {
+      label: '✅ Tạo Task',
+      content: `
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" placeholder="Tên task..." class="text-xs bg-white border border-outline-variant/30 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none"/>
+          <input type="date" class="text-xs bg-white border border-outline-variant/30 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none"/>
+        </div>
+        <button onclick="createTask()" class="mt-2 px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all">Tạo Task</button>
+      `
+    },
+    call: {
+      label: '📞 Log Call',
+      content: `
+        <div class="grid grid-cols-2 gap-2">
+          <select class="text-xs bg-white border border-outline-variant/30 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none">
+            <option>Cuộc gọi đi</option>
+            <option>Cuộc gọi đến</option>
+          </select>
+          <input type="text" placeholder="Thời lượng (phút)" class="text-xs bg-white border border-outline-variant/30 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none"/>
+        </div>
+        <button onclick="logCall()" class="mt-2 px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all">Log cuộc gọi</button>
+      `
+    },
+    email: {
+      label: '📧 Gửi Email',
+      content: `
+        <select class="w-full text-xs bg-white border border-outline-variant/30 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary focus:outline-none mb-2">
+          <option>Chọn template email...</option>
+          <option>TPL-001: Follow-up sau demo</option>
+          <option>TPL-002: Check-in sau im lặng</option>
+          <option>TPL-003: Gửi báo giá</option>
+          <option>Soạn từ đầu</option>
+        </select>
+        <button onclick="sendEmail()" class="px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all">Tiếp tục →</button>
+      `
+    }
+  };
+  
+  const tpl = templates[type];
+  if (tpl) {
+    content.innerHTML = `<p class="text-xs font-bold text-on-surface mb-2">${tpl.label}</p>${tpl.content}`;
+    panel.classList.remove('hidden');
+  }
+  
+  // Also send a chat message describing the action
+  const actionMessages = {
+    stage: `Tôi muốn đổi stage của deal "${dealName}"`,
+    note: `Thêm ghi chú cho deal "${dealName}"`,
+    task: `Tạo task mới cho deal "${dealName}"`,
+    call: `Log cuộc gọi với deal "${dealName}"`,
+    email: `Gửi email cho khách hàng deal "${dealName}"`
+  };
+  if (actionMessages[type]) {
+    document.getElementById('chatInput').value = actionMessages[type];
+  }
+}
+
+function quickStageUpdate(stage) {
+  document.getElementById('actionPanel').classList.add('hidden');
+  sendChip(`Cập nhật deal "${dealName}" sang stage ${stage}`);
+  dealStage = stage;
+  document.getElementById('dealContext').textContent = `Deal hiện tại: ${dealName} — ${stage}`;
+}
+
+function saveNote() {
+  const note = document.getElementById('quickNote')?.value || '';
+  document.getElementById('actionPanel').classList.add('hidden');
+  if (note) {
+    sendChip(`Lưu ghi chú: "${note}"`);
+  } else {
+    showToast('Vui lòng nhập nội dung ghi chú!');
+  }
+}
+
+function createTask() {
+  document.getElementById('actionPanel').classList.add('hidden');
+  sendChip(`Tạo task follow-up cho deal "${dealName}"`);
+}
+
+function logCall() {
+  document.getElementById('actionPanel').classList.add('hidden');
+  sendChip(`Đã log cuộc gọi 30 phút với khách hàng deal "${dealName}"`);
+}
+
+function sendEmail() {
+  document.getElementById('actionPanel').classList.add('hidden');
+  sendChip(`Gửi email template cho deal "${dealName}"`);
+}
+
+function confirmAction() {
+  simulateSync();
+  showToast('✅ Đã cập nhật thành công! CRM đang đồng bộ...');
+  setTimeout(() => {
+    appendMessage({ type: 'bot', text: `Deal <strong class="text-secondary">"${dealName}"</strong> đã được cập nhật sang <span class="text-secondary font-semibold">Closed Won</span> thành công! 🎉 Tôi đã tạo task ăn mừng và gửi thông báo cho team.`, time: 'Hệ thống AI' });
+  }, 800);
+}
+
+function cancelAction() {
+  appendMessage({ type: 'bot', text: 'Đã hủy hành động. Dữ liệu không thay đổi. Bạn cần hỗ trợ thêm gì không?', time: 'Hệ thống AI' });
+}
+
+function simulateSync() {
+  if (isSyncing) return;
+  isSyncing = true;
+  const icon = document.getElementById('syncIcon');
+  const text = document.getElementById('syncText');
+  icon.style.animation = 'spin 1s linear infinite';
+  icon.style.color = '#3525cd';
+  text.textContent = 'Đang đồng bộ với CRM...';
+  text.style.color = '#3525cd';
+  setTimeout(() => {
+    icon.style.animation = '';
+    icon.style.color = '';
+    text.textContent = '✓ Đã đồng bộ thành công';
+    text.style.color = '#006c49';
+    isSyncing = false;
+    setTimeout(() => {
+      text.textContent = 'Mọi thay đổi sẽ đồng bộ về CRM trong 2-3 giây';
+      text.style.color = '';
+    }, 3000);
+  }, 2000);
+}
+
+function toggleDealSelector() {
+  document.getElementById('dealSelector').classList.toggle('hidden');
+}
+
+function selectDeal(name, stage) {
+  dealName = name; dealStage = stage;
+  document.getElementById('dealContext').textContent = `Deal hiện tại: ${name} — ${stage}`;
+  document.getElementById('dealSelector').classList.add('hidden');
+  showToast(`Đã chọn deal: ${name}`);
+}
+
+function minimizeModal() {
+  document.getElementById('quickModal').classList.add('hidden');
+  document.getElementById('minimizedFab').classList.remove('hidden');
+}
+
+function restoreModal() {
+  document.getElementById('quickModal').classList.remove('hidden');
+  document.getElementById('minimizedFab').classList.add('hidden');
+}
+
+function goBack() {
+  window.history.back();
+  // Fallback
+  setTimeout(() => window.location.href = 'man-hinh-10.html', 100);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  if (e.key === 'Escape') { goBack(); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.opacity = '1'; t.style.pointerEvents = 'auto';
+  setTimeout(() => { t.style.opacity = '0'; t.style.pointerEvents = 'none'; }, 3000);
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#dealSelector') && !e.target.closest('button[onclick="toggleDealSelector()"]')) {
+    document.getElementById('dealSelector').classList.add('hidden');
+  }
+});
+
+// Close action panel on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('#actionPanel') && !e.target.closest('.quick-action-btn')) {
+    document.getElementById('actionPanel').classList.add('hidden');
+  }
+});
+
+// Init
+renderInitialMessages();
+</script>
+</body>
+</html>

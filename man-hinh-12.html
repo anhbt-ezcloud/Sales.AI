@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Gợi ý hành động - CRM & Công việc</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#3525cd", "background": "#f8f9ff", "secondary": "#006c49",
+          "surface-container-lowest": "#ffffff", "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff", "surface-container": "#e5eeff",
+          "surface-container-high": "#dce9ff", "surface-container-highest": "#d3e4fe",
+          "primary-fixed": "#e2dfff", "secondary-container": "#6cf8bb",
+          "tertiary": "#684000", "tertiary-container": "#885500",
+          "tertiary-fixed": "#ffddb8", "tertiary-fixed-dim": "#ffb95f",
+          "on-tertiary-container": "#ffd4a4", "error": "#ba1a1a",
+          "on-surface-variant": "#464555", "on-primary-container": "#dad7ff",
+          "primary-container": "#4f46e5", "on-error-container": "#93000a",
+          "outline": "#777587", "outline-variant": "#c7c4d8",
+          "on-surface": "#0b1c30", "surface": "#f8f9ff",
+          "on-secondary-container": "#00714d",
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+  .body-md { font-size: 0.875rem; line-height: 1.6; }
+  .body-sm { font-size: 0.75rem; line-height: 1.5; }
+  .label-sm { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .toast { transition: all 0.3s ease; }
+  .suggestion-card { transition: all 0.3s ease; }
+  .suggestion-card.applied { opacity: 0.6; }
+</style>
+</head>
+<body class="bg-background font-body text-on-surface flex min-h-screen">
+
+<!-- SideNavBar -->
+<aside class="h-screen w-60 fixed left-0 top-0 bg-surface-container-low flex flex-col p-4 gap-2 z-40">
+  <div class="flex items-center gap-3 px-2 mb-6">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">smart_toy</span>
+    </div>
+    <div>
+      <h2 class="text-base font-bold text-primary leading-tight">Quản gia AI</h2>
+      <p class="text-[10px] text-slate-500 uppercase tracking-widest">Sales Intelligence</p>
+    </div>
+  </div>
+  <nav class="flex-1 space-y-0.5 overflow-y-auto">
+    <!-- ── MODULE 1: Chat tài liệu ── -->
+    <button id="trigger-module1" aria-expanded="false" aria-controls="submenu-module1"
+      onclick="toggleMenu('module1')" onkeydown="handleMenuKey(event,'module1')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-lg hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">chat</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">Chat tài liệu</span>
+      <span id="chevron-module1" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div id="submenu-module1" role="region" aria-labelledby="trigger-module1"
+      class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-1.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">chat_bubble</span><span>Chat tài liệu</span>
+        </a>
+        <a href="man-hinh-2.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">forum</span><span>Concierge AI</span>
+        </a>
+        <a href="man-hinh-4.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">description</span><span>Thư viện tài liệu</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200/50 my-1 mx-1"></div>
+
+    <!-- ── MODULE 2: CRM & Công việc ── -->
+    <button id="trigger-module2" aria-expanded="false" aria-controls="submenu-module2"
+      onclick="toggleMenu('module2')" onkeydown="handleMenuKey(event,'module2')"
+      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-lg hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">business_center</span>
+      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">CRM &amp; Công việc</span>
+      <span id="chevron-module2" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+    </button>
+    <div id="submenu-module2" role="region" aria-labelledby="trigger-module2"
+      class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
+      <div class="space-y-0.5 pb-1">
+        <a href="man-hinh-7.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">dashboard</span><span>Dashboard CRM</span>
+        </a>
+        <a href="man-hinh-8.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">assignment</span><span>CRM Hub</span>
+        </a>
+        <a href="man-hinh-11.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">support_agent</span><span>Chat CRM</span>
+        </a>
+        <a href="man-hinh-12.html" class="flex items-center gap-3 px-3 py-2 bg-[#4f46e5] text-white text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">auto_awesome</span><span>AI Gợi ý</span>
+        </a>
+        <a href="man-hinh-10.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">view_kanban</span><span>Kanban Deals</span>
+        </a>
+        <a href="man-hinh-9.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">notifications</span><span>Thông báo</span>
+        </a>
+        <a href="man-hinh-15.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+          <span class="material-symbols-outlined text-sm">settings</span><span>Cấu hình CRM</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+  <div class="mt-auto space-y-1 pt-4 border-t border-slate-200/50">
+    <button onclick="showToast('Đang mở form tạo deal mới...')" class="w-full bg-primary-container text-white py-2.5 rounded-lg text-sm font-medium shadow-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity mb-2">
+      <span class="material-symbols-outlined text-sm">add</span><span>Tạo deal mới</span>
+    </button>
+    <a href="man-hinh-17.html" class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+      <span class="material-symbols-outlined text-sm">manage_accounts</span><span>Cài đặt</span>
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+      <span class="material-symbols-outlined text-sm">help</span><span>Trợ giúp</span>
+    </a>
+    <a href="man-hinh-16.html" class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:bg-[#d3e4fe]/60 transition-all text-sm rounded-lg">
+      <span class="material-symbols-outlined text-sm">logout</span><span>Đăng xuất</span>
+    </a>
+    <div class="flex items-center gap-3 px-2 pt-2">
+      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">QL</div>
+      <div class="overflow-hidden">
+        <p class="text-xs font-bold truncate">Quản lý Bán hàng</p>
+        <p class="text-[10px] text-slate-500 truncate">admin@aisales.vn</p>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="ml-60 flex-1 min-h-screen">
+  <!-- TopAppBar -->
+  <header class="fixed top-0 right-0 left-60 h-16 bg-white/80 backdrop-blur-md z-30 px-8 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-4">
+      <h1 class="text-xl font-bold text-indigo-700 tracking-tight">✨ AI Gợi ý hành động</h1>
+      <nav class="hidden md:flex gap-1 bg-surface-container-low p-1 rounded-lg ml-4">
+        <a href="man-hinh-7.html" class="px-4 py-1.5 body-sm text-slate-500 hover:text-indigo-600 transition-colors rounded-md">Tổng quan</a>
+        <a href="man-hinh-10.html" class="px-4 py-1.5 body-sm text-slate-500 hover:text-indigo-600 transition-colors rounded-md">Deals</a>
+        <a href="man-hinh-8.html" class="px-4 py-1.5 body-sm text-slate-500 hover:text-indigo-600 transition-colors rounded-md">Tasks</a>
+        <button class="px-4 py-1.5 body-sm bg-white text-indigo-700 font-semibold shadow-sm rounded-md">Gợi ý</button>
+      </nav>
+    </div>
+    <div class="flex items-center gap-4">
+      <button onclick="refreshSuggestions()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors" title="Làm mới gợi ý">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+      <a href="man-hinh-9.html"><button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors relative">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+      </button></a>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">TH</div>
+    </div>
+  </header>
+
+  <div class="pt-24 px-8 pb-12 max-w-5xl mx-auto">
+    <!-- KPI Summary Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-indigo-500 relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <span class="material-symbols-outlined text-8xl">auto_awesome</span>
+        </div>
+        <div class="flex items-center gap-3 mb-2">
+          <span class="material-symbols-outlined text-indigo-600">auto_awesome</span>
+          <span class="label-sm text-slate-500">Gợi ý mới hôm nay</span>
+        </div>
+        <div class="text-3xl font-bold text-on-surface" id="kpiNew">12</div>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-secondary relative overflow-hidden group">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="material-symbols-outlined text-secondary">check_circle</span>
+          <span class="label-sm text-slate-500">Đã áp dụng tuần này</span>
+        </div>
+        <div class="text-3xl font-bold text-secondary" id="kpiApplied">34</div>
+      </div>
+      <div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm border-l-4 border-error relative overflow-hidden group">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="material-symbols-outlined text-error">warning</span>
+          <span class="label-sm text-slate-500">Deals có rủi ro</span>
+        </div>
+        <div class="text-3xl font-bold text-error" id="kpiRisk">5</div>
+      </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section class="bg-surface-container-low/50 p-4 rounded-xl mb-8 flex flex-col gap-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="body-sm font-semibold text-slate-500 mr-2">Ưu tiên:</span>
+          <button onclick="filterByPriority('high')" id="filterHigh" class="px-3 py-1 bg-white border border-error/20 text-error rounded-full body-sm font-medium hover:bg-error-container transition-colors flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-error"></span> Cao (<span id="countHigh">3</span>)
+          </button>
+          <button onclick="filterByPriority('medium')" id="filterMedium" class="px-3 py-1 bg-white border border-amber-300/50 text-amber-600 rounded-full body-sm font-medium hover:bg-amber-50 transition-colors flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span> Trung bình (<span id="countMedium">6</span>)
+          </button>
+          <button onclick="filterByPriority('low')" id="filterLow" class="px-3 py-1 bg-white border border-slate-200 text-slate-500 rounded-full body-sm font-medium hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-slate-200"></span> Thấp (<span id="countLow">3</span>)
+          </button>
+          <button onclick="filterByPriority('all')" class="px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-full body-sm font-medium hover:bg-indigo-100 transition-colors">
+            Tất cả
+          </button>
+        </div>
+        <div class="flex items-center bg-white px-2 py-1 rounded-lg shadow-sm border border-slate-100 gap-2">
+          <span class="body-sm text-slate-400">Nhóm:</span>
+          <button onclick="showToast('Nhóm theo Priority')" class="body-sm font-medium text-slate-600 px-2 py-1 rounded hover:bg-slate-50">Priority</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button onclick="filterByType('email')" class="px-3 py-1.5 body-sm bg-indigo-600 text-white rounded-lg flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">email</span> Email
+          </button>
+          <button onclick="filterByType('call')" class="px-3 py-1.5 body-sm bg-white text-slate-600 border border-slate-100 rounded-lg flex items-center gap-2 hover:bg-slate-50">
+            <span class="material-symbols-outlined text-base">call</span> Call
+          </button>
+          <button onclick="filterByType('task')" class="px-3 py-1.5 body-sm bg-white text-slate-600 border border-slate-100 rounded-lg flex items-center gap-2 hover:bg-slate-50">
+            <span class="material-symbols-outlined text-base">assignment_turned_in</span> Task
+          </button>
+          <button onclick="filterByType('note')" class="px-3 py-1.5 body-sm bg-white text-slate-600 border border-slate-100 rounded-lg flex items-center gap-2 hover:bg-slate-50">
+            <span class="material-symbols-outlined text-base">edit_note</span> Note
+          </button>
+          <button onclick="filterByType('meeting')" class="px-3 py-1.5 body-sm bg-white text-slate-600 border border-slate-100 rounded-lg flex items-center gap-2 hover:bg-slate-50">
+            <span class="material-symbols-outlined text-base">calendar_month</span> Meeting
+          </button>
+        </div>
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-2">
+          <select onchange="showToast('Lọc theo deal: ' + this.value)" class="appearance-none body-sm bg-white border border-slate-100 pl-3 pr-8 py-1.5 rounded-lg text-slate-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+            <option>Tất cả Deal</option>
+            <option>VNG Corp</option>
+            <option>TechCorp</option>
+            <option>FPT Software</option>
+          </select>
+          <select onchange="showToast('Lọc theo chủ sở hữu: ' + this.value)" class="appearance-none body-sm bg-white border border-slate-100 pl-3 pr-8 py-1.5 rounded-lg text-slate-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+            <option>Chủ sở hữu</option>
+            <option>Nguyễn Văn A</option>
+            <option>Trần Thị B</option>
+            <option>Lê Văn C</option>
+          </select>
+          <button onclick="toggleSort()" class="body-sm font-medium text-indigo-600 flex items-center gap-1 ml-2 pl-4 border-l border-slate-200">
+            <span id="sortLabel">Mới nhất</span> <span class="material-symbols-outlined text-base">sort</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Suggestion Cards -->
+    <div id="suggestionsContainer" class="space-y-6"></div>
+
+    <!-- Bottom Section -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-indigo-900 text-white p-8 rounded-2xl relative overflow-hidden group">
+        <div class="relative z-10">
+          <h4 class="text-xl font-bold mb-3">Hiệu suất gợi ý AI</h4>
+          <p class="text-indigo-100 body-md mb-6 opacity-80">Trong 30 ngày qua, các gợi ý hành động từ AI đã giúp tăng tỷ lệ chuyển đổi thêm <span class="text-secondary-container font-bold text-xl">24.5%</span>.</p>
+          <button onclick="showToast('Đang mở báo cáo phân tích...')" class="bg-white text-indigo-900 px-5 py-2.5 rounded-xl body-sm font-bold hover:bg-indigo-50 transition-all">Xem báo cáo phân tích</button>
+        </div>
+        <div class="absolute right-0 bottom-0 opacity-10 translate-x-1/4 translate-y-1/4">
+          <span class="material-symbols-outlined text-[200px]" style="font-variation-settings:'FILL' 1;">insights</span>
+        </div>
+      </div>
+      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+        <div class="flex items-center gap-4 mb-6">
+          <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-indigo-600">psychology</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-on-surface">Cá nhân hóa AI</h4>
+            <p class="text-slate-500 body-sm">AI đang học hỏi từ thói quen của bạn</p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <span>Độ chuẩn xác gợi ý</span><span>92%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="w-[92%] h-full bg-indigo-600 rounded-full"></div>
+          </div>
+          <div class="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <span>Tỷ lệ chấp nhận</span><span>78%</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div class="w-[78%] h-full bg-secondary rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 bg-on-surface text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium z-[200] opacity-0 pointer-events-none toast flex items-center gap-2">
+  <span class="material-symbols-outlined text-base">check_circle</span>
+  <span id="toastMsg">Thành công</span>
+</div>
+
+<!-- FAB -->
+<a href="man-hinh-14.html">
+  <button class="fixed bottom-8 right-8 w-14 h-14 bg-primary-container text-white rounded-2xl shadow-2xl flex items-center justify-center hover:scale-110 transition-all z-50" title="Cập nhật nhanh">
+    <span class="material-symbols-outlined">flash_on</span>
+  </button>
+</a>
+
+<script>
+const SUGGESTIONS = [
+  {
+    id: 1, type: 'email', icon: 'email', priority: 'high', priorityLabel: 'Cao', priorityColor: 'text-error', priorityBg: 'bg-error/10', borderColor: 'border-error',
+    deal: 'Cung cấp phần mềm CRM — Công ty ABC', time: '5 phút trước',
+    riskBg: 'bg-error-container/50', riskColor: 'text-on-error-container', riskIcon: 'warning', riskText: 'Rủi ro: CAO — Deal không có follow-up 8 ngày',
+    title: 'Gửi email check-in với khách hàng',
+    desc: 'Deal đã 8 ngày không có hoạt động. Đề xuất gửi email nhắc nhở với template <span class="font-mono text-indigo-600 font-semibold">TPL-002</span>.',
+    reason: 'Khách hàng có xu hướng quên khi không được liên lạc > 5 ngày. Deals tương tự trước đây có tỷ lệ win giảm 30% sau 10 ngày im lặng.',
+    preview: 'Subject: Follow-up regarding CRM Solution...', applied: false
+  },
+  {
+    id: 2, type: 'call', icon: 'call', priority: 'medium', priorityLabel: 'Trung bình', priorityColor: 'text-amber-600', priorityBg: 'bg-amber-50', borderColor: 'border-amber-400',
+    deal: 'Dịch vụ Cloud - TechCorp', time: '1 giờ trước',
+    title: 'Gọi điện chốt lịch Demo',
+    desc: 'Khách hàng đã xem bản báo giá 3 lần trong sáng nay. Đây là thời điểm vàng để chốt lịch demo kỹ thuật.',
+    reason: 'Behavioral data: 3 lần xem trong 2 giờ thường chỉ ra intent rất cao. Win rate tăng 45% khi gọi trong khung giờ vàng này.',
+    applied: false
+  },
+  {
+    id: 3, type: 'task', icon: 'assignment_turned_in', priority: 'low', priorityLabel: 'Thấp', priorityColor: 'text-slate-500', priorityBg: 'bg-slate-100', borderColor: 'border-secondary',
+    deal: 'Gói tư vấn - Momo', time: '3 giờ trước',
+    title: 'Cập nhật thông tin hợp đồng',
+    desc: 'Hợp đồng dự kiến sẽ hết hạn cuối tháng. Nên cập nhật điều khoản gia hạn để giữ chân khách hàng.',
+    reason: 'Momo là khách hàng trung thành 2 năm. Renewal deal có giá trị trung bình +30% so với original.',
+    applied: false
+  },
+  {
+    id: 4, type: 'meeting', icon: 'calendar_month', priority: 'medium', priorityLabel: 'Trung bình', priorityColor: 'text-amber-600', priorityBg: 'bg-amber-50', borderColor: 'border-amber-400',
+    deal: 'Enterprise Solution - VNG Corp', time: '2 giờ trước',
+    title: 'Lên lịch cuộc họp với đội kỹ thuật VNG',
+    desc: 'CTO của VNG đã đặt câu hỏi kỹ thuật qua email. Nên sắp xếp demo chuyên sâu với team tech.',
+    reason: 'Đây là giai đoạn Negotiation cuối cùng. Technical demo thành công tăng win rate lên 85%.',
+    applied: false
+  },
+  {
+    id: 5, type: 'task', icon: 'assignment_turned_in', priority: 'low', priorityLabel: 'Đã áp dụng', priorityColor: 'text-slate-400', priorityBg: 'bg-slate-100', borderColor: 'border-slate-300',
+    deal: 'Dự án chuyển đổi số - SME JSC', time: 'Hôm qua lúc 16:45',
+    title: 'Cập nhật tài liệu kỹ thuật',
+    desc: 'Đã hoàn thành cập nhật tài liệu spec kỹ thuật theo yêu cầu của khách hàng.',
+    applied: true, appliedBy: 'bạn', appliedAt: '10:23'
+  },
+];
+
+let currentFilter = 'all';
+let sortDesc = true;
+
+function renderSuggestions(filter = 'all') {
+  const container = document.getElementById('suggestionsContainer');
+  let filtered = SUGGESTIONS;
+  if (filter !== 'all') {
+    if (['high', 'medium', 'low'].includes(filter)) {
+      filtered = SUGGESTIONS.filter(s => s.priority === filter || (filter === 'low' && s.applied));
+    } else {
+      filtered = SUGGESTIONS.filter(s => s.type === filter);
+    }
+  }
+  if (!sortDesc) filtered = [...filtered].reverse();
+  
+  container.innerHTML = filtered.map(s => renderCard(s)).join('');
+}
+
+function renderCard(s) {
+  if (s.applied) {
+    return `
+      <article id="card-${s.id}" class="suggestion-card applied bg-slate-50/50 rounded-lg border-l-[6px] border-slate-300 overflow-hidden">
+        <div class="p-6">
+          <header class="flex items-center gap-3 mb-4">
+            <span class="px-2.5 py-1 bg-slate-200 text-slate-500 rounded-md flex items-center gap-1.5 body-sm font-bold">
+              <span class="material-symbols-outlined text-base">${s.icon}</span> ${s.type.charAt(0).toUpperCase() + s.type.slice(1)}
+            </span>
+            <span class="text-slate-400 body-sm">${s.time}</span>
+          </header>
+          <div class="mb-4">
+            <div class="text-slate-400 font-medium body-sm mb-1 line-through">${s.deal}</div>
+            <h3 class="text-lg font-bold text-slate-400 mb-2 line-through">${s.title}</h3>
+          </div>
+          <footer class="bg-secondary-container/30 px-4 py-2.5 -mx-6 -mb-6 border-t border-secondary/10 flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings:'FILL' 1;">check_circle</span>
+            <span class="text-on-secondary-container body-sm font-semibold">Đã áp dụng lúc ${s.appliedAt} bởi ${s.appliedBy}</span>
+          </footer>
+        </div>
+      </article>
+    `;
+  }
+  return `
+    <article id="card-${s.id}" class="suggestion-card bg-surface-container-lowest rounded-lg shadow-sm border-l-[6px] ${s.borderColor} overflow-hidden transition-all hover:shadow-md">
+      <div class="p-6">
+        <header class="flex justify-between items-start mb-4">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 ${s.priorityBg} ${s.priorityColor} rounded-md flex items-center gap-1.5 body-sm font-bold">
+              <span class="material-symbols-outlined text-base">${s.icon}</span> ${s.type.charAt(0).toUpperCase() + s.type.slice(1)}
+            </span>
+            <span class="${s.priorityColor} font-semibold body-sm flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full ${s.priorityColor.replace('text-', 'bg-')}"></span> ${s.priorityLabel}
+            </span>
+            <span class="text-slate-400 body-sm">${s.time}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="thumbsUp(${s.id})" class="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 transition-colors"><span class="material-symbols-outlined text-xl">thumb_up</span></button>
+            <button onclick="thumbsDown(${s.id})" class="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 transition-colors"><span class="material-symbols-outlined text-xl">thumb_down</span></button>
+            <button class="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 transition-colors"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+          </div>
+        </header>
+        <div class="mb-4">
+          <div class="text-indigo-600 font-medium body-sm mb-1">${s.deal}</div>
+          ${s.riskText ? `<div class="${s.riskBg} px-4 py-2 rounded-lg flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined ${s.riskColor}" style="font-variation-settings:'FILL' 1;">${s.riskIcon}</span>
+            <span class="${s.riskColor} body-sm font-bold">${s.riskText}</span>
+          </div>` : ''}
+          <h3 class="text-lg font-bold text-on-surface mb-2">${s.title}</h3>
+          <p class="text-slate-600 body-md">${s.desc}</p>
+        </div>
+        <div class="bg-surface-container-low border border-slate-100 rounded-lg p-4 mb-4">
+          <button onclick="toggleReason(${s.id})" class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2 text-indigo-700 font-semibold body-sm">
+              <span class="material-symbols-outlined text-base">auto_awesome</span> Tại sao AI đề xuất?
+            </div>
+            <span id="reasonIcon-${s.id}" class="material-symbols-outlined text-slate-400">expand_more</span>
+          </button>
+          <div id="reason-${s.id}" class="hidden mt-3">
+            <p class="body-sm text-slate-600 leading-relaxed">${s.reason}</p>
+          </div>
+        </div>
+        <footer class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-5">
+          <button onclick="applySuggestion(${s.id})" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg body-sm font-bold shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">check_circle</span> Áp dụng ngay
+          </button>
+          <button onclick="showToast('Mở chi tiết gợi ý...')" class="bg-white text-indigo-600 border border-indigo-100 px-4 py-2.5 rounded-lg body-sm font-semibold hover:bg-indigo-50 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">visibility</span> Xem chi tiết
+          </button>
+          <button onclick="showToast('Mở tùy chỉnh...')" class="bg-white text-slate-600 border border-slate-200 px-4 py-2.5 rounded-lg body-sm font-semibold hover:bg-slate-50 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">edit</span> Tuỳ chỉnh
+          </button>
+          <div class="flex-1"></div>
+          <button onclick="dismissSuggestion(${s.id})" class="text-slate-400 hover:text-error transition-colors px-4 py-2.5 body-sm font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">close</span> Bỏ qua
+          </button>
+        </footer>
+      </div>
+    </article>
+  `;
+}
+
+function toggleReason(id) {
+  const el = document.getElementById(`reason-${id}`);
+  const icon = document.getElementById(`reasonIcon-${id}`);
+  el.classList.toggle('hidden');
+  icon.textContent = el.classList.contains('hidden') ? 'expand_more' : 'expand_less';
+}
+
+function applySuggestion(id) {
+  const s = SUGGESTIONS.find(x => x.id === id);
+  if (s) {
+    s.applied = true; s.appliedBy = 'bạn'; s.appliedAt = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+    const kpiApplied = document.getElementById('kpiApplied');
+    kpiApplied.textContent = parseInt(kpiApplied.textContent) + 1;
+    renderSuggestions(currentFilter);
+    showToast('✅ Đã áp dụng gợi ý thành công!');
+  }
+}
+
+function dismissSuggestion(id) {
+  const idx = SUGGESTIONS.findIndex(x => x.id === id);
+  if (idx > -1) {
+    SUGGESTIONS.splice(idx, 1);
+    renderSuggestions(currentFilter);
+    showToast('Đã bỏ qua gợi ý');
+  }
+}
+
+function thumbsUp(id) { showToast('👍 Cảm ơn phản hồi! AI sẽ học từ điều này.'); }
+function thumbsDown(id) { showToast('👎 Phản hồi đã ghi nhận. AI sẽ cải thiện.'); }
+
+function filterByPriority(p) { currentFilter = p; renderSuggestions(p); }
+function filterByType(t) { currentFilter = t; renderSuggestions(t); }
+
+function toggleSort() {
+  sortDesc = !sortDesc;
+  document.getElementById('sortLabel').textContent = sortDesc ? 'Mới nhất' : 'Cũ nhất';
+  renderSuggestions(currentFilter);
+}
+
+function refreshSuggestions() {
+  showToast('🔄 Đang tải gợi ý mới từ AI...');
+  setTimeout(() => {
+    document.getElementById('kpiNew').textContent = Math.floor(Math.random() * 5) + 10;
+    renderSuggestions(currentFilter);
+    showToast('✅ Đã cập nhật gợi ý mới!');
+  }, 1500);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.opacity = '1'; t.style.pointerEvents = 'auto';
+  setTimeout(() => { t.style.opacity = '0'; t.style.pointerEvents = 'none'; }, 3000);
+}
+
+renderSuggestions();
+</script>
+<script>
+  /* ═══════════════════════════════════════════════════
+     SIDEBAR ACCORDION — Vanilla JS
+     ═══════════════════════════════════════════════════ */
+  const menuState = { module1: false, module2: false };
+
+  function toggleMenu(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    const chevron  = document.getElementById('chevron-' + id);
+    const trigger  = document.getElementById('trigger-' + id);
+    if (!submenu) return;
+    menuState[id] = !menuState[id];
+    if (menuState[id]) {
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    } else {
+      submenu.style.maxHeight = '0';
+      if (chevron) chevron.style.transform = '';
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function handleMenuKey(e, id) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+  }
+
+  function initSidebarAccordion() {
+    ['module1', 'module2'].forEach(function(id) {
+      const submenu = document.getElementById('submenu-' + id);
+      if (!submenu) return;
+      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
+        submenu.style.transition = 'none';
+        menuState[id] = true;
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        var chev = document.getElementById('chevron-' + id);
+        var trig = document.getElementById('trigger-' + id);
+        if (chev) chev.style.transform = 'rotate(90deg)';
+        if (trig) trig.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+  } else {
+    initSidebarAccordion();
+  }
+</script>
+</body>
+</html>

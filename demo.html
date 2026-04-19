@@ -1,0 +1,1019 @@
+﻿<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo Shell — Quản gia AI</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── Biến toàn cục ── */
+    :root {
+      --sidebar-w: 232px;
+      --header-h:  48px;
+      --tr: 0.22s cubic-bezier(.4,0,.2,1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: #f1f4ff;
+    }
+
+    /* ── Icon font ── */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      font-size: 16px;
+      line-height: 1;
+      vertical-align: middle;
+      user-select: none;
+    }
+
+    /* ════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════ */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: linear-gradient(170deg, #231899 0%, #3525cd 55%, #3d2fd4 100%);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      z-index: 30;
+      transition: width var(--tr), min-width var(--tr);
+    }
+    #sidebar.collapsed { width: 0; min-width: 0; }
+
+    /* ── Vùng nav cuộn ── */
+    #nav-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 6px;
+    }
+    #nav-scroll::-webkit-scrollbar { width: 3px; }
+    #nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+
+    /* ── ACCORDION: nút nhóm cha ── */
+    .group-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px 7px;
+      margin: 4px 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.52);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      transition: background var(--tr), color var(--tr);
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      border: none;
+      background: transparent;
+      width: calc(100% - 16px);
+      text-align: left;
+    }
+    .group-btn:hover {
+      background: rgba(255,255,255,0.09);
+      color: rgba(255,255,255,0.8);
+    }
+    .g-icon    { font-size: 13px; color: rgba(255,255,255,0.38); flex-shrink: 0; }
+    .g-label   { flex: 1; white-space: nowrap; overflow: hidden; }
+    .g-chevron {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    }
+    .group-btn.open .g-chevron { transform: rotate(90deg); color: rgba(255,255,255,0.6); }
+    .group-btn.open { color: rgba(255,255,255,0.78); }
+
+    /* ── SUBMENU collapsible ── */
+    .group-sub {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── NAV ITEM con ── */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px 6px 30px;
+      margin: 1px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.65);
+      font-size: 12px;
+      font-weight: 450;
+      white-space: nowrap;
+      overflow: hidden;
+      user-select: none;
+      transition: background var(--tr), color var(--tr);
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-item.active {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      font-weight: 600;
+    }
+    .nav-item.active .n-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+      color: #fff;
+    }
+    .n-icon  { font-size: 13px; color: rgba(255,255,255,0.45); flex-shrink: 0; }
+    .n-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .n-num   { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.28); flex-shrink: 0; margin-left: auto; }
+    .nav-item.active .n-num { color: rgba(255,255,255,0.5); }
+
+    /* ── Divider ── */
+    .nav-div { height: 1px; background: rgba(255,255,255,0.1); margin: 7px 14px; }
+
+    /* ── Footer sidebar ── */
+    .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding: 6px 0 4px; flex-shrink: 0; }
+    .foot-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      color: rgba(255,255,255,0.48);
+      font-size: 12px;
+      cursor: pointer;
+      transition: color var(--tr);
+      white-space: nowrap;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .foot-item:hover { color: rgba(255,255,255,0.82); }
+    .foot-icon { font-size: 13px; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+
+    /* ════════════════════════════════════════
+       MAIN / IFRAME
+    ════════════════════════════════════════ */
+    #screen-iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    /* ── Loading spinner ── */
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(241,244,255,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.18s;
+    }
+    #loading.hidden { opacity: 0; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid #d3e4fe;
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: #1a1464;
+      color: #fff;
+      font-size: 11.5px;
+      padding: 7px 16px;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Mobile overlay ── */
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 20; }
+    @media (max-width: 768px) {
+      #sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 40; }
+      #sidebar.collapsed { width: 0; min-width: 0; }
+      #overlay.show { display: block; }
+    }
+
+    /* ════════════════════════════════════════
+       BỘ CHỌN MÀU NỀN
+    ════════════════════════════════════════ */
+    #btn-bg { position: relative; }
+    #btn-bg-dot {
+      position: absolute;
+      bottom: 4px; right: 4px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      border: 1.5px solid #fff;
+      background: #f1f4ff;
+      box-shadow: 0 0 0 1.5px #d1d5db;
+      pointer-events: none;
+    }
+    #bg-panel {
+      position: fixed;
+      top: calc(var(--header-h) + 8px);
+      right: 46px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+      z-index: 200;
+      width: 220px;
+      display: none;
+    }
+    #bg-panel.open {
+      display: block;
+      animation: bgPanelIn 0.16s ease;
+    }
+    @keyframes bgPanelIn {
+      from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+    .bg-panel-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .bg-swatches {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .bg-swatch {
+      aspect-ratio: 1;
+      border-radius: 9px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bg-swatch:hover { transform: scale(1.12); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+    .bg-swatch.active { border-color: #4f46e5; box-shadow: 0 0 0 1px #4f46e5; }
+    .bg-swatch.active::after {
+      content: '✓';
+      font-size: 13px;
+      color: #4f46e5;
+      font-weight: 800;
+      line-height: 1;
+    }
+    /* Swatch trắng cần viền nhạt để nhìn thấy */
+    .bg-swatch[data-color="#ffffff"] { box-shadow: 0 0 0 1px #e2e8f0; }
+    .bg-swatch[data-color="#ffffff"].active { box-shadow: 0 0 0 1.5px #4f46e5; }
+
+    /* ════════════════════════════════════════
+       DARK MODE — SHELL
+    ════════════════════════════════════════ */
+    body.dark { background: #0f172a !important; }
+    body.dark #loading { background: rgba(15,23,42,0.92) !important; }
+    body.dark header {
+      background: #1e293b !important;
+      border-bottom-color: #334155 !important;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.5) !important;
+    }
+    body.dark header #hd-name   { color: #e2e8f0 !important; }
+    body.dark header #hd-file   { color: #64748b !important; }
+    body.dark header .border-r  { border-color: #334155 !important; }
+    body.dark header .text-slate-500 { color: #94a3b8 !important; }
+    body.dark header .text-slate-400 { color: #64748b !important; }
+    body.dark header .text-slate-700 { color: #e2e8f0 !important; }
+    body.dark header kbd {
+      background: #334155 !important;
+      border-color: #475569 !important;
+      color: #94a3b8 !important;
+    }
+    body.dark header button:hover,
+    body.dark header a:hover { background: #334155 !important; }
+    body.dark #bg-panel {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+    }
+    body.dark #bg-panel .bg-panel-title { color: #94a3b8 !important; }
+    body.dark #toast { background: #334155 !important; }
+  </style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header style="height:var(--header-h);flex-shrink:0;z-index:50;position:relative;"
+        class="flex items-center gap-2 px-3 bg-white border-b border-slate-200 shadow-sm">
+
+  <!-- Hamburger -->
+  <button onclick="toggleSidebar()" title="Sidebar (Ctrl+B)"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
+    <span class="material-symbols-outlined" style="font-size:20px;">menu</span>
+  </button>
+
+  <!-- Nút quạy lại (chỉ hiện khi đang xem trang footer) -->
+  <button id="btn-back" onclick="goBack()" title="Quay lại" style="display:none;"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-indigo-50 text-[#3525cd] transition-colors shrink-0">
+    <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
+  </button>
+
+  <!-- Logo -->
+  <div class="flex items-center gap-2 shrink-0 border-r border-slate-100 pr-3 mr-1">
+    <div id="header-logo-bg" class="w-6 h-6 rounded-lg bg-[#4f46e5] flex items-center justify-center shadow-sm">
+      <span class="material-symbols-outlined text-white"
+            style="font-size:13px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;">smart_toy</span>
+    </div>
+    <span class="text-sm font-bold text-[#3525cd] hidden sm:block">Quản gia AI</span>
+  </div>
+
+  <!-- Tên màn hình -->
+  <div class="flex items-center gap-1.5 flex-1 min-w-0">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:13px;">monitor</span>
+    <span id="hd-name" class="text-sm font-semibold text-slate-700 truncate">Chat tài liệu</span>
+    <span id="hd-file" class="text-xs text-slate-400 hidden sm:block">· man-hinh-1.html</span>
+  </div>
+
+  <!-- Gợi ý phím tắt -->
+  <div class="hidden md:flex items-center gap-1 text-[11px] text-slate-400 shrink-0 mr-1">
+    <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono">↑</kbd>
+    <kbd class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono">↓</kbd>
+    <span class="ml-0.5">chuyển màn hình</span>
+  </div>
+
+  <!-- Mở tab mới -->
+  <a id="btn-link" href="clean/man-hinh-1.html" target="_blank" title="Mở tab mới"
+     class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
+    <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+  </a>
+
+  <!-- Toàn màn hình -->
+  <button onclick="toggleFullscreen()" title="Toàn màn hình (F)"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
+    <span id="ico-fs" class="material-symbols-outlined" style="font-size:16px;">fullscreen</span>
+  </button>
+
+  <!-- Chọn màu nền -->
+  <button id="btn-bg" onclick="toggleBgPanel(event)" title="Màu nền giao diện"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
+    <span class="material-symbols-outlined" style="font-size:16px;">palette</span>
+    <span id="btn-bg-dot"></span>
+  </button>
+
+  <!-- Chuyển sang Mobile view -->
+  <a href="demo-phone.html" title="Xem dạng app điện thoại"
+     class="flex items-center gap-1.5 px-3 h-8 rounded-full border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-slate-500 hover:text-[#3525cd] transition-all shrink-0 text-[11.5px] font-medium">
+    <span class="material-symbols-outlined" style="font-size:14px;">smartphone</span>
+    <span class="hidden sm:inline">Mobile</span>
+  </a>
+
+  <!-- Tổng quan -->
+  <a href="index.html" title="Tổng quan tất cả màn hình"
+     class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
+    <span class="material-symbols-outlined" style="font-size:16px;">grid_view</span>
+  </a>
+</header>
+
+<!-- ============================================================
+     BODY: SIDEBAR + IFRAME
+============================================================ -->
+<div id="overlay" onclick="closeMobile()"></div>
+
+<div class="flex flex-1 overflow-hidden" style="height:calc(100vh - var(--header-h));">
+
+  <!-- ─────────────────────────────────────────
+       SIDEBAR
+  ───────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <!-- Thương hiệu -->
+    <div class="flex items-center gap-2.5 px-3 py-3.5 shrink-0 border-b border-white/10">
+      <div class="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-white"
+              style="font-size:14px;font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;">smart_toy</span>
+      </div>
+      <div class="overflow-hidden">
+        <p class="text-white font-bold text-[13px] leading-tight whitespace-nowrap">Quản gia AI</p>
+        <p class="text-white/38 text-[9px] uppercase tracking-wider whitespace-nowrap">Demo Shell · 15 màn hình</p>
+      </div>
+    </div>
+
+    <!-- Nút tạo mới nhanh -->
+    <div class="px-3 pt-3 pb-1 shrink-0">
+      <button onclick="loadScreen(navItems[2])"
+              title="Tạo mới — Upload tài liệu"
+              class="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg
+                     bg-white/15 hover:bg-white/22 text-white text-[11.5px] font-semibold
+                     transition-colors border border-white/10">
+        <span class="material-symbols-outlined"
+              style="font-size:14px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;">add</span>
+        Tạo mới
+      </button>
+    </div>
+
+    <!-- ── DANH SÁCH MENU ── -->
+    <div id="nav-scroll">
+
+      <!-- ══════════════════════════════════════
+           NHÓM 1: CHAT TÀI LIỆU
+      ══════════════════════════════════════ -->
+      <button class="group-btn" id="gb-g1" onclick="toggleGroup('g1')" style="margin-top:8px;">
+        <span class="material-symbols-outlined g-icon">chat</span>
+        <span class="g-label">Chat tài liệu</span>
+        <span class="material-symbols-outlined g-chevron">chevron_right</span>
+      </button>
+      <div class="group-sub" id="gs-g1">
+        <div class="nav-item" data-idx="0"  data-file="clean/man-hinh-1.html"  data-name="Chat tài liệu"      data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">chat_bubble</span>
+          <span class="n-label">Chat tài liệu</span><span class="n-num">01</span>
+        </div>
+        <div class="nav-item" data-idx="1"  data-file="clean/man-hinh-2.html"  data-name="Concierge AI"       data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">forum</span>
+          <span class="n-label">Concierge AI</span><span class="n-num">02</span>
+        </div>
+        <div class="nav-item" data-idx="2"  data-file="clean/man-hinh-3.html"  data-name="Upload tài liệu"    data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">upload_file</span>
+          <span class="n-label">Upload tài liệu</span><span class="n-num">03</span>
+        </div>
+        <div class="nav-item" data-idx="3"  data-file="clean/man-hinh-4.html"  data-name="Thư viện tài liệu"  data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">description</span>
+          <span class="n-label">Thư viện tài liệu</span><span class="n-num">04</span>
+        </div>
+        <div class="nav-item" data-idx="4"  data-file="clean/man-hinh-5.html"  data-name="Xem tài liệu"       data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">find_in_page</span>
+          <span class="n-label">Xem tài liệu</span><span class="n-num">05</span>
+        </div>
+        <div class="nav-item" data-idx="5"  data-file="clean/man-hinh-6.html"  data-name="Context Menu"       data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">touch_app</span>
+          <span class="n-label">Context Menu</span><span class="n-num">06</span>
+        </div>
+      </div>
+
+      <div class="nav-div"></div>
+
+      <!-- ══════════════════════════════════════
+           NHÓM 2: CRM & CÔNG VIỆC
+      ══════════════════════════════════════ -->
+      <button class="group-btn" id="gb-g2" onclick="toggleGroup('g2')">
+        <span class="material-symbols-outlined g-icon">business_center</span>
+        <span class="g-label">CRM &amp; Công việc</span>
+        <span class="material-symbols-outlined g-chevron">chevron_right</span>
+      </button>
+      <div class="group-sub" id="gs-g2">
+        <div class="nav-item" data-idx="6"  data-file="clean/man-hinh-7.html"  data-name="Dashboard CRM"         data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">dashboard</span>
+          <span class="n-label">Dashboard CRM</span><span class="n-num">07</span>
+        </div>
+        <div class="nav-item" data-idx="7"  data-file="clean/man-hinh-8.html"  data-name="CRM Hub"               data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">assignment</span>
+          <span class="n-label">CRM Hub</span><span class="n-num">08</span>
+        </div>
+        <div class="nav-item" data-idx="8"  data-file="clean/man-hinh-9.html"  data-name="Thông báo &amp; Inbox"  data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">notifications</span>
+          <span class="n-label">Thông báo &amp; Inbox</span><span class="n-num">09</span>
+        </div>
+        <div class="nav-item" data-idx="9"  data-file="clean/man-hinh-10.html" data-name="Kanban Deals"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">view_kanban</span>
+          <span class="n-label">Kanban Deals</span><span class="n-num">10</span>
+        </div>
+        <div class="nav-item" data-idx="10" data-file="clean/man-hinh-11.html" data-name="Chat CRM"               data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">support_agent</span>
+          <span class="n-label">Chat CRM</span><span class="n-num">11</span>
+        </div>
+        <div class="nav-item" data-idx="11" data-file="clean/man-hinh-12.html" data-name="AI Gợi ý"               data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">auto_awesome</span>
+          <span class="n-label">AI Gợi ý</span><span class="n-num">12</span>
+        </div>
+        <div class="nav-item" data-idx="12" data-file="clean/man-hinh-13.html" data-name="Chi tiết Deal"          data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">article</span>
+          <span class="n-label">Chi tiết Deal</span><span class="n-num">13</span>
+        </div>
+        <div class="nav-item" data-idx="13" data-file="clean/man-hinh-14.html" data-name="Quick Update"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">edit_note</span>
+          <span class="n-label">Quick Update</span><span class="n-num">14</span>
+        </div>
+        <div class="nav-item" data-idx="14" data-file="clean/man-hinh-15.html" data-name="Cấu hình CRM"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">settings_suggest</span>
+          <span class="n-label">Cấu hình CRM</span><span class="n-num">15</span>
+        </div>
+      </div>
+
+
+    </div><!-- /nav-scroll -->
+
+    <!-- Footer: Cài đặt / Trợ giúp / Đăng xuất -->
+    <div class="sidebar-footer">
+      <a href="#" onclick="loadFooterLink('clean/man-hinh-17.html','Cài đặt hệ thống');return false;" class="foot-item">
+        <span class="material-symbols-outlined foot-icon">settings</span>Cài đặt
+      </a>
+      <a href="#" class="foot-item">
+        <span class="material-symbols-outlined foot-icon">help</span>Trợ giúp
+      </a>
+      <a href="#" onclick="loadFooterLink('clean/man-hinh-16.html','Đăng nhập / Đăng ký');return false;" class="foot-item">
+        <span class="material-symbols-outlined foot-icon">logout</span>Đăng xuất
+      </a>
+      <div class="px-4 pt-1 pb-0.5">
+        <p id="counter" class="text-white/28 text-[10px] whitespace-nowrap">Màn hình 1 / 15</p>
+      </div>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <!-- ─────────────────────────────────────────
+       MAIN — khu vực iframe
+  ───────────────────────────────────────── -->
+  <main class="flex-1 relative overflow-hidden">
+
+    <!-- Loading overlay -->
+    <div id="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Iframe: hiển thị từng màn hình -->
+    <iframe id="screen-iframe"
+            src="clean/man-hinh-1.html"
+            title="Màn hình đang xem"
+            onload="onIframeLoad()"
+            allow="fullscreen"
+            style="width:100%;height:100%;border:none;display:block;">
+    </iframe>
+
+  </main>
+
+</div><!-- /flex body -->
+
+<!-- Bộ chọn màu nền -->
+<div id="bg-panel">
+  <p class="bg-panel-title">Màu nền giao diện</p>
+  <div class="bg-swatches">
+    <div class="bg-swatch active" data-color="#f1f4ff" style="background:#f1f4ff" title="Indigo Mist (mặc định)" onclick="setBgColor('#f1f4ff',this)"></div>
+    <div class="bg-swatch" data-color="#e8f0fe" style="background:#e8f0fe" title="Cornflower Blue" onclick="setBgColor('#e8f0fe',this)"></div>
+    <div class="bg-swatch" data-color="#e3f2fd" style="background:#e3f2fd" title="Sky Blue" onclick="setBgColor('#e3f2fd',this)"></div>
+    <div class="bg-swatch" data-color="#e0f7fa" style="background:#e0f7fa" title="Mint Cyan" onclick="setBgColor('#e0f7fa',this)"></div>
+    <div class="bg-swatch" data-color="#e8f5e9" style="background:#e8f5e9" title="Sage Green" onclick="setBgColor('#e8f5e9',this)"></div>
+    <div class="bg-swatch" data-color="#f3e5f5" style="background:#f3e5f5" title="Lavender" onclick="setBgColor('#f3e5f5',this)"></div>
+    <div class="bg-swatch" data-color="#fce4ec" style="background:#fce4ec" title="Rose Petal" onclick="setBgColor('#fce4ec',this)"></div>
+    <div class="bg-swatch" data-color="#fff3e0" style="background:#fff3e0" title="Peach" onclick="setBgColor('#fff3e0',this)"></div>
+    <div class="bg-swatch" data-color="#fffde7" style="background:#fffde7" title="Butter Yellow" onclick="setBgColor('#fffde7',this)"></div>
+    <div class="bg-swatch" data-color="#fbe9e7" style="background:#fbe9e7" title="Coral Blush" onclick="setBgColor('#fbe9e7',this)"></div>
+    <div class="bg-swatch" data-color="#f5f5f5" style="background:#f5f5f5" title="Soft Gray" onclick="setBgColor('#f5f5f5',this)"></div>
+    <div class="bg-swatch" data-color="#ffffff" style="background:#ffffff" title="Trắng tinh" onclick="setBgColor('#ffffff',this)"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+  /* ── Trạng thái chung ────────────────────────────────────── */
+  const navItems   = Array.from(document.querySelectorAll('.nav-item'));
+  const TOTAL      = navItems.length; // 15
+  let currentIdx   = 0;
+  let sidebarOpen  = true;
+  let isFullscreen = false;
+  let prevState    = null; // lưu trạng thái trước khi vào trang footer
+
+  /* Trạng thái đóng/mở từng nhóm accordion */
+  const grpState = { g1: false, g2: false };
+
+  /* ── ACCORDION: toggle nhóm ──────────────────────────────── */
+  function toggleGroup(id) {
+    const btn = document.getElementById('gb-' + id);
+    const sub = document.getElementById('gs-' + id);
+    grpState[id] = !grpState[id];
+
+    if (grpState[id]) {
+      /* Mở: max-height → scrollHeight thực → animation mượt */
+      sub.style.maxHeight = sub.scrollHeight + 'px';
+      btn.classList.add('open');
+    } else {
+      /* Đóng */
+      sub.style.maxHeight = '0';
+      btn.classList.remove('open');
+    }
+  }
+
+  /* Mở nhóm tức thì không animation — dùng khi khởi tạo */
+  function openGroupNow(id) {
+    const btn = document.getElementById('gb-' + id);
+    const sub = document.getElementById('gs-' + id);
+    grpState[id] = true;
+    sub.style.transition = 'none';
+    sub.style.maxHeight  = sub.scrollHeight + 'px';
+    btn.classList.add('open');
+    /* Khôi phục transition sau 2 frame */
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { sub.style.transition = ''; });
+    });
+  }
+
+  /* ── LOAD MÀN HÌNH vào iframe ───────────────────────────── */
+  function loadScreen(el) {
+    /* Ẩn nút back khi navigate bằng nav chính */
+    document.getElementById('btn-back').style.display = 'none';
+    prevState = null;
+
+    /* Bỏ active cũ */
+    navItems.forEach(function(i) { i.classList.remove('active'); });
+
+    /* Active item mới */
+    el.classList.add('active');
+
+    const file = el.dataset.file;
+    const name = el.dataset.name;
+    const grp  = el.dataset.grp;
+    currentIdx = parseInt(el.dataset.idx, 10);
+
+    /* Cập nhật header */
+    document.getElementById('hd-name').textContent = name;
+    document.getElementById('hd-file').textContent = '· ' + file.replace(/^.*\//, '');  // strip folder path
+    document.getElementById('btn-link').href       = file;
+    document.getElementById('counter').textContent = 'Màn hình ' + (currentIdx + 1) + ' / ' + TOTAL;
+    document.title = name + ' — Quản gia AI Demo';
+
+    /* Lưu vào URL hash để reload giữ được màn hình */
+    history.replaceState(null, '', '#' + file);
+
+    /* Tự động mở nhóm cha nếu đang đóng */
+    if (!grpState[grp]) toggleGroup(grp);
+
+    /* Cuộn nav item vào vùng nhìn thấy */
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+    /* Load iframe */
+    showLoading();
+    document.getElementById('screen-iframe').src = file;
+
+    /* Đóng sidebar overlay trên mobile */
+    if (window.innerWidth < 768) closeMobile();
+  }
+
+  /* ── IFRAME LOADED: inject CSS ẩn sidebar con ───────────── */
+  function onIframeLoad() {
+    try {
+      const iframe = document.getElementById('screen-iframe');
+      const doc    = iframe.contentDocument || iframe.contentWindow.document;
+
+      if (doc && doc.head) {
+        /* Xóa style cũ nếu đã inject */
+        const old = doc.getElementById('_demoCSS');
+        if (old) old.remove();
+
+        const st = doc.createElement('style');
+        st.id    = '_demoCSS';
+        st.textContent =
+          '/* Demo Shell override: ẩn sidebar nội tại */' +
+          'aside{display:none!important}' +
+          'main{margin-left:0!important;padding-left:0!important}' +
+          'header{left:0!important}' +
+          '[class*="ml-60"]{margin-left:0!important}' +
+          '[class*="ml-[240"]{margin-left:0!important}' +
+          '[class*="left-[240"]{left:0!important}' +
+          '[class*="pl-[240"]{padding-left:0!important}';
+
+        /* Áp dụng dark mode vào iframe nếu đang bật */
+        var savedTheme = null;
+        try { savedTheme = localStorage.getItem('qg_theme'); } catch(e) {}
+        if (savedTheme) {
+          var effective = savedTheme === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : savedTheme;
+          if (effective === 'dark') {
+            /* Màn hình hỗ trợ Tailwind darkMode:class → toggle class trên html */
+            doc.documentElement.classList.remove('light');
+            doc.documentElement.classList.add('dark');
+          } else {
+            doc.documentElement.classList.remove('dark');
+            doc.documentElement.classList.add('light');
+          }
+        }
+
+        doc.head.appendChild(st);
+
+        /* Áp dụng accent color vào iframe vừa load */
+        var savedAccent2 = null;
+        try { savedAccent2 = localStorage.getItem('qg_accent'); } catch(ex) {}
+        if (savedAccent2 && ACCENT_PALETTE[savedAccent2]) {
+          var acSt = doc.getElementById('_accentOverride');
+          if (!acSt) { acSt = doc.createElement('style'); acSt.id = '_accentOverride'; doc.head.appendChild(acSt); }
+          acSt.textContent = buildAccentCSS(savedAccent2, ACCENT_PALETTE[savedAccent2].c2);
+        }
+      }
+    } catch (e) {
+      console.warn('[Demo Shell] CSS inject thất bại:', e.message);
+    }
+
+    hideLoading();
+  }
+
+  /* ── Load trang footer (Cài đặt / Đăng xuất) vào iframe ─── */
+  function loadFooterLink(file, name) {
+    prevState = { idx: currentIdx, sidebarWasOpen: sidebarOpen }; /* lưu trạng thái */
+    navItems.forEach(function(i) { i.classList.remove('active'); });
+    document.getElementById('hd-name').textContent = name;
+    document.getElementById('hd-file').textContent = '· ' + file.replace(/^.*\//, '');
+    document.getElementById('btn-link').href       = file;
+    document.getElementById('btn-back').style.display = '';
+    document.title = name + ' — Quản gia AI Demo';
+    /* Ẩn sidebar khi vào trang footer */
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('overlay').classList.remove('show');
+    sidebarOpen = false;
+    showLoading();
+    document.getElementById('screen-iframe').src = file;
+  }
+
+  /* ── Quay lại màn hình trước ─────────────────────────────── */
+  function goBack() {
+    if (prevState === null) return;
+    document.getElementById('btn-back').style.display = 'none';
+    /* Khôi phục trạng thái sidebar trước đó */
+    if (prevState.sidebarWasOpen) {
+      document.getElementById('sidebar').classList.remove('collapsed');
+      sidebarOpen = true;
+    }
+    loadScreen(navItems[prevState.idx]);
+    prevState = null;
+  }
+
+  /* ── Loading ─────────────────────────────────────────────── */
+  function showLoading() { document.getElementById('loading').classList.remove('hidden'); }
+  function hideLoading()  { document.getElementById('loading').classList.add('hidden'); }
+
+  /* ── Toggle sidebar ─────────────────────────────────────── */
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+    if (window.innerWidth < 768)
+      document.getElementById('overlay').classList.toggle('show', sidebarOpen);
+  }
+
+  function closeMobile() {
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('overlay').classList.remove('show');
+    sidebarOpen = false;
+  }
+
+  /* ── Fullscreen iframe ──────────────────────────────────── */
+  function toggleFullscreen() {
+    const iframe = document.getElementById('screen-iframe');
+    if (!isFullscreen) {
+      (iframe.requestFullscreen || iframe.webkitRequestFullscreen || function(){}).call(iframe);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  }
+  document.addEventListener('fullscreenchange', function() {
+    isFullscreen = !!document.fullscreenElement;
+    document.getElementById('ico-fs').textContent = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+  });
+
+  /* ── Phím tắt ────────────────────────────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if      (e.key === 'ArrowDown'  || e.key === 'ArrowRight') { e.preventDefault(); navigateTo(currentIdx + 1); }
+    else if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  { e.preventDefault(); navigateTo(currentIdx - 1); }
+    else if (e.key === 'f' || e.key === 'F')                  { toggleFullscreen(); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'b')       { e.preventDefault(); toggleSidebar(); }
+  });
+
+  function navigateTo(idx) {
+    const n = Math.max(0, Math.min(TOTAL - 1, idx));
+    if (n === currentIdx) {
+      showToast(n === 0 ? '⬆ Đây là màn hình đầu tiên' : '⬇ Đây là màn hình cuối cùng');
+      return;
+    }
+    loadScreen(navItems[n]);
+    showToast(navItems[n].dataset.name);
+  }
+
+  /* ── Toast ──────────────────────────────────────────────── */
+  let toastTimer = null;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 1800);
+  }
+
+  /* ── Màu nền giao diện ──────────────────────────────────── */
+  var bgPanelOpen = false;
+
+  var BG_NAMES = {
+    '#f1f4ff': 'Indigo Mist', '#e8f0fe': 'Cornflower', '#e3f2fd': 'Sky Blue',
+    '#e0f7fa': 'Mint Cyan',   '#e8f5e9': 'Sage Green', '#f3e5f5': 'Lavender',
+    '#fce4ec': 'Rose Petal',  '#fff3e0': 'Peach',       '#fffde7': 'Butter Yellow',
+    '#fbe9e7': 'Coral Blush', '#f5f5f5': 'Soft Gray',   '#ffffff': 'Trắng tinh'
+  };
+
+  function hexToRgba(hex, alpha) {
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  function toggleBgPanel(e) {
+    e.stopPropagation();
+    bgPanelOpen = !bgPanelOpen;
+    document.getElementById('bg-panel').classList.toggle('open', bgPanelOpen);
+  }
+
+  function setBgColor(color, el) {
+    /* Không ghi đè nếu đang dark mode */
+    if (!document.body.classList.contains('dark')) {
+      document.body.style.background = color;
+      document.getElementById('loading').style.background = hexToRgba(color, 0.92);
+    }
+    document.getElementById('btn-bg-dot').style.background = color;
+    document.querySelectorAll('.bg-swatch').forEach(function(s) { s.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    try { localStorage.setItem('qg_bg_color', color); } catch(ex) {}
+    bgPanelOpen = false;
+    document.getElementById('bg-panel').classList.remove('open');
+    showToast('Màu nền: ' + (BG_NAMES[color] || color));
+  }
+
+  /* Đóng panel khi click ra ngoài */
+  document.addEventListener('click', function(e) {
+    if (bgPanelOpen && !document.getElementById('bg-panel').contains(e.target)) {
+      bgPanelOpen = false;
+      document.getElementById('bg-panel').classList.remove('open');
+    }
+  });
+
+  /* ── Chủ đề sáng / tối / màu nhấn ───────────────────────── */
+  /* 8 màu pastel — mỗi entry: name, c2 (container), grad (sidebar) */
+  var ACCENT_PALETTE = {
+    '#6b7fe8': { name: 'Periwinkle',  c2: '#8f9ef0', grad: 'linear-gradient(170deg,#4a62d4 0%,#6b7fe8 55%,#8f9ef0 100%)' },
+    '#9b82d4': { name: 'Lavender',    c2: '#b5a0e2', grad: 'linear-gradient(170deg,#7860bc 0%,#9b82d4 55%,#b5a0e2 100%)' },
+    '#3db8b0': { name: 'Aqua Mint',   c2: '#5cccc4', grad: 'linear-gradient(170deg,#1e9e96 0%,#3db8b0 55%,#5cccc4 100%)' },
+    '#5eab78': { name: 'Sage Green',  c2: '#7dc295', grad: 'linear-gradient(170deg,#3c8c58 0%,#5eab78 55%,#7dc295 100%)' },
+    '#d4728e': { name: 'Blush Rose',  c2: '#e490a8', grad: 'linear-gradient(170deg,#bc5072 0%,#d4728e 55%,#e490a8 100%)' },
+    '#d98060': { name: 'Apricot',     c2: '#eca07e', grad: 'linear-gradient(170deg,#c06040 0%,#d98060 55%,#eca07e 100%)' },
+    '#4b9dd8': { name: 'Sky Blue',    c2: '#6cb6e8', grad: 'linear-gradient(170deg,#2880c0 0%,#4b9dd8 55%,#6cb6e8 100%)' },
+    '#a878b0': { name: 'Mauve',       c2: '#c298c8', grad: 'linear-gradient(170deg,#8658a0 0%,#a878b0 55%,#c298c8 100%)' }
+  };
+  var DEFAULT_ACCENT = '#6b7fe8';
+
+  /* Tạo CSS override toàn bộ primary classes trong iframe */
+  function buildAccentCSS(primary, container) {
+    var r = parseInt(primary.slice(1,3),16), g = parseInt(primary.slice(3,5),16), b = parseInt(primary.slice(5,7),16);
+    var a05 = 'rgba('+r+','+g+','+b+',.05)';
+    var a10 = 'rgba('+r+','+g+','+b+',.10)';
+    var a20 = 'rgba('+r+','+g+','+b+',.20)';
+    return (
+      '.bg-primary{background-color:'+primary+'!important}' +
+      '.text-primary{color:'+primary+'!important}' +
+      '.border-primary{border-color:'+primary+'!important}' +
+      '.bg-primary-container{background-color:'+container+'!important}' +
+      '.hover\\:bg-primary:hover{background-color:'+primary+'!important}' +
+      '.hover\\:bg-primary-container:hover{background-color:'+container+'!important}' +
+      '.hover\\:text-primary:hover{color:'+primary+'!important}' +
+      '.hover\\:border-primary:hover{border-color:'+primary+'!important}' +
+      '.focus\\:border-primary:focus{border-color:'+primary+'!important}' +
+      '.from-primary{--tw-gradient-from:'+primary+'!important}' +
+      '.to-primary-container{--tw-gradient-to:'+container+'!important}' +
+      '[class*="bg-primary/5"]{background-color:'+a05+'!important}' +
+      '[class*="bg-primary/10"]{background-color:'+a10+'!important}' +
+      '[class*="bg-primary/20"]{background-color:'+a20+'!important}' +
+      '[class*="ring-primary"]{--tw-ring-color:'+a20+'!important}'
+    );
+  }
+
+  /* Inject accent CSS vào một iframe cụ thể */
+  function applyAccentToIframe(iframe, color) {
+    if (!iframe || !color) return;
+    var entry = ACCENT_PALETTE[color];
+    if (!entry) return;
+    try {
+      var doc = iframe.contentDocument || iframe.contentWindow.document;
+      if (!doc || !doc.head) return;
+      var st = doc.getElementById('_accentOverride');
+      if (!st) { st = doc.createElement('style'); st.id = '_accentOverride'; doc.head.appendChild(st); }
+      st.textContent = buildAccentCSS(color, entry.c2);
+    } catch(e) {}
+  }
+
+  function applyThemeToShell(val) {
+    var effective = val === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : val;
+    var isDark = effective === 'dark';
+    document.body.classList.toggle('dark', isDark);
+    if (isDark) {
+      document.body.style.background = '#0f172a';
+      document.getElementById('loading').style.background = 'rgba(15,23,42,0.92)';
+    } else {
+      var savedBg = null;
+      try { savedBg = localStorage.getItem('qg_bg_color'); } catch(e) {}
+      var bg = savedBg || '#f1f4ff';
+      document.body.style.background = bg;
+      document.getElementById('loading').style.background = hexToRgba(bg, 0.92);
+      document.getElementById('btn-bg-dot').style.background = bg;
+    }
+    try { localStorage.setItem('qg_theme', val); } catch(e) {}
+  }
+
+  function applyAccentToShell(color) {
+    var entry = ACCENT_PALETTE[color] || ACCENT_PALETTE[DEFAULT_ACCENT];
+    /* Sidebar + logo */
+    var st = document.getElementById('_accentCSS');
+    if (!st) { st = document.createElement('style'); st.id = '_accentCSS'; document.head.appendChild(st); }
+    st.textContent =
+      '#sidebar{background:' + entry.grad + '!important}' +
+      '#header-logo-bg{background:' + color + '!important}' +
+      '.spinner{border-top-color:' + color + '!important}';
+    /* Áp dụng ngay vào iframe đang mở */
+    applyAccentToIframe(document.getElementById('screen-iframe'), color);
+    try { localStorage.setItem('qg_accent', color); } catch(e) {}
+  }
+
+  /* ── Nhận postMessage từ iframe cài đặt ─────────────────── */
+  window.addEventListener('message', function(e) {
+    if (!e.data || typeof e.data !== 'object') return;
+    if (e.data.type === 'qg_theme') {
+      applyThemeToShell(e.data.value);
+      var label = e.data.value === 'dark' ? 'Giao diện Tối 🌙' : e.data.value === 'light' ? 'Giao diện Sáng ☀️' : 'Tự động theo hệ thống';
+      showToast(label);
+    }
+    if (e.data.type === 'qg_accent') applyAccentToShell(e.data.value);
+  });
+
+  /* ── Khởi tạo ───────────────────────────────────────────── */
+  (function init() {
+    /* Khôi phục màu nền đã lưu */
+    (function() {
+      var savedBg = null;
+      try { savedBg = localStorage.getItem('qg_bg_color'); } catch(e) {}
+      if (savedBg) {
+        document.getElementById('btn-bg-dot').style.background = savedBg;
+        document.querySelectorAll('.bg-swatch').forEach(function(s) {
+          s.classList.toggle('active', s.dataset.color === savedBg);
+        });
+      }
+    })();
+
+    /* Khôi phục chủ đề sáng/tối */
+    (function() {
+      var savedTheme = null;
+      try { savedTheme = localStorage.getItem('qg_theme'); } catch(e) {}
+      if (savedTheme) applyThemeToShell(savedTheme);
+      else {
+        /* Áp dụng màu nền mặc định */
+        var savedBg = null;
+        try { savedBg = localStorage.getItem('qg_bg_color'); } catch(e) {}
+        var bg = savedBg || '#f1f4ff';
+        document.body.style.background = bg;
+        document.getElementById('loading').style.background = hexToRgba(bg, 0.92);
+      }
+    })();
+
+    /* Khôi phục màu nhấn */
+    (function() {
+      var savedAccent = null;
+      try { savedAccent = localStorage.getItem('qg_accent'); } catch(e) {}
+      if (savedAccent) applyAccentToShell(savedAccent);
+    })();
+
+    /* Khôi phục màn hình từ URL hash */
+    const hash = location.hash.replace('#', '');
+    if (hash) {
+      const match = navItems.find(function(el) { return el.dataset.file === hash; });
+      if (match) {
+        setTimeout(function() { loadScreen(match); }, 50);
+        return;
+      }
+    }
+    /* Mặc định: mở nhóm g1, active màn hình 1 */
+    openGroupNow('g1');
+    navItems[0].classList.add('active');
+    document.getElementById('counter').textContent = 'Màn hình 1 / ' + TOTAL;
+  })();
+</script>
+
+</body>
+</html>

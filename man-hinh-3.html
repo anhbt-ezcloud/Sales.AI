@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Upload Tài liệu - AI Sales Agent</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config: giữ nguyên màu sắc từ design gốc -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-error-container": "#93000a",
+            "on-surface": "#0b1c30",
+            "secondary-fixed": "#6ffbbe",
+            "on-primary-fixed-variant": "#3323cc",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464555",
+            "on-secondary-fixed": "#002113",
+            "primary": "#3525cd",
+            "surface-variant": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "surface-container-highest": "#d3e4fe",
+            "primary-fixed-dim": "#c3c0ff",
+            "inverse-on-surface": "#eaf1ff",
+            "on-tertiary-fixed": "#2a1700",
+            "on-secondary-fixed-variant": "#005236",
+            "tertiary": "#684000",
+            "on-tertiary-fixed-variant": "#653e00",
+            "background": "#f8f9ff",
+            "on-tertiary-container": "#ffd4a4",
+            "outline": "#777587",
+            "on-secondary-container": "#00714d",
+            "surface": "#f8f9ff",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed": "#0f0069",
+            "surface-container": "#e5eeff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "surface-container-low": "#eff4ff",
+            "secondary-fixed-dim": "#4edea3",
+            "primary-container": "#4f46e5",
+            "error-container": "#ffdad6",
+            "surface-container-high": "#dce9ff",
+            "secondary": "#006c49",
+            "outline-variant": "#c7c4d8",
+            "surface-bright": "#f8f9ff",
+            "surface-container-lowest": "#ffffff",
+            "error": "#ba1a1a",
+            "inverse-surface": "#213145",
+            "secondary-container": "#6cf8bb",
+            "on-primary-container": "#dad7ff",
+            "tertiary-container": "#885500",
+            "primary-fixed": "#e2dfff",
+            "on-background": "#0b1c30",
+            "inverse-primary": "#c3c0ff",
+            "tertiary-fixed": "#ffddb8",
+            "surface-dim": "#cbdbf5",
+            "surface-tint": "#4d44e3",
+            "on-secondary": "#ffffff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+
+    /* === Hiệu ứng modal xuất hiện === */
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-panel { animation: modalIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* === Scrollbar nhỏ trong modal === */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #c7c4d8; border-radius: 10px; }
+
+    /* === Toggle switch === */
+    .toggle-track  { transition: background-color 0.2s; }
+    .toggle-thumb  { transition: transform 0.2s; }
+    .toggle-on .toggle-track  { background-color: #4f46e5; }
+    .toggle-on .toggle-thumb  { transform: translateX(20px); }
+    .toggle-off .toggle-track { background-color: #c7c4d8; }
+    .toggle-off .toggle-thumb { transform: translateX(0); }
+
+    /* === Trạng thái upload item === */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-icon { animation: spin 1.2s linear infinite; display: inline-block; }
+
+    /* === Accordion === */
+    .accordion-content { overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; }
+    .accordion-content.closed { max-height: 0; opacity: 0; }
+    .accordion-content.open   { max-height: 400px; opacity: 1; }
+    .accordion-arrow { transition: transform 0.25s ease; }
+    .accordion-arrow.rotated { transform: rotate(180deg); }
+
+    /* === Hover & transition === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s,
+                             box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+
+    /* === Progress bar === */
+    @keyframes progressFill {
+      from { width: 0%; }
+    }
+    .progress-bar { animation: progressFill 1.5s ease-out forwards; }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface">
+
+<!-- ============================================================
+     BACKGROUND: Mockup mờ phía sau modal (giống design gốc)
+     ============================================================ -->
+<div class="fixed inset-0 flex pointer-events-none select-none" aria-hidden="true">
+
+  <!-- Sidebar (mờ) -->
+  <aside class="h-screen w-60 bg-indigo-50 flex flex-col py-6 px-4 opacity-40 shrink-0">
+    <div class="mb-8 px-2">
+      <div class="h-5 w-32 bg-indigo-200 rounded mb-1"></div>
+      <div class="h-3 w-24 bg-slate-200 rounded"></div>
+    </div>
+    <div class="space-y-2 px-2">
+      <div class="h-9 rounded-lg bg-indigo-100/60"></div>
+      <div class="h-9 rounded-lg bg-indigo-200/40"></div>
+      <div class="h-9 rounded-lg"></div>
+      <div class="h-9 rounded-lg"></div>
+    </div>
+  </aside>
+
+  <!-- Main content (mờ) -->
+  <main class="flex-1 p-8 opacity-30">
+    <div class="max-w-4xl mx-auto h-full flex flex-col gap-6">
+      <div class="h-12 w-48 bg-surface-container rounded-lg"></div>
+      <div class="flex-1 bg-surface-container-lowest rounded-xl shadow-sm"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     BACKDROP OVERLAY
+     ============================================================ -->
+<div class="fixed inset-0 z-40 bg-inverse-surface/40 backdrop-blur-[12px]
+            flex items-center justify-center p-4"
+     id="backdrop">
+
+  <!-- ============================================================
+       MODAL CONTAINER
+       ============================================================ -->
+  <div class="modal-panel w-full max-w-[600px] bg-surface-container-lowest rounded-xl
+              shadow-2xl overflow-hidden flex flex-col max-h-[92vh] z-50 relative">
+
+    <!-- === Modal Header === -->
+    <header class="flex items-start justify-between p-6 pb-4 shrink-0">
+      <div>
+        <h2 class="text-xl font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary"
+                style="font-variation-settings: 'FILL' 1;">upload_file</span>
+          Upload tài liệu
+        </h2>
+        <p class="text-sm text-on-surface-variant mt-1 leading-relaxed">
+          Tài liệu sẽ được xử lý và index vào AI để bạn có thể chat ngay
+        </p>
+      </div>
+      <a href="man-hinh-4.html"
+         class="p-2 hover:bg-surface-container-low rounded-full text-outline hover:text-on-surface"
+         title="Đóng">
+        <span class="material-symbols-outlined">close</span>
+      </a>
+    </header>
+
+    <!-- === Modal Body (scrollable) === -->
+    <div class="flex-1 overflow-y-auto px-6 custom-scrollbar">
+
+      <!-- ---- Dropzone ---- -->
+      <div id="dropzone"
+           class="group relative mt-2 border-2 border-dashed border-outline-variant rounded-xl
+                  bg-surface-container-low p-8 flex flex-col items-center justify-center
+                  text-center hover:border-primary/50 hover:bg-primary/[0.02]
+                  transition-all cursor-pointer active:scale-[0.99]">
+        <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center
+                    mb-4 group-hover:scale-110 transition-transform duration-200">
+          <span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+        </div>
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-on-surface">
+            Kéo thả file vào đây hoặc
+            <label for="fileInput"
+                   class="text-primary hover:underline cursor-pointer">duyệt thư mục</label>
+          </p>
+          <p class="text-xs text-on-surface-variant">
+            Hỗ trợ PDF, DOCX, XLSX, PPTX, TXT, CSV &nbsp;•&nbsp; Tối đa 50 MB/file
+          </p>
+        </div>
+        <input id="fileInput" type="file" class="hidden"
+               accept=".pdf,.doc,.docx,.xlsx,.xls,.ppt,.pptx,.txt,.csv" multiple/>
+      </div>
+
+      <!-- ---- Danh sách file đang xử lý ---- -->
+      <div class="mt-8 space-y-4">
+        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+          Đang xử lý tài liệu
+        </h3>
+        <div id="uploadList" class="space-y-3">
+
+          <!-- Item 1: Embedding (demo ban đầu) -->
+          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="embedding">
+            <div class="w-10 h-10 flex-shrink-0 bg-primary-fixed rounded flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary text-xl"
+                    style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start mb-1">
+                <p class="text-sm font-medium text-on-surface truncate">BaoGia_2026.pdf</p>
+                <p class="text-[10px] font-bold text-outline uppercase ml-2">8.2 MB</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-primary spin-icon">
+                  psychology
+                </span>
+                <span class="text-xs font-medium text-primary status-text">
+                  Đang tạo embedding (3/8 chunk)...
+                </span>
+              </div>
+            </div>
+            <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors" title="Huỷ">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+
+          <!-- Item 2: Sẵn sàng -->
+          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="ready">
+            <div class="w-10 h-10 flex-shrink-0 bg-secondary-container/30 rounded flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary text-xl">description</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start mb-1">
+                <p class="text-sm font-medium text-on-surface truncate">HopDong_Mau.docx</p>
+                <p class="text-[10px] font-bold text-outline uppercase ml-2">1.5 MB</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-secondary"
+                      style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                <span class="text-xs font-medium text-secondary">Sẵn sàng</span>
+              </div>
+            </div>
+            <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors" title="Xoá">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+
+          <!-- Item 3: Đang quét -->
+          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="scanning">
+            <div class="w-10 h-10 flex-shrink-0 bg-tertiary-container/10 rounded flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary text-xl">present_to_all</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start mb-1">
+                <p class="text-sm font-medium text-on-surface truncate">Kế hoạch marketing.pptx</p>
+                <p class="text-[10px] font-bold text-outline uppercase ml-2">12 MB</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-tertiary spin-icon">
+                  shield
+                </span>
+                <span class="text-xs font-medium text-tertiary">Đang quét virus...</span>
+              </div>
+            </div>
+            <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors" title="Huỷ">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+
+          <!-- Item 4: Lỗi -->
+          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-error-container/20
+                      border border-error/5" data-status="error">
+            <div class="w-10 h-10 flex-shrink-0 bg-error-container rounded flex items-center justify-center">
+              <span class="material-symbols-outlined text-error text-xl">csv</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-start mb-1">
+                <p class="text-sm font-medium text-on-surface truncate">Error_file.csv</p>
+                <p class="text-[10px] font-bold text-error/60 uppercase ml-2">0.5 MB</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-error">cancel</span>
+                <span class="text-xs font-medium text-error">
+                  Lỗi — File bị hỏng hoặc có mật khẩu &nbsp;
+                  <button class="underline hover:text-error/80 font-bold retry-btn">Thử lại</button>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end #uploadList -->
+      </div>
+
+      <!-- ---- Advanced Options Accordion ---- -->
+      <div class="mt-8 mb-6">
+        <button id="accordionBtn"
+                class="w-full flex items-center justify-between p-3 rounded-lg
+                       bg-surface-container-low hover:bg-surface-container transition-colors group">
+          <div class="flex items-center gap-2 text-on-surface">
+            <span class="material-symbols-outlined text-lg">settings</span>
+            <span class="text-sm font-semibold">Tùy chọn nâng cao</span>
+          </div>
+          <span class="material-symbols-outlined text-outline accordion-arrow" id="accordionArrow">
+            expand_more
+          </span>
+        </button>
+
+        <div id="accordionContent" class="accordion-content closed">
+          <div class="mt-3 px-3 space-y-5 pb-2">
+
+            <!-- Toggle 1: Tự động tóm tắt (bật) -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Tự động tóm tắt sau khi upload</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">
+                  Tạo bản tóm tắt nội dung chính bằng AI ngay lập tức
+                </p>
+              </div>
+              <button class="toggle toggle-on flex-shrink-0" aria-pressed="true" role="switch">
+                <div class="toggle-track w-10 h-5 rounded-full relative px-0.5 flex items-center">
+                  <div class="toggle-thumb w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Toggle 2: Trích xuất key points (tắt) -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Trích xuất key points</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">
+                  Xác định danh sách các điểm quan trọng trong văn bản
+                </p>
+              </div>
+              <button class="toggle toggle-off flex-shrink-0" aria-pressed="false" role="switch">
+                <div class="toggle-track w-10 h-5 rounded-full relative px-0.5 flex items-center">
+                  <div class="toggle-thumb w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Toggle 3: OCR -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Bật OCR cho file scan</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">
+                  Nhận diện chữ viết trong tài liệu ảnh hoặc PDF scan
+                </p>
+              </div>
+              <button class="toggle toggle-off flex-shrink-0" aria-pressed="false" role="switch">
+                <div class="toggle-track w-10 h-5 rounded-full relative px-0.5 flex items-center">
+                  <div class="toggle-thumb w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Dropdown: Chia sẻ với team -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Chia sẻ với team</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">Quyền truy cập vào tài liệu này</p>
+              </div>
+              <div class="relative">
+                <select class="appearance-none bg-surface-container-low text-xs font-medium
+                               text-on-surface px-4 py-2 pr-10 rounded-md border-none
+                               focus:ring-1 focus:ring-primary cursor-pointer">
+                  <option>Toàn team</option>
+                  <option>Riêng tư</option>
+                  <option>Phòng ban Sales</option>
+                  <option>Phòng ban Marketing</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2
+                             text-[16px] pointer-events-none text-outline">expand_more</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div><!-- end modal body -->
+
+    <!-- === Modal Footer === -->
+    <footer class="p-6 border-t border-surface-container flex items-center justify-end gap-3
+                   bg-surface-container-low/30 shrink-0">
+      <a href="man-hinh-4.html"
+         class="px-5 py-2.5 rounded-lg text-sm font-semibold text-outline
+                hover:bg-surface-container transition-all active:scale-95">
+        Hủy
+      </a>
+      <button id="uploadChatBtn"
+              class="px-5 py-2.5 rounded-lg text-sm font-bold text-white
+                     bg-gradient-to-r from-primary to-primary-container
+                     shadow-lg shadow-primary/20 hover:shadow-primary/40
+                     transition-all active:scale-95 flex items-center gap-2
+                     disabled:opacity-50 disabled:cursor-not-allowed">
+        <span id="uploadBtnLabel">Upload &amp; Chat ngay</span>
+        <span class="material-symbols-outlined text-[18px]">send</span>
+      </button>
+    </footer>
+
+  </div><!-- end modal panel -->
+</div><!-- end backdrop -->
+
+<!-- ============================================================
+     Gradient decorations (giống design gốc)
+     ============================================================ -->
+<div class="fixed top-20 right-40 w-96 h-96 bg-primary/10 blur-[120px]
+            rounded-full -z-10 pointer-events-none"></div>
+<div class="fixed bottom-20 left-40 w-96 h-96 bg-secondary/10 blur-[120px]
+            rounded-full -z-10 pointer-events-none"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // ================================================================
+  // ACCORDION: Tùy chọn nâng cao
+  // ================================================================
+  const accordionBtn     = document.getElementById('accordionBtn');
+  const accordionContent = document.getElementById('accordionContent');
+  const accordionArrow   = document.getElementById('accordionArrow');
+  let   accordionOpen    = false;
+
+  accordionBtn.addEventListener('click', () => {
+    accordionOpen = !accordionOpen;
+    accordionContent.classList.toggle('open',   accordionOpen);
+    accordionContent.classList.toggle('closed', !accordionOpen);
+    accordionArrow.classList.toggle('rotated',  accordionOpen);
+  });
+
+  // ================================================================
+  // TOGGLE SWITCHES: Tùy chọn nâng cao
+  // ================================================================
+  document.querySelectorAll('.toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const isOn = toggle.classList.contains('toggle-on');
+      toggle.classList.toggle('toggle-on',  !isOn);
+      toggle.classList.toggle('toggle-off',  isOn);
+      toggle.setAttribute('aria-pressed', String(!isOn));
+    });
+  });
+
+  // ================================================================
+  // DRAG & DROP + FILE INPUT
+  // ================================================================
+  const dropzone  = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+
+  // Chọn file qua input
+  fileInput.addEventListener('change', () => {
+    handleFiles(fileInput.files);
+    fileInput.value = '';
+  });
+
+  // Drag & Drop
+  dropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropzone.classList.add('border-primary/60', 'bg-primary/[0.04]', '!shadow-md');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]', '!shadow-md');
+  });
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]', '!shadow-md');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  const ALLOWED_EXTS = ['.pdf', '.doc', '.docx', '.xlsx', '.xls', '.ppt', '.pptx', '.txt', '.csv'];
+  const MAX_SIZE_MB  = 50;
+
+  function getFileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (['pdf'].includes(ext))           return { icon: 'picture_as_pdf', color: 'text-rose-600', bg: 'bg-rose-50' };
+    if (['doc','docx'].includes(ext))    return { icon: 'description',    color: 'text-blue-600', bg: 'bg-blue-50' };
+    if (['xlsx','xls'].includes(ext))    return { icon: 'table_chart',    color: 'text-emerald-600', bg: 'bg-emerald-50' };
+    if (['ppt','pptx'].includes(ext))    return { icon: 'present_to_all', color: 'text-orange-600', bg: 'bg-orange-50' };
+    return { icon: 'article', color: 'text-slate-600', bg: 'bg-slate-100' };
+  }
+
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      const ext     = '.' + file.name.split('.').pop().toLowerCase();
+      const sizeMB  = (file.size / 1024 / 1024).toFixed(1);
+      const sizeStr = file.size < 1024 * 1024
+        ? (file.size / 1024).toFixed(0) + ' KB'
+        : sizeMB + ' MB';
+
+      if (!ALLOWED_EXTS.includes(ext)) {
+        addUploadItem(file.name, sizeStr, 'error', 'Định dạng không được hỗ trợ');
+        return;
+      }
+      if (parseFloat(sizeMB) > MAX_SIZE_MB) {
+        addUploadItem(file.name, sizeStr, 'error', 'File vượt quá giới hạn 50 MB');
+        return;
+      }
+
+      // Thêm vào danh sách với trạng thái scanning → embedding → ready
+      addUploadItem(file.name, sizeStr, 'scanning');
+      simulateProcessing(file.name);
+    });
+  }
+
+  function addUploadItem(name, size, status, errorMsg = '') {
+    const list = document.getElementById('uploadList');
+    const { icon, color, bg } = getFileIcon(name);
+    const id = 'item-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+    const statusHTML = buildStatusHTML(status, errorMsg);
+
+    const div = document.createElement('div');
+    div.id = id;
+    div.className = 'upload-item flex items-center gap-4 p-3 rounded-lg ' +
+      (status === 'error'
+        ? 'bg-error-container/20 border border-error/5'
+        : 'bg-surface-container-low/50');
+    div.dataset.status = status;
+
+    div.innerHTML = `
+      <div class="w-10 h-10 flex-shrink-0 ${bg} rounded flex items-center justify-center">
+        <span class="material-symbols-outlined ${color} text-xl"
+              style="font-variation-settings: 'FILL' 1;">${icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between items-start mb-1">
+          <p class="text-sm font-medium text-on-surface truncate">${escHtml(name)}</p>
+          <p class="text-[10px] font-bold text-outline uppercase ml-2">${size}</p>
+        </div>
+        <div class="status-row flex items-center gap-1.5">${statusHTML}</div>
+      </div>
+      <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors remove-btn"
+              title="Xoá" data-target="${id}">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>`;
+
+    list.appendChild(div);
+    bindRemoveBtn(div.querySelector('.remove-btn'));
+  }
+
+  function buildStatusHTML(status, errorMsg = '') {
+    switch (status) {
+      case 'scanning':
+        return `<span class="material-symbols-outlined text-[16px] text-tertiary spin-icon">shield</span>
+                <span class="text-xs font-medium text-tertiary">Đang quét virus...</span>`;
+      case 'embedding':
+        return `<span class="material-symbols-outlined text-[16px] text-primary spin-icon">psychology</span>
+                <span class="text-xs font-medium text-primary">Đang tạo embedding...</span>`;
+      case 'ready':
+        return `<span class="material-symbols-outlined text-[16px] text-secondary"
+                      style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                <span class="text-xs font-medium text-secondary">Sẵn sàng</span>`;
+      case 'error':
+        return `<span class="material-symbols-outlined text-[16px] text-error">cancel</span>
+                <span class="text-xs font-medium text-error">${escHtml(errorMsg || 'Lỗi không xác định')}</span>`;
+      default:
+        return '';
+    }
+  }
+
+  function updateItemStatus(name, newStatus) {
+    const items = document.querySelectorAll('.upload-item');
+    items.forEach(item => {
+      const p = item.querySelector('p.font-medium');
+      if (p && p.textContent.trim() === name) {
+        const row = item.querySelector('.status-row');
+        if (row) row.innerHTML = buildStatusHTML(newStatus);
+        item.dataset.status = newStatus;
+        if (newStatus === 'error') {
+          item.classList.add('bg-error-container/20', 'border', 'border-error/5');
+          item.classList.remove('bg-surface-container-low/50');
+        }
+      }
+    });
+  }
+
+  function simulateProcessing(name) {
+    setTimeout(() => updateItemStatus(name, 'embedding'), 1800);
+    setTimeout(() => updateItemStatus(name, 'ready'),    4500);
+  }
+
+  // ================================================================
+  // XOÁ ITEM
+  // ================================================================
+  function bindRemoveBtn(btn) {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.target;
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(10px)';
+        el.style.transition = 'opacity 0.2s, transform 0.2s';
+        setTimeout(() => el.remove(), 220);
+      }
+    });
+  }
+  document.querySelectorAll('.remove-btn').forEach(bindRemoveBtn);
+
+  // ================================================================
+  // NÚT THỬ LẠI
+  // ================================================================
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('retry-btn')) {
+      const item = e.target.closest('.upload-item');
+      if (!item) return;
+      const row = item.querySelector('.status-row');
+      row.innerHTML = buildStatusHTML('scanning');
+      item.classList.remove('bg-error-container/20', 'border', 'border-error/5');
+      item.classList.add('bg-surface-container-low/50');
+      const name = item.querySelector('p.font-medium')?.textContent.trim() || '';
+      simulateProcessing(name);
+    }
+  });
+
+  // ================================================================
+  // UPLOAD & CHAT: Mô phỏng upload rồi chuyển sang man-hinh-1.html
+  // ================================================================
+  const uploadChatBtn = document.getElementById('uploadChatBtn');
+  const uploadLabel   = document.getElementById('uploadBtnLabel');
+
+  uploadChatBtn.addEventListener('click', () => {
+    uploadChatBtn.disabled = true;
+    uploadLabel.textContent = 'Đang xử lý...';
+
+    let count = 0;
+    const total = 3;
+    const labels = ['Đang phân tích...', 'Tạo vector index...', 'Sẵn sàng chat!'];
+
+    const interval = setInterval(() => {
+      uploadLabel.textContent = labels[count];
+      count++;
+      if (count >= total) {
+        clearInterval(interval);
+        setTimeout(() => {
+          window.location.href = 'man-hinh-1.html';
+        }, 700);
+      }
+    }, 700);
+  });
+
+  // ================================================================
+  // TIỆN ÍCH
+  // ================================================================
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,603 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chi tiết Deal - Drawer - Quản gia AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#3525cd", "background": "#f8f9ff", "secondary": "#006c49",
+          "surface-container-lowest": "#ffffff", "error-container": "#ffdad6",
+          "surface-container-low": "#eff4ff", "surface-container": "#e5eeff",
+          "surface-container-high": "#dce9ff", "surface-container-highest": "#d3e4fe",
+          "primary-fixed": "#e2dfff", "secondary-container": "#6cf8bb",
+          "tertiary": "#684000", "tertiary-container": "#885500",
+          "tertiary-fixed": "#ffddb8", "tertiary-fixed-dim": "#ffb95f",
+          "on-tertiary-fixed": "#2a1700", "on-tertiary-fixed-variant": "#653e00",
+          "on-tertiary-container": "#ffd4a4", "error": "#ba1a1a",
+          "on-surface-variant": "#464555", "on-primary-container": "#dad7ff",
+          "primary-container": "#4f46e5", "on-error-container": "#93000a",
+          "outline": "#777587", "outline-variant": "#c7c4d8",
+          "on-surface": "#0b1c30", "surface": "#f8f9ff",
+          "on-secondary-container": "#00714d", "inverse-surface": "#213145",
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.4rem", "xl": "0.75rem", "full": "1.5rem" },
+        fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #d3e4fe; border-radius: 10px; }
+  .toast { transition: all 0.3s ease; }
+  .drawer { transform: translateX(0); transition: transform 0.3s ease; }
+  .drawer.hidden-right { transform: translateX(100%); }
+</style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased overflow-hidden">
+
+<!-- Background Layer (Blurred CRM Dashboard) -->
+<div class="fixed inset-0 w-full h-full flex overflow-hidden filter blur-sm grayscale-[0.2] opacity-40 select-none pointer-events-none">
+  
+  <main class=" w-full p-8 space-y-6">
+    <div class="h-16 flex justify-between items-center">
+      <div class="h-8 w-48 bg-slate-200 rounded"></div>
+      <div class="h-10 w-64 bg-slate-100 rounded-full"></div>
+    </div>
+    <div class="grid grid-cols-4 gap-6">
+      <div class="h-32 bg-white rounded-xl shadow-sm"></div>
+      <div class="h-32 bg-white rounded-xl shadow-sm"></div>
+      <div class="h-32 bg-white rounded-xl shadow-sm"></div>
+      <div class="h-32 bg-white rounded-xl shadow-sm"></div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm h-[600px] w-full p-6">
+      <div class="space-y-4">
+        <div class="h-4 bg-slate-100 rounded w-full"></div>
+        <div class="h-4 bg-slate-100 rounded w-5/6"></div>
+        <div class="h-4 bg-slate-100 rounded w-4/6"></div>
+        <div class="h-4 bg-slate-100 rounded w-3/4"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Overlay Backdrop -->
+<div id="backdrop" class="fixed inset-0 bg-on-background/20 backdrop-blur-[2px] z-[60] cursor-pointer" onclick="closeDrawer()"></div>
+
+<!-- Right Drawer -->
+<div id="drawer" class="drawer fixed top-0 right-0 h-full w-full md:w-[600px] bg-surface-container-lowest shadow-2xl z-[70] flex flex-col border-l border-outline-variant/20">
+  
+  <!-- HEADER -->
+  <header class="p-6 pb-4 bg-surface-container-lowest shrink-0">
+    <div class="flex justify-between items-start mb-4">
+      <div class="flex-1 pr-8">
+        <div class="flex items-center gap-2 group cursor-pointer mb-1" onclick="editField('title')">
+          <h1 id="dealTitle" class="text-xl font-bold text-on-surface tracking-tight">Cung cấp hạ tầng Cloud cho VNG</h1>
+          <span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity text-sm">edit</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="stageBtn" class="flex items-center bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-xs font-semibold cursor-pointer hover:bg-tertiary-fixed-dim transition-colors" onclick="toggleStageMenu()">
+            <span id="stageLabel">Negotiation</span>
+            <span class="material-symbols-outlined text-sm ml-1">arrow_drop_down</span>
+          </div>
+          <!-- Stage dropdown -->
+          <div id="stageMenu" class="hidden absolute top-28 left-6 bg-white border border-outline-variant/30 rounded-xl shadow-lg z-10 overflow-hidden min-w-[160px]">
+            <button onclick="setStage('Lead')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-indigo-50 hover:text-primary transition-colors">Lead</button>
+            <button onclick="setStage('Qualified')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-indigo-50 hover:text-primary transition-colors">Qualified</button>
+            <button onclick="setStage('Proposal')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-indigo-50 hover:text-primary transition-colors">Proposal</button>
+            <button onclick="setStage('Negotiation')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-indigo-50 hover:text-primary transition-colors bg-indigo-50 text-primary font-semibold">Negotiation</button>
+            <button onclick="setStage('Closed Won')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-green-50 hover:text-secondary transition-colors">Closed Won</button>
+            <button onclick="setStage('Closed Lost')" class="w-full px-4 py-2.5 text-left text-sm hover:bg-red-50 hover:text-error transition-colors">Closed Lost</button>
+          </div>
+          <div class="group flex items-center gap-1 cursor-pointer" onclick="editField('value')">
+            <span id="dealValue" class="text-lg font-bold text-primary">450.000.000 VNĐ</span>
+            <span class="material-symbols-outlined text-outline opacity-0 group-hover:opacity-100 transition-opacity text-sm">edit</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeDrawer()" class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+        <span class="material-symbols-outlined text-on-surface-variant">close</span>
+      </button>
+    </div>
+    <!-- Sub-header info -->
+    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/30">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center overflow-hidden">
+          <div class="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white text-xs font-black">VNG</div>
+        </div>
+        <div>
+          <div class="text-xs font-bold text-outline uppercase tracking-wider">Khách hàng</div>
+          <div class="text-sm font-semibold text-on-surface">VNG Corporation</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">TB</div>
+        <div>
+          <div class="text-xs font-bold text-outline uppercase tracking-wider">Người phụ trách</div>
+          <div class="text-sm font-semibold text-on-surface">Trần Thị B</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary-container text-xl">person</span>
+        <div>
+          <div class="text-[10px] font-bold text-outline uppercase tracking-wider">Liên hệ chính</div>
+          <div class="text-sm font-medium">Nguyễn Văn A <span class="text-outline-variant mx-1">•</span> <span class="text-xs text-on-surface-variant">CTO</span></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary-container text-xl">event</span>
+        <div>
+          <div class="text-[10px] font-bold text-outline uppercase tracking-wider">Dự kiến đóng</div>
+          <div id="closeDate" class="text-sm font-medium cursor-pointer hover:text-primary" onclick="editField('date')">15/11/2023</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <nav class="flex px-6 gap-6 border-b border-outline-variant/30 overflow-x-auto no-scrollbar shrink-0">
+    <button onclick="switchTab('overview')" id="tab-overview" class="py-3 text-sm font-semibold text-primary border-b-2 border-primary whitespace-nowrap">Tổng quan</button>
+    <button onclick="switchTab('activity')" id="tab-activity" class="py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 whitespace-nowrap">
+      Hoạt động <span class="w-2 h-2 bg-error rounded-full"></span>
+    </button>
+    <button onclick="switchTab('ai')" id="tab-ai" class="py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 whitespace-nowrap">
+      ✨ AI gợi ý <span class="bg-primary-container text-[10px] text-white px-1.5 rounded-full">2</span>
+    </button>
+    <button onclick="switchTab('docs')" id="tab-docs" class="py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">📎 Tài liệu</button>
+    <button onclick="switchTab('notes')" id="tab-notes" class="py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">📝 Ghi chú</button>
+    <button onclick="switchTab('tasks')" id="tab-tasks" class="py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap">📋 Tasks</button>
+  </nav>
+
+  <!-- CONTENT (Scrollable) -->
+  <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8 bg-surface">
+    
+    <!-- OVERVIEW TAB -->
+    <div id="content-overview" class="space-y-8">
+      <!-- 2-Column Grid -->
+      <section class="space-y-4">
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4 p-5 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">Nguồn</p><p class="text-sm font-medium">Inbound</p></div>
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">Xác suất</p><p class="text-sm font-bold text-secondary">75%</p></div>
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">Thời gian ở stage</p><p class="text-sm font-medium">12 ngày</p></div>
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">Hoạt động cuối</p><p class="text-sm font-medium">2 giờ trước</p></div>
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">Ngày tạo</p><p class="text-sm font-medium">01/09/2023</p></div>
+          <div><p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-0.5">CRM ID</p><p class="text-sm font-mono font-medium text-primary">D-9842</p></div>
+        </div>
+      </section>
+
+      <!-- Stage Progress -->
+      <section class="space-y-3">
+        <h3 class="text-xs font-bold text-outline uppercase tracking-widest px-1">Tiến độ quy trình</h3>
+        <div class="relative pt-2 px-1">
+          <div class="flex items-center w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full w-3/4 bg-primary rounded-full shadow-[0_0_8px_rgba(53,37,205,0.4)] transition-all duration-500"></div>
+          </div>
+          <div class="flex justify-between mt-3">
+            <span id="prog-lead" class="text-[10px] font-bold text-outline uppercase">Lead</span>
+            <span id="prog-qualified" class="text-[10px] font-bold text-outline uppercase">Qualified</span>
+            <span id="prog-proposal" class="text-[10px] font-bold text-outline uppercase">Proposal</span>
+            <span id="prog-negotiation" class="text-[10px] font-bold text-primary uppercase">Negotiation</span>
+            <span id="prog-closed" class="text-[10px] font-bold text-outline uppercase">Closed</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Suggestions (condensed) -->
+      <section class="space-y-3">
+        <div class="flex justify-between items-center px-1">
+          <h3 class="text-xs font-bold text-outline uppercase tracking-widest flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-primary">psychology</span> Trợ lý AI gợi ý
+          </h3>
+          <a href="man-hinh-12.html" class="text-[10px] font-bold text-primary uppercase flex items-center gap-1 hover:underline">
+            Xem tất cả <span class="material-symbols-outlined text-xs">open_in_new</span>
+          </a>
+        </div>
+        <div class="bg-indigo-50/50 border border-primary-container/20 p-4 rounded-xl space-y-3">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container rounded text-[10px] font-bold">RỦI RO TRUNG BÌNH</span>
+              <span class="text-xs text-on-surface-variant font-medium italic">Thiếu tương tác &gt; 5 ngày</span>
+            </div>
+          </div>
+          <p class="text-sm text-on-surface leading-relaxed">
+            Khách hàng chưa phản hồi báo giá từ thứ 4 tuần trước. Gợi ý <span class="font-bold text-primary">Gửi email follow-up về bản demo</span> kỹ thuật để thúc đẩy deal.
+          </p>
+          <div class="flex gap-2">
+            <button onclick="showToast('✅ Đã tạo email follow-up!')" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-primary-container transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">send</span> Áp dụng ngay
+            </button>
+            <button onclick="switchTab('ai')" class="bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-bold hover:bg-surface-container-low transition-all">
+              Xem chi tiết
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Card -->
+      <section class="space-y-3">
+        <div class="flex justify-between items-center px-1">
+          <h3 class="text-xs font-bold text-outline uppercase tracking-widest">Thông tin liên hệ</h3>
+          <a href="#" class="text-[10px] font-bold text-primary uppercase flex items-center gap-1 hover:underline">
+            Mở trong CRM <span class="material-symbols-outlined text-xs">open_in_new</span>
+          </a>
+        </div>
+        <div class="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-outline">call</span>
+            <span class="text-sm font-medium">0901234567</span>
+            <button onclick="showToast('📞 Đang gọi...')" class="ml-auto px-3 py-1 bg-secondary-container text-secondary rounded-lg text-xs font-bold hover:opacity-80 transition-opacity">Gọi ngay</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-outline">mail</span>
+            <span class="text-sm font-medium">vana@vng.com.vn</span>
+            <button onclick="showToast('📧 Mở soạn email...')" class="ml-auto px-3 py-1 bg-indigo-50 text-primary rounded-lg text-xs font-bold hover:opacity-80 transition-opacity">Email</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-outline">chat</span>
+            <span class="text-sm font-medium">Zalo: 0901234567</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section class="space-y-4">
+        <h3 class="text-xs font-bold text-outline uppercase tracking-widest px-1">Lịch sử hoạt động</h3>
+        <div id="timeline" class="space-y-6 relative ml-4 border-l-2 border-outline-variant/20 pl-6 pb-4"></div>
+      </section>
+    </div>
+
+    <!-- ACTIVITY TAB -->
+    <div id="content-activity" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-on-surface">Lịch sử hoạt động</h3>
+        <button onclick="addActivity()" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90">+ Thêm hoạt động</button>
+      </div>
+      <div id="activityFeed" class="space-y-4"></div>
+    </div>
+
+    <!-- AI TAB -->
+    <div id="content-ai" class="hidden space-y-4">
+      <h3 class="font-bold text-on-surface">✨ AI Gợi ý cho Deal này</h3>
+      <div class="bg-indigo-50 border border-indigo-200 p-5 rounded-xl space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-error/10 text-error rounded text-[10px] font-bold">CAO</span>
+          <span class="text-xs text-slate-500">5 phút trước</span>
+        </div>
+        <p class="text-sm font-medium text-on-surface">Deal chưa có hoạt động 8 ngày. Nên liên hệ ngay!</p>
+        <div class="flex gap-2">
+          <button onclick="showToast('✅ Đã gửi email check-in!')" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold">Gửi email ngay</button>
+          <button onclick="showToast('📞 Đang gọi...')" class="border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-bold">Gọi điện</button>
+        </div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold">TRUNG BÌNH</span>
+          <span class="text-xs text-slate-500">2 giờ trước</span>
+        </div>
+        <p class="text-sm font-medium text-on-surface">CTO VNG đặt câu hỏi kỹ thuật. Đề xuất lên lịch demo kỹ thuật chuyên sâu.</p>
+        <button onclick="showToast('📅 Đã tạo lịch demo kỹ thuật!')" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Lên lịch demo</button>
+      </div>
+      <div class="text-center py-4">
+        <a href="man-hinh-12.html" class="text-primary text-sm font-semibold hover:underline">Xem tất cả gợi ý AI →</a>
+      </div>
+    </div>
+
+    <!-- DOCS TAB -->
+    <div id="content-docs" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-on-surface">Tài liệu đính kèm</h3>
+        <button onclick="showToast('📎 Mở upload tài liệu...')" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold">+ Đính kèm</button>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer" onclick="showToast('Mở tài liệu: Báo giá Cloud...')">
+          <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+          <div class="flex-1">
+            <p class="text-sm font-semibold">Báo giá hạ tầng Cloud VNG.pdf</p>
+            <p class="text-xs text-slate-400">2.4 MB • Cập nhật 2 giờ trước</p>
+          </div>
+          <span class="material-symbols-outlined text-slate-400">download</span>
+        </div>
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer" onclick="showToast('Mở tài liệu: SLA...')">
+          <span class="material-symbols-outlined text-blue-500">article</span>
+          <div class="flex-1">
+            <p class="text-sm font-semibold">SLA & Technical Spec.docx</p>
+            <p class="text-xs text-slate-400">1.1 MB • Cập nhật hôm qua</p>
+          </div>
+          <span class="material-symbols-outlined text-slate-400">download</span>
+        </div>
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer" onclick="showToast('Mở tài liệu: Hợp đồng...')">
+          <span class="material-symbols-outlined text-green-500">description</span>
+          <div class="flex-1">
+            <p class="text-sm font-semibold">Hợp đồng Draft v2.docx</p>
+            <p class="text-xs text-slate-400">985 KB • Cập nhật 3 ngày trước</p>
+          </div>
+          <span class="material-symbols-outlined text-slate-400">download</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES TAB -->
+    <div id="content-notes" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-on-surface">Ghi chú</h3>
+        <button onclick="addNote()" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold">+ Thêm ghi chú</button>
+      </div>
+      <div id="notesList" class="space-y-3">
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <div class="flex justify-between mb-2">
+            <span class="text-xs font-bold text-amber-700">Ghi chú quan trọng</span>
+            <span class="text-xs text-slate-400">Hôm qua</span>
+          </div>
+          <p class="text-sm text-on-surface">CTO hỏi về khả năng tích hợp với hệ thống nội bộ. Cần chuẩn bị tài liệu API.</p>
+        </div>
+        <div class="p-4 bg-surface-container-lowest border border-outline-variant/10 rounded-xl">
+          <div class="flex justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500">Cuộc họp 10/11</span>
+            <span class="text-xs text-slate-400">3 ngày trước</span>
+          </div>
+          <p class="text-sm text-on-surface">Khách hàng satisfied với demo. Yêu cầu thêm SLA 99.9% uptime.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS TAB -->
+    <div id="content-tasks" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-on-surface">Tasks liên quan</h3>
+        <button onclick="showToast('Mở form tạo task...')" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold">+ Tạo task</button>
+      </div>
+      <div class="space-y-3" id="tasksList">
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+          <input type="checkbox" class="w-4 h-4 rounded text-primary" onchange="showToast('Task đã hoàn thành!')">
+          <div class="flex-1">
+            <p class="text-sm font-semibold">Gửi email follow-up về bản demo</p>
+            <p class="text-xs text-error font-medium">Hạn: Hôm nay, 17:00</p>
+          </div>
+          <span class="px-2 py-0.5 bg-error/10 text-error rounded text-[10px] font-bold">Cao</span>
+        </div>
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+          <input type="checkbox" class="w-4 h-4 rounded text-primary" onchange="showToast('Task đã hoàn thành!')">
+          <div class="flex-1">
+            <p class="text-sm font-semibold">Lên lịch demo kỹ thuật với đội VNG</p>
+            <p class="text-xs text-amber-600 font-medium">Hạn: 20/11/2023</p>
+          </div>
+          <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-bold">TB</span>
+        </div>
+        <div class="flex items-center gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10 opacity-60">
+          <input type="checkbox" checked class="w-4 h-4 rounded text-secondary">
+          <div class="flex-1">
+            <p class="text-sm font-semibold line-through">Gửi báo giá kỹ thuật</p>
+            <p class="text-xs text-secondary font-medium">Hoàn thành: 08/11/2023</p>
+          </div>
+          <span class="px-2 py-0.5 bg-secondary-container text-secondary rounded text-[10px] font-bold">Xong</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER (Sticky) -->
+  <footer class="p-4 px-6 border-t border-outline-variant/20 bg-surface-container-lowest flex items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] shrink-0">
+    <div class="flex items-center gap-2">
+      <button onclick="deleteDeal()" class="p-2 text-error hover:bg-error-container/20 rounded-lg transition-colors" title="Xóa deal">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+      <button onclick="showToast('Mở form chỉnh sửa deal...')" class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container-low transition-all">
+        <span class="material-symbols-outlined text-sm">edit</span> Chỉnh sửa
+      </button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="showToast('📞 Mở form log cuộc gọi...')" class="flex items-center gap-2 px-4 py-2 border border-outline-variant text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container-low transition-all">
+        <span class="material-symbols-outlined text-sm">call</span> Log cuộc gọi
+      </button>
+      <button onclick="showToast('📧 Mở soạn email...')" class="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-sm">mail</span> Gửi email
+      </button>
+      <a href="man-hinh-14.html">
+        <button class="flex items-center gap-2 px-4 py-2 bg-secondary-container text-secondary rounded-lg text-xs font-bold hover:opacity-90 transition-all">
+          <span class="material-symbols-outlined text-sm">flash_on</span> Cập nhật nhanh
+        </button>
+      </a>
+    </div>
+  </footer>
+</div>
+
+<!-- Delete Confirm Dialog -->
+<div id="deleteDialog" class="hidden fixed inset-0 z-[100] flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm mx-4 border border-outline-variant/20">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 bg-error-container rounded-full flex items-center justify-center">
+        <span class="material-symbols-outlined text-error">delete</span>
+      </div>
+      <h3 class="font-bold text-on-surface">Xóa deal này?</h3>
+    </div>
+    <p class="text-sm text-slate-500 mb-6">Hành động này không thể hoàn tác. Deal "Cung cấp hạ tầng Cloud cho VNG" sẽ bị xóa vĩnh viễn.</p>
+    <div class="flex gap-3">
+      <button onclick="confirmDelete()" class="flex-1 py-2.5 bg-error text-white rounded-lg text-sm font-bold hover:opacity-90">Xóa</button>
+      <button onclick="document.getElementById('deleteDialog').classList.add('hidden')" class="flex-1 py-2.5 border border-outline-variant text-on-surface rounded-lg text-sm font-bold hover:bg-slate-50">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-on-surface text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium z-[200] opacity-0 pointer-events-none toast flex items-center gap-2">
+  <span class="material-symbols-outlined text-base">check_circle</span>
+  <span id="toastMsg">Thành công</span>
+</div>
+
+<script>
+const TIMELINE = [
+  { color: 'bg-primary', icon: null, title: 'Email đã gửi', time: '2 giờ trước', desc: 'Tiêu đề: Cập nhật lộ trình triển khai hạ tầng Cloud - VNG' },
+  { color: 'bg-secondary', icon: 'check', title: 'Task đã hoàn thành', time: 'Hôm qua', desc: 'Gửi báo giá kỹ thuật' },
+  { color: 'bg-amber-400', icon: null, title: 'Cuộc gọi 45 phút', time: '3 ngày trước', desc: 'Thảo luận về SLA và technical requirements' },
+  { color: 'bg-outline-variant', icon: null, title: 'Deal chuyển sang Negotiation', time: '5 ngày trước', desc: 'Pipeline: Proposal → Negotiation' },
+  { color: 'bg-primary', icon: null, title: 'Demo thành công', time: '1 tuần trước', desc: 'Demo cloud infrastructure, khách hàng rất hài lòng' },
+];
+
+const ACTIVITIES = [
+  { icon: 'mail', color: 'text-indigo-600', title: 'Gửi email Follow-up', time: '2 giờ trước', desc: 'Subject: Cập nhật lộ trình...' },
+  { icon: 'call', color: 'text-secondary', title: 'Cuộc gọi - 45 phút', time: 'Hôm qua 15:30', desc: 'Thảo luận SLA và requirements' },
+  { icon: 'assignment_turned_in', color: 'text-secondary', title: 'Task hoàn thành', time: 'Hôm qua 10:00', desc: 'Gửi báo giá kỹ thuật version 2' },
+  { icon: 'edit_note', color: 'text-amber-600', title: 'Thêm ghi chú', time: '3 ngày trước', desc: 'CTO hỏi về tích hợp API' },
+  { icon: 'trending_up', color: 'text-primary', title: 'Chuyển giai đoạn', time: '5 ngày trước', desc: 'Proposal → Negotiation' },
+];
+
+let activeTab = 'overview';
+
+function renderTimeline() {
+  const el = document.getElementById('timeline');
+  el.innerHTML = TIMELINE.map(t => `
+    <div class="relative">
+      <div class="absolute -left-[31px] top-0.5 w-4 h-4 ${t.color} rounded-full ring-4 ring-surface flex items-center justify-center">
+        ${t.icon ? `<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings:'FILL' 1;">${t.icon}</span>` : ''}
+      </div>
+      <div class="flex justify-between items-start mb-1">
+        <span class="text-sm font-bold text-on-surface">${t.title}</span>
+        <span class="text-[10px] text-outline font-medium">${t.time}</span>
+      </div>
+      <p class="text-xs text-on-surface-variant leading-relaxed">${t.desc}</p>
+    </div>
+  `).join('');
+}
+
+function renderActivities() {
+  const el = document.getElementById('activityFeed');
+  if (!el) return;
+  el.innerHTML = ACTIVITIES.map(a => `
+    <div class="flex gap-3 p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+      <div class="w-10 h-10 bg-surface-container-low rounded-full flex items-center justify-center flex-shrink-0">
+        <span class="material-symbols-outlined ${a.color} text-base">${a.icon}</span>
+      </div>
+      <div class="flex-1">
+        <div class="flex justify-between items-start mb-1">
+          <p class="text-sm font-semibold text-on-surface">${a.title}</p>
+          <span class="text-xs text-slate-400">${a.time}</span>
+        </div>
+        <p class="text-xs text-slate-500">${a.desc}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addActivity() {
+  const types = ['Gọi điện','Gửi email','Thêm ghi chú','Lịch họp'];
+  const newActivity = { icon: 'bolt', color: 'text-primary', title: types[Math.floor(Math.random()*types.length)] + ' - Mới', time: 'Vừa xong', desc: 'Hoạt động mới được log vào hệ thống' };
+  ACTIVITIES.unshift(newActivity);
+  renderActivities();
+  showToast('✅ Đã thêm hoạt động mới!');
+}
+
+function addNote() {
+  const notesList = document.getElementById('notesList');
+  const div = document.createElement('div');
+  div.className = 'p-4 bg-surface-container-lowest border border-outline-variant/10 rounded-xl';
+  div.innerHTML = `
+    <div class="flex justify-between mb-2">
+      <span class="text-xs font-bold text-slate-500">Ghi chú mới</span>
+      <span class="text-xs text-slate-400">Vừa xong</span>
+    </div>
+    <textarea class="w-full text-sm text-on-surface bg-transparent border-none focus:ring-0 resize-none" rows="2" placeholder="Nhập ghi chú..." autofocus></textarea>
+  `;
+  notesList.prepend(div);
+  div.querySelector('textarea').focus();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  const tabs = ['overview','activity','ai','docs','notes','tasks'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    const content = document.getElementById(`content-${t}`);
+    if (btn) {
+      btn.className = t === tab
+        ? 'py-3 text-sm font-semibold text-primary border-b-2 border-primary whitespace-nowrap'
+        : 'py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors whitespace-nowrap flex items-center gap-2';
+    }
+    if (content) content.classList.toggle('hidden', t !== tab);
+  });
+  if (tab === 'activity') renderActivities();
+}
+
+function toggleStageMenu() {
+  document.getElementById('stageMenu').classList.toggle('hidden');
+}
+
+function setStage(stage) {
+  document.getElementById('stageLabel').textContent = stage;
+  document.getElementById('stageMenu').classList.add('hidden');
+  // Update progress bar
+  const stageMap = { 'Lead': 'w-1/5', 'Qualified': 'w-2/5', 'Proposal': '56.25%', 'Negotiation': 'w-3/4', 'Closed Won': 'w-full', 'Closed Lost': 'w-full' };
+  const widthMap = { 'Lead': '20%', 'Qualified': '40%', 'Proposal': '60%', 'Negotiation': '75%', 'Closed Won': '100%', 'Closed Lost': '100%' };
+  document.getElementById('progressBar').style.width = widthMap[stage] || '75%';
+  // Update highlighted stage label
+  ['lead','qualified','proposal','negotiation','closed'].forEach(s => {
+    const el = document.getElementById(`prog-${s}`);
+    if (el) el.className = `text-[10px] font-bold uppercase ${stage.toLowerCase().includes(s) ? 'text-primary' : 'text-outline'}`;
+  });
+  showToast(`✅ Đã cập nhật stage: ${stage}`);
+}
+
+function editField(field) {
+  if (field === 'title') {
+    const titleEl = document.getElementById('dealTitle');
+    const old = titleEl.textContent;
+    const input = document.createElement('input');
+    input.type = 'text'; input.value = old;
+    input.className = 'text-xl font-bold text-on-surface tracking-tight border-b-2 border-primary bg-transparent outline-none w-full';
+    titleEl.replaceWith(input);
+    input.focus();
+    input.onblur = () => { const newEl = document.createElement('span'); newEl.id = 'dealTitle'; newEl.textContent = input.value || old; newEl.className = 'text-xl font-bold text-on-surface tracking-tight'; input.replaceWith(newEl); showToast('✅ Đã cập nhật tên deal!'); };
+    input.onkeydown = e => { if (e.key === 'Enter') input.blur(); };
+  } else if (field === 'value') {
+    showToast('Mở form chỉnh sửa giá trị deal...');
+  } else if (field === 'date') {
+    showToast('Mở datepicker chọn ngày đóng deal...');
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.add('hidden-right');
+  document.getElementById('backdrop').style.opacity = '0';
+  setTimeout(() => window.location.href = 'man-hinh-10.html', 300);
+}
+
+function deleteDeal() { document.getElementById('deleteDialog').classList.remove('hidden'); }
+function confirmDelete() {
+  document.getElementById('deleteDialog').classList.add('hidden');
+  showToast('🗑 Deal đã được xóa');
+  setTimeout(() => window.location.href = 'man-hinh-10.html', 1500);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.opacity = '1'; t.style.pointerEvents = 'auto';
+  setTimeout(() => { t.style.opacity = '0'; t.style.pointerEvents = 'none'; }, 3000);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#stageMenu') && !e.target.closest('#stageBtn')) {
+    document.getElementById('stageMenu').classList.add('hidden');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+renderTimeline();
+</script>
+</body>
+</html>

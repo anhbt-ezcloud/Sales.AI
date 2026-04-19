@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Sales Agent - Chat tài liệu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#ffd4a4",
+                        "primary-fixed": "#e2dfff",
+                        "outline-variant": "#c7c4d8",
+                        "on-primary-container": "#dad7ff",
+                        "tertiary-container": "#885500",
+                        "on-surface-variant": "#464555",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#4d44e3",
+                        "surface-dim": "#cbdbf5",
+                        "inverse-primary": "#c3c0ff",
+                        "surface-bright": "#f8f9ff",
+                        "background": "#f8f9ff",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "primary": "#3525cd",
+                        "primary-container": "#4f46e5",
+                        "secondary-container": "#6cf8bb",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary-container": "#00714d",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed-variant": "#005236",
+                        "error": "#ba1a1a",
+                        "on-background": "#0b1c30",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface": "#f8f9ff",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "outline": "#777587",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-surface": "#213145",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container": "#e5eeff",
+                        "tertiary": "#684000",
+                        "secondary": "#006c49",
+                        "surface-container-high": "#dce9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { backdrop-filter: blur(15px); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="w-[240px] h-screen sticky top-0 left-0 bg-[#eff4ff] dark:bg-slate-900 flex flex-col p-4 space-y-2 shrink-0">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-bold text-[#3525cd] dark:text-indigo-300">AI Sales Agent</h1>
+<p class="text-[10px] uppercase tracking-wider text-slate-500 font-medium">The Precision Concierge</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 bg-[#4f46e5] text-white rounded-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-sm font-medium">Chat tài liệu</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-[#d3e4fe] dark:hover:bg-slate-800 rounded-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-sm font-medium">CRM &amp; Công việc</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-[#d3e4fe] dark:hover:bg-slate-800 rounded-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm font-medium">Cài đặt</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-[#d3e4fe] dark:hover:bg-slate-800 rounded-md transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-sm font-medium">Trợ giúp</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-2 py-2">
+<img alt="User profile avatar" class="w-8 h-8 rounded-full bg-surface-container-highest" data-alt="Close-up portrait of a professional male user with a clean aesthetic and soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjsxWCNcBSQtzTjz_k05QupaJ3PISgj-etljk7j3V5QY_8oHgBof0HxxqITjM7J67N4MB8FnM7lcb0yYZuxWOMr3ot_SXAIjg9CBT2UtiHhr41zpur5cGwPouzoaQXHMDyYPFtZQmW9-C2GXP7nAQ7YT6eG3zrUre1KI3xGxhbBd0cxQ21T7rIDrNIqRl4Bt__9yYi28WmEgwMCA6FuKAtw7hosC2_bkMFUPfwD2vrQBawKgjVMiDf2XaddhWeETKhU9-5aeZafOU"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate text-on-surface">Admin User</p>
+<p class="text-[10px] text-slate-500 truncate">Pro Account</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="h-16 w-full sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-[15px] flex justify-between items-center px-6">
+<div class="flex items-center gap-4 flex-1">
+<div class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-full w-full max-w-md">
+<span class="material-symbols-outlined text-slate-400 text-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Tìm kiếm tài liệu hoặc tin nhắn..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg">
+<div class="w-2 h-2 bg-secondary rounded-full"></div>
+<span class="text-xs font-medium text-on-surface">Global Corp S.A.</span>
+<span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-500" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-500" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="flex-1 flex overflow-hidden">
+<!-- Document List Sidebar -->
+<div class="w-80 bg-surface-container-low/50 border-r border-outline-variant/10 flex flex-col p-6 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Thư viện</h2>
+<button class="bg-primary hover:bg-primary-container text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Tải lên
+                    </button>
+</div>
+<div class="space-y-3 overflow-y-auto pr-2 scrollbar-hide">
+<!-- Doc 1 -->
+<div class="p-4 bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)] border border-transparent hover:border-primary/20 cursor-pointer transition-all">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate text-on-surface">Hợp đồng A.pdf</p>
+<p class="text-[10px] text-slate-500 mt-0.5">2.4 MB • 12 phút trước</p>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+<span class="material-symbols-outlined text-xs text-slate-400" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+<!-- Doc 2 -->
+<div class="p-4 bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)] opacity-70 border border-transparent">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-slate-400" data-icon="article">article</span>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate text-on-surface">Quy trình sales.docx</p>
+<p class="text-[10px] text-slate-500 mt-0.5">1.1 MB • 1 giờ trước</p>
+</div>
+</div>
+<div class="mt-3 flex items-center">
+<span class="px-2 py-0.5 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">Processing</span>
+</div>
+</div>
+<!-- Doc 3 -->
+<div class="p-4 bg-surface-container-lowest rounded-xl shadow-[0_4px_20px_-10px_rgba(53,37,205,0.1)] border border-transparent hover:border-primary/20 cursor-pointer transition-all">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="picture_as_pdf">picture_as_pdf</span>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate text-on-surface">Báo cáo Q3-2023.pdf</p>
+<p class="text-[10px] text-slate-500 mt-0.5">5.8 MB • 3 giờ trước</p>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-tighter">Processed</span>
+<span class="material-symbols-outlined text-xs text-slate-400" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Interface -->
+<div class="flex-1 bg-white flex flex-col">
+<!-- Chat Header -->
+<div class="px-8 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-on-surface">Trợ lý AI Sales</h3>
+<p class="text-xs text-secondary font-medium">Trực tuyến • Sẵn sàng hỗ trợ</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-slate-400">
+<span class="material-symbols-outlined text-sm" data-icon="share">share</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-lg transition-colors text-slate-400">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<!-- Chat Body -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+<!-- Bot Message -->
+<div class="flex gap-4 max-w-3xl">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0 border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-low p-6 rounded-2xl rounded-tl-none leading-relaxed text-on-surface text-sm">
+                                Chào bạn! Tôi đã phân tích xong tài liệu **"Hợp đồng A.pdf"**. Bạn có muốn biết về các điều khoản thanh toán hay các mốc bàn giao dự án không?
+                            </div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-3xl ml-auto flex-row-reverse">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-md">
+<span class="material-symbols-outlined text-white text-sm" data-icon="person">person</span>
+</div>
+<div class="bg-primary text-white p-6 rounded-2xl rounded-tr-none text-sm shadow-sm">
+                            Cho tôi biết thời hạn thanh toán tối đa được quy định trong hợp đồng này là bao lâu?
+                        </div>
+</div>
+<!-- Bot Message with Source -->
+<div class="flex gap-4 max-w-3xl">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0 border border-outline-variant/20">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-low p-6 rounded-2xl rounded-tl-none leading-relaxed text-on-surface text-sm">
+<p>Theo Điều 4, Khoản 2 của **Hợp đồng A.pdf**, thời hạn thanh toán được quy định như sau:</p>
+<ul class="list-disc ml-4 mt-2 space-y-1">
+<li>Thời hạn thanh toán tối đa là **30 ngày làm việc** kể từ ngày nhận được hóa đơn hợp lệ.</li>
+<li>Nếu quá hạn, bên mua sẽ phải chịu mức lãi suất chậm trả là 0.05% mỗi ngày.</li>
+</ul>
+<div class="mt-4 pt-4 border-t border-outline-variant/20">
+<p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Nguồn trích dẫn</p>
+<div class="flex gap-2">
+<div class="px-3 py-1.5 bg-white border border-outline-variant/30 rounded-lg text-xs flex items-center gap-2 hover:shadow-md cursor-pointer transition-shadow">
+<span class="material-symbols-outlined text-primary text-xs" data-icon="bookmark">bookmark</span>
+<span>Trang 4, Mục 4.2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-8">
+<div class="max-w-4xl mx-auto relative group">
+<div class="absolute inset-0 bg-primary/5 rounded-2xl blur-xl group-focus-within:bg-primary/10 transition-all"></div>
+<div class="relative bg-white border border-outline-variant/30 rounded-2xl shadow-sm flex items-end p-2 focus-within:border-primary/50 transition-all">
+<button class="p-3 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 resize-none max-h-32 scrollbar-hide" placeholder="Hỏi AI về tài liệu của bạn..." rows="1"></textarea>
+<button class="p-3 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</button>
+<button class="bg-primary text-white p-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+</button>
+</div>
+<p class="text-center text-[10px] text-slate-400 mt-4 font-medium uppercase tracking-widest">AI có thể nhầm lẫn. Vui lòng kiểm tra lại thông tin quan trọng.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Quick Actions (FAB Suppression Rule Applied: Not on details/chat focused screen) -->
+</body></html>

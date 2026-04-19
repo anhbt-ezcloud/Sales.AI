@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Xem tài liệu - AI Sales Agent</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config: giữ nguyên màu sắc design gốc -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container":         "#e5eeff",
+            "secondary-fixed-dim":       "#4edea3",
+            "surface":                   "#f8f9ff",
+            "on-error-container":        "#93000a",
+            "on-background":             "#0b1c30",
+            "outline":                   "#777587",
+            "surface-container-lowest":  "#ffffff",
+            "surface-container-low":     "#eff4ff",
+            "on-secondary-fixed-variant":"#005236",
+            "surface-dim":               "#cbdbf5",
+            "surface-tint":              "#4d44e3",
+            "error":                     "#ba1a1a",
+            "surface-bright":            "#f8f9ff",
+            "inverse-surface":           "#213145",
+            "on-error":                  "#ffffff",
+            "tertiary-fixed":            "#ffddb8",
+            "on-secondary-container":    "#00714d",
+            "surface-container-high":    "#dce9ff",
+            "on-primary-fixed":          "#0f0069",
+            "primary-fixed-dim":         "#c3c0ff",
+            "on-primary-fixed-variant":  "#3323cc",
+            "surface-container-highest": "#d3e4fe",
+            "secondary":                 "#006c49",
+            "surface-variant":           "#d3e4fe",
+            "outline-variant":           "#c7c4d8",
+            "on-primary-container":      "#dad7ff",
+            "on-secondary-fixed":        "#002113",
+            "tertiary-fixed-dim":        "#ffb95f",
+            "secondary-container":       "#6cf8bb",
+            "on-tertiary-container":     "#ffd4a4",
+            "secondary-fixed":           "#6ffbbe",
+            "on-secondary":              "#ffffff",
+            "primary":                   "#3525cd",
+            "inverse-primary":           "#c3c0ff",
+            "on-primary":                "#ffffff",
+            "tertiary-container":        "#885500",
+            "on-tertiary-fixed":         "#2a1700",
+            "on-surface-variant":        "#464555",
+            "primary-container":         "#4f46e5",
+            "inverse-on-surface":        "#eaf1ff",
+            "on-tertiary":               "#ffffff",
+            "tertiary":                  "#684000",
+            "on-tertiary-fixed-variant": "#653e00",
+            "error-container":           "#ffdad6",
+            "primary-fixed":             "#e2dfff",
+            "on-surface":                "#0b1c30",
+            "background":                "#f8f9ff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body":     ["Inter"],
+            "label":    ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* === Glass effect === */
+    .glass-effect {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* === Drawer slide-in === */
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+    .drawer-panel { animation: slideInRight 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    /* === Tab underline transition === */
+    .tab-btn { position: relative; transition: color 0.2s; }
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 2px;
+      background: #3525cd;
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+    }
+    .tab-btn.active::after { transform: scaleX(1); }
+    .tab-btn.active { color: #3525cd; font-weight: 600; }
+
+    /* === Hover & transition === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s,
+                             box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+
+    /* === Highlight pulse === */
+    @keyframes highlightPulse {
+      0%, 100% { background-color: #fef9c3; }
+      50%       { background-color: #fde68a; }
+    }
+    .highlight-active { animation: highlightPulse 2s ease-in-out infinite; }
+
+    /* === Progress bar animation === */
+    @keyframes progressFill {
+      from { width: 0; }
+      to   { width: 75%; }
+    }
+    .progress-bar { animation: progressFill 1.2s ease-out forwards; }
+
+    /* === Toast === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .toast-anim { animation: fadeInUp 0.25s ease-out; }
+
+    /* === FAB hover === */
+    .fab-btn:hover .fab-icon { transform: rotate(12deg); }
+    .fab-icon { transition: transform 0.2s ease; }
+
+    /* === Zoom === */
+    .pdf-page { transform-origin: top center; transition: transform 0.25s ease; }
+  </style>
+</head>
+
+<body class="bg-background font-body text-on-surface overflow-hidden">
+
+<!-- ============================================================
+     BACKGROUND: Chat interface mờ phía sau (giống design gốc)
+     ============================================================ -->
+<div class="fixed inset-0 z-0 flex bg-surface-container-low opacity-40 grayscale-[0.5] blur-[1px]
+            pointer-events-none select-none">
+
+  <!-- Sidebar mock -->
+  <aside class="w-60 h-screen flex flex-col py-6 px-4 bg-[#eff4ff] shrink-0">
+    <div class="mb-8 px-2 flex items-center gap-3">
+      <div class="w-8 h-8 bg-primary rounded-lg"></div>
+      <span class="text-lg font-semibold text-[#3525cd]">AI Sales Agent</span>
+    </div>
+    <nav class="space-y-2 flex-1">
+      <div class="flex items-center gap-3 px-3 py-2 text-slate-600">
+        <span class="material-symbols-outlined">dashboard</span> Bảng điều khiển
+      </div>
+      <div class="flex items-center gap-3 px-3 py-2 bg-[#4f46e5] text-white rounded-md">
+        <span class="material-symbols-outlined">chat_bubble</span> Hội thoại
+      </div>
+      <div class="flex items-center gap-3 px-3 py-2 text-slate-600">
+        <span class="material-symbols-outlined">description</span> Tài liệu
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main content mock -->
+  <main class="flex-1 p-8 space-y-6">
+    <div class="h-16 flex items-center justify-between border-b border-outline-variant/20">
+      <div class="w-64 h-10 bg-surface-container-highest rounded-full"></div>
+      <div class="flex gap-4">
+        <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
+        <div class="w-10 h-10 rounded-full bg-surface-container-high"></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-6">
+      <div class="col-span-2 h-[600px] bg-white rounded-xl shadow-sm"></div>
+      <div class="h-[600px] bg-surface-container rounded-xl"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Scrim overlay -->
+<div class="fixed inset-0 bg-on-background/20 z-10 glass-effect pointer-events-none"></div>
+
+<!-- ============================================================
+     RIGHT-SIDE DRAWER (800px)
+     ============================================================ -->
+<div class="drawer-panel fixed top-0 right-0 h-screen w-[800px] bg-surface
+            shadow-2xl z-20 flex flex-col">
+
+  <!-- ---- Drawer Header ---- -->
+  <header class="h-16 flex items-center justify-between px-6 bg-white
+                 border-b border-outline-variant/10 shrink-0">
+    <div class="flex items-center gap-4 min-w-0">
+      <div class="p-2 bg-primary-fixed rounded-lg shrink-0">
+        <span class="material-symbols-outlined text-primary">description</span>
+      </div>
+      <div class="min-w-0">
+        <h2 id="docTitle" class="text-on-surface font-semibold text-lg leading-tight truncate">
+          BaoGia_2026.pdf
+        </h2>
+        <p class="text-on-surface-variant text-[11px] uppercase tracking-wider font-medium">
+          Báo giá dịch vụ &amp; Điều khoản 2026
+        </p>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex items-center gap-1 shrink-0 ml-3">
+      <a href="man-hinh-1.html"
+         class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant hover:text-primary"
+         title="Chat về tài liệu này">
+        <span class="material-symbols-outlined">forum</span>
+      </a>
+      <button id="downloadBtn"
+              class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant hover:text-primary"
+              title="Tải xuống">
+        <span class="material-symbols-outlined">download</span>
+      </button>
+      <button id="moreBtn"
+              class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant"
+              title="Thêm tùy chọn">
+        <span class="material-symbols-outlined">more_vert</span>
+      </button>
+      <div class="w-px h-6 bg-outline-variant/30 mx-1"></div>
+      <a href="man-hinh-1.html"
+         class="p-2 hover:bg-error-container hover:text-on-error-container rounded-lg
+                text-on-surface-variant" title="Đóng">
+        <span class="material-symbols-outlined">close</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ---- Tabs ---- -->
+  <div class="px-6 bg-white flex gap-6 border-b border-outline-variant/10 shrink-0">
+    <button class="tab-btn active py-4 text-sm flex items-center gap-2" data-tab="preview">
+      <span class="material-symbols-outlined text-sm">description</span>
+      📄 Xem tài liệu
+    </button>
+    <button class="tab-btn text-sm text-on-surface-variant py-4 flex items-center gap-2"
+            data-tab="summary">
+      <span class="material-symbols-outlined text-sm">auto_awesome</span>
+      ✨ Tóm tắt tự động
+    </button>
+    <button class="tab-btn text-sm text-on-surface-variant py-4 flex items-center gap-2"
+            data-tab="keypoints">
+      <span class="material-symbols-outlined text-sm">star</span>
+      ⭐ Điểm chính
+    </button>
+    <button class="tab-btn text-sm text-on-surface-variant py-4 flex items-center gap-2"
+            data-tab="metadata">
+      <span class="material-symbols-outlined text-sm">find_in_page</span>
+      🔍 Metadata
+    </button>
+  </div>
+
+  <!-- ============================================================
+       TAB CONTENT AREA
+       ============================================================ -->
+  <div class="flex-1 overflow-hidden relative">
+
+    <!-- === TAB: Xem tài liệu (PDF Preview) === -->
+    <div id="tab-preview" class="tab-content h-full overflow-y-auto p-12 bg-surface-container-low scrollbar-hide">
+
+      <!-- PDF page mock -->
+      <div id="pdfPage" class="pdf-page max-w-2xl mx-auto bg-white shadow-lg p-16 min-h-[1100px] rounded-sm relative">
+
+        <!-- Header trang -->
+        <div class="mb-12 flex justify-between items-start">
+          <div class="w-24 h-12 bg-slate-100 rounded-sm flex items-center justify-center
+                      text-[10px] text-slate-400 font-bold tracking-wider">LOGO</div>
+          <div class="text-right">
+            <p class="text-xs text-on-surface-variant">Ngày: 20/05/2024</p>
+            <p class="text-xs text-on-surface-variant">Số: #QT-2026-001</p>
+          </div>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-8 text-on-surface">
+          BẢN CHÀO GIÁ DỊCH VỤ AI AUTOMATION
+        </h1>
+
+        <div class="space-y-4 text-sm text-on-surface leading-relaxed">
+          <p>
+            Kính gửi Quý đối tác, Chúng tôi xin trân trọng gửi tới Quý khách hàng bản chào giá
+            chi tiết cho các giải pháp trí tuệ nhân tạo thế hệ mới (Next-Gen AI) nhằm tối ưu hóa
+            quy trình bán hàng và chăm sóc khách hàng tự động.
+          </p>
+
+          <h3 class="font-bold pt-4 text-primary">1. CHI PHÍ TRIỂN KHAI HỆ THỐNG</h3>
+
+          <!-- Highlighted pricing table (AI đánh dấu) -->
+          <div class="highlight-active -mx-4 px-4 py-2 rounded-sm border-l-4 border-amber-400 relative group cursor-pointer"
+               id="highlightedSection">
+            <table class="w-full text-left border-collapse mt-2">
+              <thead>
+                <tr class="border-b border-amber-200">
+                  <th class="py-2 font-bold">Hạng mục</th>
+                  <th class="py-2 font-bold text-right">Đơn giá (VNĐ)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="hover:bg-amber-50">
+                  <td class="py-2">Cấu hình AI Agent cơ bản</td>
+                  <td class="py-2 text-right">15,000,000</td>
+                </tr>
+                <tr class="bg-amber-200/50 hover:bg-amber-200/70">
+                  <td class="py-2 font-semibold italic">Tích hợp đa kênh (Omni-channel)</td>
+                  <td class="py-2 text-right font-bold">25,000,000</td>
+                </tr>
+                <tr class="hover:bg-amber-50">
+                  <td class="py-2">Đào tạo nhân sự sử dụng</td>
+                  <td class="py-2 text-right">5,000,000</td>
+                </tr>
+                <tr class="border-t border-amber-200 font-bold">
+                  <td class="py-2">Tổng cộng</td>
+                  <td class="py-2 text-right text-primary">45,000,000</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- AI label tooltip -->
+            <div class="absolute -right-4 top-0 translate-x-full hidden group-hover:flex
+                        bg-on-background text-white text-[10px] px-2 py-1 rounded items-center gap-1
+                        whitespace-nowrap z-10">
+              <span class="material-symbols-outlined text-xs"
+                    style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+              Đoạn được đánh dấu bởi AI
+            </div>
+          </div>
+
+          <h3 class="font-bold pt-4">2. ĐIỀU KHOẢN THANH TOÁN</h3>
+          <p>
+            Thanh toán được chia làm 2 đợt: 50% ngay sau khi ký hợp đồng và 50% sau khi hoàn thiện
+            bàn giao hệ thống và đào tạo. Thời gian triển khai dự kiến là
+            <strong>14 ngày làm việc</strong> kể từ ngày nhận được tạm ứng.
+          </p>
+
+          <h3 class="font-bold pt-4">3. BẢO HÀNH & HỖ TRỢ</h3>
+          <p>
+            Hệ thống được bảo hành <strong>12 tháng</strong> kể từ ngày bàn giao. Đội ngũ hỗ trợ kỹ
+            thuật hoạt động 24/7 với SLA phản hồi tối đa <strong>4 giờ</strong>.
+          </p>
+
+          <h3 class="font-bold pt-4">4. CAM KẾT DỊCH VỤ</h3>
+          <p>
+            Chúng tôi cam kết uptime tối thiểu <strong>99.9%</strong> theo từng tháng. Trong trường
+            hợp không đạt SLA, khách hàng được hoàn tiền tương ứng theo tỷ lệ downtime.
+          </p>
+
+          <!-- More content placeholder -->
+          <div class="h-48 w-full bg-slate-50 mt-12 flex items-center justify-center
+                      border border-dashed border-outline-variant rounded-sm">
+            <span class="text-on-surface-variant italic text-xs">Phần nội dung tiếp theo...</span>
+          </div>
+        </div>
+
+        <!-- Page footer -->
+        <div class="absolute bottom-8 left-16 right-16 border-t border-outline-variant/30 pt-4
+                    flex justify-between text-[10px] text-on-surface-variant">
+          <span>Proprietary &amp; Confidential</span>
+          <span id="pageIndicator">Trang 12 / 42</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- === TAB: Tóm tắt tự động === -->
+    <div id="tab-summary" class="tab-content hidden h-full overflow-y-auto p-8 scrollbar-hide">
+      <div class="max-w-2xl mx-auto space-y-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-sm"
+                  style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-on-surface">Tóm tắt tự động</h3>
+            <p class="text-xs text-on-surface-variant">Được tạo bởi AI • Cập nhật 14:30</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-outline-variant/10 p-6 shadow-sm space-y-4">
+          <h4 class="font-bold text-on-surface">📋 Tổng quan</h4>
+          <p class="text-sm text-on-surface leading-relaxed">
+            Đây là bản chào giá cho giải pháp AI Automation dành cho doanh nghiệp,
+            bao gồm 3 hạng mục chính: cấu hình AI Agent, tích hợp đa kênh và đào tạo nhân sự.
+            Tổng giá trị hợp đồng là <strong class="text-primary">45,000,000 VNĐ</strong>.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-outline-variant/10 p-6 shadow-sm space-y-3">
+          <h4 class="font-bold text-on-surface">💰 Chi phí chính</h4>
+          <ul class="space-y-2 text-sm text-on-surface">
+            <li class="flex justify-between">
+              <span>AI Agent cơ bản</span>
+              <strong>15,000,000 VNĐ</strong>
+            </li>
+            <li class="flex justify-between">
+              <span>Tích hợp Omni-channel</span>
+              <strong>25,000,000 VNĐ</strong>
+            </li>
+            <li class="flex justify-between">
+              <span>Đào tạo nhân sự</span>
+              <strong>5,000,000 VNĐ</strong>
+            </li>
+            <li class="flex justify-between border-t border-outline-variant/20 pt-2 font-bold">
+              <span>Tổng cộng</span>
+              <span class="text-primary">45,000,000 VNĐ</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-xl border border-outline-variant/10 p-6 shadow-sm space-y-3">
+          <h4 class="font-bold text-on-surface">📅 Điều khoản quan trọng</h4>
+          <ul class="text-sm text-on-surface space-y-2">
+            <li>• Thanh toán 2 đợt: 50% khi ký, 50% khi bàn giao</li>
+            <li>• Thời gian triển khai: <strong>14 ngày làm việc</strong></li>
+            <li>• Bảo hành: <strong>12 tháng</strong></li>
+            <li>• SLA hỗ trợ: <strong>24/7, phản hồi trong 4 giờ</strong></li>
+            <li>• Uptime cam kết: <strong>99.9%</strong>/tháng</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- === TAB: Điểm chính === -->
+    <div id="tab-keypoints" class="tab-content hidden h-full overflow-y-auto p-8 scrollbar-hide">
+      <div class="max-w-2xl mx-auto space-y-4">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-amber-600"
+                  style="font-variation-settings: 'FILL' 1;">star</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-on-surface">Điểm chính</h3>
+            <p class="text-xs text-on-surface-variant">7 điểm được AI xác định</p>
+          </div>
+        </div>
+
+        <!-- Key points list -->
+        <div id="keypointsList" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- === TAB: Metadata === -->
+    <div id="tab-metadata" class="tab-content hidden h-full overflow-y-auto p-8 scrollbar-hide">
+      <div class="max-w-2xl mx-auto space-y-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+            <span class="material-symbols-outlined text-outline">find_in_page</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-on-surface">Thông tin tài liệu</h3>
+            <p class="text-xs text-on-surface-variant">Metadata &amp; thống kê</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden">
+          <table class="w-full text-sm">
+            <tbody class="divide-y divide-slate-50">
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant w-2/5">Tên file</td>
+                <td class="px-6 py-3 text-on-surface font-semibold">BaoGia_2026.pdf</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Kích thước</td>
+                <td class="px-6 py-3 text-on-surface">8.2 MB</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Số trang</td>
+                <td class="px-6 py-3 text-on-surface">42 trang</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Ngày tạo</td>
+                <td class="px-6 py-3 text-on-surface">20/05/2024</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Upload bởi</td>
+                <td class="px-6 py-3 text-on-surface">Minh Phan</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Ngôn ngữ</td>
+                <td class="px-6 py-3 text-on-surface">Tiếng Việt</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Trạng thái</td>
+                <td class="px-6 py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full
+                               text-xs font-bold bg-secondary-container text-on-secondary-container">
+                    <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Đã index
+                  </span>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Số lần chat</td>
+                <td class="px-6 py-3 text-on-surface font-bold text-primary">89</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Chunks vector</td>
+                <td class="px-6 py-3 text-on-surface">248 chunks</td>
+              </tr>
+              <tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium text-on-surface-variant">Độ chính xác AI</td>
+                <td class="px-6 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-2 bg-surface-container-high rounded-full overflow-hidden">
+                      <div class="h-full bg-secondary rounded-full" style="width:92%"></div>
+                    </div>
+                    <span class="text-secondary font-bold text-sm">0.92</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Chia sẻ -->
+        <div class="bg-white rounded-xl border border-outline-variant/10 p-5 shadow-sm">
+          <h4 class="font-bold text-on-surface mb-3 text-sm">Chia sẻ với</h4>
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-full text-xs font-medium">
+              <div class="w-5 h-5 rounded-full bg-indigo-200 flex items-center justify-center text-[9px] font-bold text-indigo-700">MP</div>
+              Minh Phan
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-full text-xs font-medium">
+              <div class="w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center text-[9px] font-bold text-emerald-700">LA</div>
+              Lan Anh
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-full text-xs font-medium text-outline">
+              <span class="material-symbols-outlined text-sm">group</span> Toàn team Sales
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         FLOATING: Mini navigation panel (góc phải)
+         ============================================================ -->
+    <div class="absolute top-6 right-6 glass-effect bg-white/80 border border-outline-variant/30
+                rounded-xl shadow-xl p-2 flex flex-col gap-3 z-30">
+      <div class="flex items-center justify-between gap-6 px-2">
+        <div class="flex flex-col">
+          <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Vị trí</span>
+          <span class="text-sm font-semibold text-primary" id="pageDisplay">Trang 12 / 42</span>
+        </div>
+        <div class="h-8 w-px bg-outline-variant/30"></div>
+        <div class="flex flex-col items-end">
+          <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Chính xác</span>
+          <div class="flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-secondary"></span>
+            <span class="text-sm font-semibold text-secondary">0.92</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-px bg-outline-variant/20 mx-1"></div>
+
+      <div class="flex items-center justify-around">
+        <button id="prevPage" class="p-1.5 hover:bg-surface-container rounded-lg" title="Trang trước">
+          <span class="material-symbols-outlined text-on-surface-variant">chevron_left</span>
+        </button>
+        <button id="nextPage" class="p-1.5 hover:bg-surface-container rounded-lg" title="Trang tiếp">
+          <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+        </button>
+        <div class="w-px h-4 bg-outline-variant/20"></div>
+        <button id="zoomIn" class="p-1.5 hover:bg-surface-container rounded-lg" title="Phóng to">
+          <span class="material-symbols-outlined text-on-surface-variant">zoom_in</span>
+        </button>
+        <button id="zoomOut" class="p-1.5 hover:bg-surface-container rounded-lg" title="Thu nhỏ">
+          <span class="material-symbols-outlined text-on-surface-variant">zoom_out</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         FLOATING: "Hỏi bot về đoạn này" button
+         ============================================================ -->
+    <a href="man-hinh-1.html"
+       class="fab-btn absolute bottom-16 left-1/2 -translate-x-1/2 bg-primary hover:bg-primary-container
+              text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 z-30
+              hover:scale-105 active:scale-95">
+      <div class="bg-white/20 p-1 rounded-full fab-icon">
+        <span class="material-symbols-outlined text-sm"
+              style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+      </div>
+      <span class="font-semibold text-sm">💬 Hỏi bot về đoạn này</span>
+    </a>
+  </div>
+
+  <!-- ---- Drawer Footer: Progress bar ---- -->
+  <footer class="h-12 px-6 bg-white border-t border-outline-variant/10
+                 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-4 w-full max-w-xs">
+      <span class="text-[10px] text-on-surface-variant font-medium whitespace-nowrap">
+        Tiến độ tóm tắt
+      </span>
+      <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+        <div class="bg-primary h-full rounded-full progress-bar"></div>
+      </div>
+      <span class="text-[10px] font-bold text-primary whitespace-nowrap">75%</span>
+    </div>
+    <div class="flex gap-4">
+      <span class="text-[10px] text-on-surface-variant italic">Đã đồng bộ với CRM lúc 14:30</span>
+    </div>
+  </footer>
+</div>
+
+<!-- More options dropdown (ẩn mặc định) -->
+<div id="moreMenu"
+     class="hidden fixed z-50 w-48 bg-white rounded-xl shadow-2xl border border-outline-variant/20
+            overflow-hidden py-1.5 ring-1 ring-black/5">
+  <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                 hover:bg-slate-50 text-left"
+          onclick="showToast('Đã sao chép liên kết!'); toggleMoreMenu()">
+    <span class="material-symbols-outlined text-slate-400 text-sm">link</span> Sao chép liên kết
+  </button>
+  <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700
+                 hover:bg-slate-50 text-left"
+          onclick="showToast('Đang mở tài liệu trong tab mới...'); toggleMoreMenu()">
+    <span class="material-symbols-outlined text-slate-400 text-sm">open_in_new</span> Mở tab mới
+  </button>
+  <a href="man-hinh-4.html"
+     class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+    <span class="material-symbols-outlined text-slate-400 text-sm">folder_open</span> Xem trong thư viện
+  </a>
+  <div class="h-px bg-slate-100 my-1 mx-2"></div>
+  <button class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error
+                 hover:bg-red-50 text-left"
+          onclick="showToast('Đã xóa tài liệu!', 'error'); toggleMoreMenu()">
+    <span class="material-symbols-outlined text-error text-sm">delete</span> Xóa tài liệu
+  </button>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300]
+                                 flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // ================================================================
+  // TABS SWITCHING
+  // ================================================================
+  const tabs    = document.querySelectorAll('.tab-btn');
+  const contents= document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active', 'text-primary', 'font-semibold'));
+      tabs.forEach(t => t.classList.add('text-on-surface-variant'));
+      tab.classList.add('active', 'text-primary', 'font-semibold');
+      tab.classList.remove('text-on-surface-variant');
+
+      const target = tab.dataset.tab;
+      contents.forEach(c => c.classList.add('hidden'));
+      document.getElementById('tab-' + target)?.classList.remove('hidden');
+
+      // Ẩn floating panel khi không ở tab preview
+      const floatPanel = document.querySelector('.absolute.top-6.right-6');
+      const fab        = document.querySelector('.fab-btn');
+      if (target === 'preview') {
+        floatPanel?.classList.remove('hidden');
+        fab?.classList.remove('hidden');
+      } else {
+        floatPanel?.classList.add('hidden');
+        fab?.classList.add('hidden');
+      }
+    });
+  });
+
+  // ================================================================
+  // KEY POINTS DATA
+  // ================================================================
+  const KEY_POINTS = [
+    { icon: '💰', text: 'Tổng giá trị hợp đồng là 45,000,000 VNĐ bao gồm 3 hạng mục chính.', page: 'Trang 12' },
+    { icon: '📅', text: 'Thời gian triển khai dự kiến 14 ngày làm việc từ ngày nhận tạm ứng.', page: 'Trang 15' },
+    { icon: '🔒', text: 'Bảo hành 12 tháng kể từ ngày bàn giao với SLA hỗ trợ 24/7.', page: 'Trang 18' },
+    { icon: '📊', text: 'Thanh toán 2 đợt: 50% khi ký hợp đồng, 50% sau khi bàn giao.', page: 'Trang 14' },
+    { icon: '⚡', text: 'Uptime cam kết 99.9%/tháng, hoàn tiền nếu không đạt SLA.', page: 'Trang 20' },
+    { icon: '🤝', text: 'Hợp đồng có hiệu lực 12 tháng, có thể gia hạn với giá ưu đãi 10%.', page: 'Trang 22' },
+    { icon: '🛡️', text: 'Dữ liệu khách hàng được mã hóa AES-256 và lưu trữ tại Việt Nam.', page: 'Trang 35' },
+  ];
+
+  const keypointsList = document.getElementById('keypointsList');
+  KEY_POINTS.forEach((kp, i) => {
+    const div = document.createElement('div');
+    div.className = 'flex items-start gap-4 bg-white rounded-xl border border-outline-variant/10 p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all cursor-pointer';
+    div.innerHTML = `
+      <span class="text-xl flex-shrink-0 mt-0.5">${kp.icon}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm text-on-surface leading-relaxed">${kp.text}</p>
+      </div>
+      <span class="text-[10px] text-outline font-medium whitespace-nowrap mt-1">${kp.page}</span>`;
+    div.addEventListener('click', () => {
+      // Chuyển sang tab preview khi click key point
+      tabs[0].click();
+      showToast(`Đang xem: ${kp.page}`);
+    });
+    keypointsList.appendChild(div);
+  });
+
+  // ================================================================
+  // PAGINATION: Trang trước / Trang sau
+  // ================================================================
+  let currentPage = 12;
+  const totalPages = 42;
+
+  function updatePageDisplay() {
+    const text = `Trang ${currentPage} / ${totalPages}`;
+    document.getElementById('pageDisplay').textContent    = text;
+    document.getElementById('pageIndicator').textContent  = text;
+  }
+
+  document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) { currentPage--; updatePageDisplay(); }
+  });
+  document.getElementById('nextPage').addEventListener('click', () => {
+    if (currentPage < totalPages) { currentPage++; updatePageDisplay(); }
+  });
+
+  // ================================================================
+  // ZOOM
+  // ================================================================
+  let zoomLevel = 1.0;
+  const pdfPage = document.getElementById('pdfPage');
+
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    if (zoomLevel < 1.8) {
+      zoomLevel = Math.round((zoomLevel + 0.15) * 100) / 100;
+      pdfPage.style.transform = `scale(${zoomLevel})`;
+      showToast(`Zoom: ${Math.round(zoomLevel * 100)}%`);
+    }
+  });
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    if (zoomLevel > 0.5) {
+      zoomLevel = Math.round((zoomLevel - 0.15) * 100) / 100;
+      pdfPage.style.transform = `scale(${zoomLevel})`;
+      showToast(`Zoom: ${Math.round(zoomLevel * 100)}%`);
+    }
+  });
+
+  // ================================================================
+  // DOWNLOAD button
+  // ================================================================
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    showToast('Đang tải BaoGia_2026.pdf...');
+  });
+
+  // ================================================================
+  // MORE MENU
+  // ================================================================
+  const moreBtn  = document.getElementById('moreBtn');
+  const moreMenu = document.getElementById('moreMenu');
+
+  function toggleMoreMenu() {
+    const rect = moreBtn.getBoundingClientRect();
+    moreMenu.style.top  = (rect.bottom + 6) + 'px';
+    moreMenu.style.left = (rect.left - 100) + 'px';
+    moreMenu.classList.toggle('hidden');
+  }
+
+  moreBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleMoreMenu();
+  });
+  document.addEventListener('click', () => moreMenu.classList.add('hidden'));
+
+  // ================================================================
+  // HIGHLIGHT SECTION: Click để hỏi AI
+  // ================================================================
+  document.getElementById('highlightedSection').addEventListener('click', () => {
+    window.location.href = 'man-hinh-1.html';
+  });
+
+  // ================================================================
+  // TOAST
+  // ================================================================
+  function showToast(message, type = 'success') {
+    const colors   = type === 'error' ? 'bg-error text-white' : 'bg-inverse-surface text-inverse-on-surface';
+    const iconName = type === 'error' ? 'error' : 'check_circle';
+    const iconColor= type === 'error' ? 'text-white' : 'text-secondary-container';
+    const toast    = document.createElement('div');
+    toast.className = `pointer-events-auto toast-anim flex items-center gap-2 px-5 py-3 rounded-xl
+                       shadow-xl text-sm font-medium ${colors} opacity-0 transition-opacity duration-300`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${iconColor}"
+            style="font-variation-settings: 'FILL' 1;">${iconName}</span>
+      ${message}`;
+    document.getElementById('toastContainer').appendChild(toast);
+    requestAnimationFrame(() => toast.classList.replace('opacity-0', 'opacity-100'));
+    setTimeout(() => {
+      toast.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 2800);
+  }
+</script>
+
+</body>
+</html>

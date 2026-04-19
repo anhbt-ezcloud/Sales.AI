@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo Mobile — Quản gia AI</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --topbar-h: 48px;
+      --controls-h: 52px;
+      --sidebar-w: 224px;
+      --phone-w: 390px;
+      --phone-h: 844px;
+      --phone-radius: 52px;
+      --tr: 0.22s cubic-bezier(.4,0,.2,1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse at 30% 20%, #1e1b4b 0%, #0f172a 45%, #0c1a30 100%);
+      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: #fff;
+    }
+
+    /* ════════════════════════════════
+       MATERIAL ICONS
+    ════════════════════════════════ */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      font-size: 16px;
+      line-height: 1;
+      vertical-align: middle;
+      user-select: none;
+    }
+
+    /* ════════════════════════════════
+       TOP BAR
+    ════════════════════════════════ */
+    #top-bar {
+      height: var(--topbar-h);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+    }
+
+    .tb-icon-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: background var(--tr), color var(--tr);
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .tb-icon-btn:hover { background: rgba(255,255,255,0.13); color: #fff; }
+
+    #tb-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 12px;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      margin-right: 2px;
+      flex-shrink: 0;
+    }
+    #tb-logo-icon {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      background: #4f46e5;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #tb-logo-icon .material-symbols-outlined {
+      font-size: 14px; color: #fff;
+      font-variation-settings: 'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;
+    }
+    #tb-title {
+      font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,0.9);
+    }
+    #tb-badge {
+      font-size: 10px; font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    #tb-screen-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+    #hd-name {
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Switch view pill button */
+    .tb-switch-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(255,255,255,0.65);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background var(--tr), color var(--tr);
+      flex-shrink: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .tb-switch-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .tb-switch-btn .material-symbols-outlined { font-size: 14px; }
+
+    /* ════════════════════════════════
+       MAIN AREA (sidebar + stage)
+    ════════════════════════════════ */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════ */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: width var(--tr), min-width var(--tr);
+    }
+    #sidebar.collapsed { width: 0; min-width: 0; }
+
+    /* Sidebar brand header */
+    #sb-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+    #sb-brand-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: rgba(79,70,229,0.75);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #sb-brand-icon .material-symbols-outlined {
+      font-size: 14px; color: #fff;
+      font-variation-settings: 'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;
+    }
+
+    /* Nav scroll */
+    #nav-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 8px;
+    }
+    #nav-scroll::-webkit-scrollbar { width: 3px; }
+    #nav-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+    /* Accordion group button */
+    .group-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px 7px;
+      margin: 4px 8px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.42);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      border: none;
+      background: transparent;
+      width: calc(100% - 16px);
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      transition: background var(--tr), color var(--tr);
+    }
+    .group-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.72); }
+    .group-btn.open  { color: rgba(255,255,255,0.72); }
+
+    .g-icon    { font-size: 13px; color: rgba(255,255,255,0.32); flex-shrink: 0; }
+    .g-label   { flex: 1; white-space: nowrap; overflow: hidden; }
+    .g-chevron {
+      font-size: 13px;
+      color: rgba(255,255,255,0.25);
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+    .group-btn.open .g-chevron { transform: rotate(90deg); color: rgba(255,255,255,0.5); }
+
+    /* Accordion submenu */
+    .group-sub {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+
+    /* Nav item */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px 6px 28px;
+      margin: 1px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      color: rgba(255,255,255,0.52);
+      font-size: 12px;
+      font-weight: 450;
+      white-space: nowrap;
+      overflow: hidden;
+      user-select: none;
+      transition: background var(--tr), color var(--tr);
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active {
+      background: rgba(195,192,255,0.16);
+      color: #c3c0ff;
+      font-weight: 600;
+    }
+    .nav-item.active .n-icon {
+      color: #c3c0ff;
+      font-variation-settings: 'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 20;
+    }
+    .n-icon  { font-size: 13px; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+    .n-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .n-num   { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.2); flex-shrink: 0; margin-left: auto; }
+    .nav-item.active .n-num { color: rgba(195,192,255,0.45); }
+
+    /* Divider */
+    .nav-div { height: 1px; background: rgba(255,255,255,0.07); margin: 7px 14px; }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 5px 0 4px;
+      flex-shrink: 0;
+    }
+    .foot-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      color: rgba(255,255,255,0.38);
+      font-size: 12px;
+      cursor: pointer;
+      transition: color var(--tr);
+      white-space: nowrap;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .foot-item:hover { color: rgba(255,255,255,0.75); }
+    .foot-icon { font-size: 13px; color: rgba(255,255,255,0.25); flex-shrink: 0; }
+
+    /* ════════════════════════════════
+       RIGHT PANEL (stage + controls)
+    ════════════════════════════════ */
+    #right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════
+       PHONE STAGE
+    ════════════════════════════════ */
+    #stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px 16px 16px;
+      overflow: hidden;
+    }
+
+    /* Nav arrows flanking the phone */
+    .stage-arrow {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.11);
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--tr), color var(--tr), transform var(--tr);
+      font-family: 'Inter', sans-serif;
+    }
+    .stage-arrow:hover { background: rgba(255,255,255,0.14); color: #fff; transform: scale(1.08); }
+    .stage-arrow:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
+    .stage-arrow .material-symbols-outlined { font-size: 20px; }
+
+    /* ════════════════════════════════
+       PHONE MOCKUP
+    ════════════════════════════════ */
+    #phone-wrapper {
+      transform-origin: center center;
+      /* JS sets transform: scale(X) */
+    }
+
+    #phone {
+      width: var(--phone-w);
+      height: var(--phone-h);
+      background: #141416;
+      border-radius: var(--phone-radius);
+      position: relative;
+      box-shadow:
+        0 0 0 1.5px #3a3a3e,
+        0 0 0 3.5px #1c1c1e,
+        0 0 0 5px #3a3a3e,
+        0 40px 100px rgba(0,0,0,0.72),
+        0 16px 40px rgba(0,0,0,0.55),
+        0 0 0 0.5px rgba(255,255,255,0.05) inset;
+    }
+
+    /* Power button (right side) */
+    .phone-btn-power {
+      position: absolute;
+      right: -5px;
+      top: 168px;
+      width: 4px;
+      height: 76px;
+      background: linear-gradient(180deg, #3a3a3e 0%, #28282c 100%);
+      border-radius: 0 3px 3px 0;
+      box-shadow: 1px 0 3px rgba(0,0,0,0.6);
+    }
+
+    /* Volume buttons (left side) */
+    .phone-btn-vol {
+      position: absolute;
+      left: -5px;
+      width: 4px;
+      background: linear-gradient(180deg, #3a3a3e 0%, #28282c 100%);
+      border-radius: 3px 0 0 3px;
+      box-shadow: -1px 0 3px rgba(0,0,0,0.6);
+    }
+    .phone-btn-vol-1 { top: 120px; height: 38px; } /* silent */
+    .phone-btn-vol-2 { top: 172px; height: 64px; } /* vol up */
+    .phone-btn-vol-3 { top: 246px; height: 64px; } /* vol down */
+
+    /* Phone screen area */
+    #phone-screen {
+      position: absolute;
+      inset: 0;
+      border-radius: calc(var(--phone-radius) - 1px);
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* Dynamic Island */
+    #dynamic-island {
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 36px;
+      background: #000;
+      border-radius: 22px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    #di-camera {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: #0d0d0d;
+      border: 2px solid #1e1e1e;
+    }
+    #di-sensor {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #1a1a1e;
+    }
+
+    /* Status bar */
+    #status-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      z-index: 20;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 30px 11px;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 100%);
+    }
+    #sb-inner {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    #sb-time {
+      font-size: 15px; font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+    #sb-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+    #sb-icons .material-symbols-outlined {
+      font-size: 14px; color: rgba(255,255,255,0.9);
+      font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
+    }
+    .battery-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 1px;
+    }
+    .battery-body {
+      width: 24px; height: 12px;
+      border: 1.5px solid rgba(255,255,255,0.75);
+      border-radius: 3px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 1.5px;
+    }
+    .battery-body::after {
+      content: '';
+      position: absolute;
+      right: -5px; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 6px;
+      background: rgba(255,255,255,0.55);
+      border-radius: 0 2px 2px 0;
+    }
+    .battery-fill {
+      background: #30d158;
+      height: 100%;
+      width: 72%;
+      border-radius: 1.5px;
+    }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 50;
+      border-radius: calc(var(--phone-radius) - 1px);
+      transition: opacity 0.25s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid rgba(195,192,255,0.18);
+      border-top-color: #c3c0ff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text {
+      font-size: 11px; font-weight: 500;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* Iframe clip */
+    #iframe-clip {
+      position: absolute;
+      top: 56px;
+      left: 0; right: 0;
+      bottom: 32px;
+      overflow: hidden;
+    }
+    #screen-iframe {
+      width: 100%; height: 100%;
+      border: none;
+      display: block;
+      background: #f8f9ff;
+    }
+
+    /* Home indicator */
+    #home-indicator {
+      position: absolute;
+      bottom: 9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px; height: 5px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 3px;
+      z-index: 20;
+    }
+
+    /* ════════════════════════════════
+       BOTTOM CONTROLS
+    ════════════════════════════════ */
+    #controls {
+      height: var(--controls-h);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(0,0,0,0.28);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ctrl-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.11);
+      color: rgba(255,255,255,0.65);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--tr), color var(--tr), transform var(--tr);
+      font-family: 'Inter', sans-serif;
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.13); color: #fff; }
+    .ctrl-btn:active { transform: scale(0.96); }
+    .ctrl-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
+    .ctrl-btn .material-symbols-outlined { font-size: 14px; }
+
+    #screen-counter {
+      color: rgba(255,255,255,0.38);
+      font-size: 12px;
+      min-width: 72px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    /* ════════════════════════════════
+       SCREEN THUMBNAILS STRIP (below phone)
+    ════════════════════════════════ */
+    #thumb-strip {
+      position: absolute;
+      bottom: var(--controls-h);
+      left: var(--sidebar-w);
+      right: 0;
+      padding: 4px 16px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    #thumb-strip::-webkit-scrollbar { display: none; }
+
+    /* ════════════════════════════════
+       FLOATING DECORATIONS
+    ════════════════════════════════ */
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-orb-1 {
+      width: 500px; height: 500px;
+      background: rgba(79,70,229,0.15);
+      top: -100px; left: -100px;
+    }
+    .bg-orb-2 {
+      width: 400px; height: 400px;
+      background: rgba(99,102,241,0.1);
+      bottom: -80px; right: 200px;
+    }
+    .bg-orb-3 {
+      width: 300px; height: 300px;
+      background: rgba(139,92,246,0.08);
+      top: 50%; right: 0;
+      transform: translateY(-50%);
+    }
+
+    /* ════════════════════════════════
+       TOOLTIP (screen label under phone)
+    ════════════════════════════════ */
+    #phone-label {
+      position: absolute;
+      bottom: calc(var(--controls-h) + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* Responsive: hide sidebar on small screens */
+    @media (max-width: 900px) {
+      #sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Decorative background orbs -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+
+<!-- ══════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════ -->
+<div id="top-bar">
+
+  <!-- Hamburger -->
+  <button onclick="toggleSidebar()" title="Menu (Ctrl+B)" class="tb-icon-btn">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <!-- Logo -->
+  <div id="tb-logo">
+    <div id="tb-logo-icon">
+      <span class="material-symbols-outlined">smart_toy</span>
+    </div>
+    <div>
+      <div id="tb-title">Quản gia AI</div>
+      <div id="tb-badge">Mobile Demo</div>
+    </div>
+  </div>
+
+  <!-- Current screen name -->
+  <div id="tb-screen-name">
+    <span class="material-symbols-outlined" style="color:rgba(255,255,255,0.28);font-size:14px;">smartphone</span>
+    <span id="hd-name">Chat tài liệu</span>
+  </div>
+
+  <div style="flex:1;"></div>
+
+  <!-- Switch to Web view -->
+  <a href="demo.html" class="tb-switch-btn" title="Chuyển sang Web App">
+    <span class="material-symbols-outlined">monitor</span>
+    <span>Web App</span>
+  </a>
+
+  <!-- Open in new tab -->
+  <a id="btn-link" href="clean/man-hinh-1.html" target="_blank" class="tb-icon-btn" title="Mở tab mới">
+    <span class="material-symbols-outlined">open_in_new</span>
+  </a>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     MAIN AREA
+══════════════════════════════════════════════ -->
+<div id="main">
+
+  <!-- ── SIDEBAR ── -->
+  <aside id="sidebar">
+
+    <!-- Brand header -->
+    <div id="sb-brand">
+      <div id="sb-brand-icon">
+        <span class="material-symbols-outlined">smart_toy</span>
+      </div>
+      <div>
+        <p style="color:rgba(255,255,255,0.88);font-weight:700;font-size:12.5px;white-space:nowrap;">17 màn hình</p>
+        <p style="color:rgba(255,255,255,0.3);font-size:10px;white-space:nowrap;letter-spacing:0.03em;">Mobile App View</p>
+      </div>
+    </div>
+
+    <!-- Nav scroll -->
+    <div id="nav-scroll">
+
+      <!-- ══ GROUP 1: Chat tài liệu ══ -->
+      <button class="group-btn" id="gb-g1" onclick="toggleGroup('g1')" style="margin-top:8px;">
+        <span class="material-symbols-outlined g-icon">chat</span>
+        <span class="g-label">Chat tài liệu</span>
+        <span class="material-symbols-outlined g-chevron">chevron_right</span>
+      </button>
+      <div class="group-sub" id="gs-g1">
+        <div class="nav-item" data-idx="0"  data-file="clean/man-hinh-1.html"  data-name="Chat tài liệu"       data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">chat_bubble</span>
+          <span class="n-label">Chat tài liệu</span><span class="n-num">01</span>
+        </div>
+        <div class="nav-item" data-idx="1"  data-file="clean/man-hinh-2.html"  data-name="Concierge AI"        data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">forum</span>
+          <span class="n-label">Concierge AI</span><span class="n-num">02</span>
+        </div>
+        <div class="nav-item" data-idx="2"  data-file="clean/man-hinh-3.html"  data-name="Upload tài liệu"     data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">upload_file</span>
+          <span class="n-label">Upload tài liệu</span><span class="n-num">03</span>
+        </div>
+        <div class="nav-item" data-idx="3"  data-file="clean/man-hinh-4.html"  data-name="Thư viện tài liệu"   data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">description</span>
+          <span class="n-label">Thư viện tài liệu</span><span class="n-num">04</span>
+        </div>
+        <div class="nav-item" data-idx="4"  data-file="clean/man-hinh-5.html"  data-name="Xem tài liệu"        data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">find_in_page</span>
+          <span class="n-label">Xem tài liệu</span><span class="n-num">05</span>
+        </div>
+        <div class="nav-item" data-idx="5"  data-file="clean/man-hinh-6.html"  data-name="Context Menu"        data-grp="g1" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">touch_app</span>
+          <span class="n-label">Context Menu</span><span class="n-num">06</span>
+        </div>
+      </div>
+
+      <div class="nav-div"></div>
+
+      <!-- ══ GROUP 2: CRM & Công việc ══ -->
+      <button class="group-btn" id="gb-g2" onclick="toggleGroup('g2')">
+        <span class="material-symbols-outlined g-icon">business_center</span>
+        <span class="g-label">CRM &amp; Công việc</span>
+        <span class="material-symbols-outlined g-chevron">chevron_right</span>
+      </button>
+      <div class="group-sub" id="gs-g2">
+        <div class="nav-item" data-idx="6"  data-file="clean/man-hinh-7.html"  data-name="Dashboard CRM"          data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">dashboard</span>
+          <span class="n-label">Dashboard CRM</span><span class="n-num">07</span>
+        </div>
+        <div class="nav-item" data-idx="7"  data-file="clean/man-hinh-8.html"  data-name="CRM Hub"                data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">assignment</span>
+          <span class="n-label">CRM Hub</span><span class="n-num">08</span>
+        </div>
+        <div class="nav-item" data-idx="8"  data-file="clean/man-hinh-9.html"  data-name="Thông báo &amp; Inbox"  data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">notifications</span>
+          <span class="n-label">Thông báo &amp; Inbox</span><span class="n-num">09</span>
+        </div>
+        <div class="nav-item" data-idx="9"  data-file="clean/man-hinh-10.html" data-name="Kanban Deals"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">view_kanban</span>
+          <span class="n-label">Kanban Deals</span><span class="n-num">10</span>
+        </div>
+        <div class="nav-item" data-idx="10" data-file="clean/man-hinh-11.html" data-name="Chat CRM"               data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">support_agent</span>
+          <span class="n-label">Chat CRM</span><span class="n-num">11</span>
+        </div>
+        <div class="nav-item" data-idx="11" data-file="clean/man-hinh-12.html" data-name="AI Gợi ý"               data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">auto_awesome</span>
+          <span class="n-label">AI Gợi ý</span><span class="n-num">12</span>
+        </div>
+        <div class="nav-item" data-idx="12" data-file="clean/man-hinh-13.html" data-name="Chi tiết Deal"          data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">article</span>
+          <span class="n-label">Chi tiết Deal</span><span class="n-num">13</span>
+        </div>
+        <div class="nav-item" data-idx="13" data-file="clean/man-hinh-14.html" data-name="Quick Update"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">edit_note</span>
+          <span class="n-label">Quick Update</span><span class="n-num">14</span>
+        </div>
+        <div class="nav-item" data-idx="14" data-file="clean/man-hinh-15.html" data-name="Cấu hình CRM"           data-grp="g2" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">settings_suggest</span>
+          <span class="n-label">Cấu hình CRM</span><span class="n-num">15</span>
+        </div>
+      </div>
+
+      <div class="nav-div"></div>
+
+      <!-- ══ GROUP 3: Hệ thống ══ -->
+      <button class="group-btn" id="gb-g3" onclick="toggleGroup('g3')">
+        <span class="material-symbols-outlined g-icon">admin_panel_settings</span>
+        <span class="g-label">Hệ thống</span>
+        <span class="material-symbols-outlined g-chevron">chevron_right</span>
+      </button>
+      <div class="group-sub" id="gs-g3">
+        <div class="nav-item" data-idx="15" data-file="clean/man-hinh-16.html" data-name="Đăng nhập / Đăng ký"   data-grp="g3" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">login</span>
+          <span class="n-label">Đăng nhập</span><span class="n-num">16</span>
+        </div>
+        <div class="nav-item" data-idx="16" data-file="clean/man-hinh-17.html" data-name="Cài đặt hệ thống"      data-grp="g3" onclick="loadScreen(this)">
+          <span class="material-symbols-outlined n-icon">settings</span>
+          <span class="n-label">Cài đặt hệ thống</span><span class="n-num">17</span>
+        </div>
+      </div>
+
+    </div><!-- /nav-scroll -->
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <a href="demo.html" class="foot-item">
+        <span class="material-symbols-outlined foot-icon">monitor</span>Xem giao diện Web
+      </a>
+      <div style="padding: 4px 16px 2px;">
+        <p id="counter-foot" style="color:rgba(255,255,255,0.22);font-size:10px;">Màn hình 1 / 17</p>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div id="right-panel">
+
+    <!-- Stage: phone + nav arrows -->
+    <div id="stage">
+
+      <!-- Prev arrow -->
+      <button id="btn-prev-stage" class="stage-arrow" onclick="navigate(-1)" title="Màn hình trước (←)">
+        <span class="material-symbols-outlined">arrow_back_ios</span>
+      </button>
+
+      <!-- ── PHONE ── -->
+      <div id="phone-wrapper">
+        <div id="phone">
+
+          <!-- Hardware buttons -->
+          <div class="phone-btn-power"></div>
+          <div class="phone-btn-vol phone-btn-vol-1"></div>
+          <div class="phone-btn-vol phone-btn-vol-2"></div>
+          <div class="phone-btn-vol phone-btn-vol-3"></div>
+
+          <!-- Screen -->
+          <div id="phone-screen">
+
+            <!-- Dynamic Island -->
+            <div id="dynamic-island">
+              <div id="di-sensor"></div>
+              <div id="di-camera"></div>
+            </div>
+
+            <!-- Status Bar -->
+            <div id="status-bar">
+              <div id="sb-inner">
+                <span id="sb-time">9:41</span>
+                <div id="sb-icons">
+                  <span class="material-symbols-outlined">signal_cellular_alt</span>
+                  <span class="material-symbols-outlined">wifi</span>
+                  <div class="battery-bar">
+                    <div class="battery-body"><div class="battery-fill"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading overlay -->
+            <div id="loading">
+              <div class="spinner"></div>
+              <span id="loading-text">Đang tải...</span>
+            </div>
+
+            <!-- Iframe clip area -->
+            <div id="iframe-clip">
+              <iframe
+                id="screen-iframe"
+                src="clean/man-hinh-1.html"
+                title="Màn hình mobile"
+                onload="onIframeLoad()"
+                scrolling="yes"
+                style="width:100%;height:100%;border:none;display:block;background:#f8f9ff;">
+              </iframe>
+            </div>
+
+            <!-- Home Indicator -->
+            <div id="home-indicator"></div>
+
+          </div><!-- /phone-screen -->
+        </div><!-- /phone -->
+      </div><!-- /phone-wrapper -->
+
+      <!-- Next arrow -->
+      <button id="btn-next-stage" class="stage-arrow" onclick="navigate(1)" title="Màn hình tiếp (→)">
+        <span class="material-symbols-outlined">arrow_forward_ios</span>
+      </button>
+
+    </div><!-- /stage -->
+
+    <!-- ── BOTTOM CONTROLS ── -->
+    <div id="controls">
+      <button class="ctrl-btn" onclick="navigate(-1)" id="btn-prev">
+        <span class="material-symbols-outlined">skip_previous</span>
+        Trước
+      </button>
+      <span id="screen-counter">1 / 17</span>
+      <button class="ctrl-btn" onclick="navigate(1)" id="btn-next">
+        Tiếp
+        <span class="material-symbols-outlined">skip_next</span>
+      </button>
+    </div>
+
+  </div><!-- /right-panel -->
+
+</div><!-- /main -->
+
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+  /* ─────────────────────────────────────────────
+     STATE
+  ───────────────────────────────────────────── */
+  const navItems  = Array.from(document.querySelectorAll('.nav-item'));
+  const TOTAL     = navItems.length; // 17
+  let currentIdx  = 0;
+  let sidebarOpen = true;
+  const grpState  = { g1: false, g2: false, g3: false };
+
+  /* ─────────────────────────────────────────────
+     CLOCK
+  ───────────────────────────────────────────── */
+  function updateClock() {
+    const n = new Date();
+    const h = n.getHours().toString().padStart(2,'0');
+    const m = n.getMinutes().toString().padStart(2,'0');
+    document.getElementById('sb-time').textContent = h + ':' + m;
+  }
+  updateClock();
+  setInterval(updateClock, 15000);
+
+  /* ─────────────────────────────────────────────
+     SCALE PHONE TO FIT STAGE
+  ───────────────────────────────────────────── */
+  function scalePhone() {
+    const stage   = document.getElementById('stage');
+    const wrapper = document.getElementById('phone-wrapper');
+    const PHONE_W = 390;
+    const PHONE_H = 844;
+    const PAD_H   = 0;    // vertical padding
+    const ARROW_W = 120;  // space for two arrow buttons + gap
+
+    const availW = Math.max(stage.clientWidth  - ARROW_W, 200);
+    const availH = Math.max(stage.clientHeight - PAD_H,   300);
+
+    const s = Math.min(availW / PHONE_W, availH / PHONE_H, 1.0);
+    wrapper.style.transform = 'scale(' + s.toFixed(4) + ')';
+
+    /* Keep wrapper height correct so it doesn't overflow stage */
+    wrapper.style.width  = PHONE_W + 'px';
+    wrapper.style.height = PHONE_H + 'px';
+  }
+  window.addEventListener('resize', scalePhone);
+  scalePhone();
+
+  /* ─────────────────────────────────────────────
+     ACCORDION
+  ───────────────────────────────────────────── */
+  function toggleGroup(id) {
+    const btn = document.getElementById('gb-' + id);
+    const sub = document.getElementById('gs-' + id);
+    grpState[id] = !grpState[id];
+    if (grpState[id]) {
+      sub.style.maxHeight = sub.scrollHeight + 'px';
+      btn.classList.add('open');
+    } else {
+      sub.style.maxHeight = '0';
+      btn.classList.remove('open');
+    }
+  }
+
+  function openGroupNow(id) {
+    const btn = document.getElementById('gb-' + id);
+    const sub = document.getElementById('gs-' + id);
+    grpState[id] = true;
+    sub.style.transition = 'none';
+    sub.style.maxHeight  = sub.scrollHeight + 'px';
+    btn.classList.add('open');
+    requestAnimationFrame(() => requestAnimationFrame(() => { sub.style.transition = ''; }));
+  }
+
+  /* ─────────────────────────────────────────────
+     SIDEBAR TOGGLE
+  ───────────────────────────────────────────── */
+  function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    sidebarOpen = !sidebarOpen;
+    sb.classList.toggle('collapsed', !sidebarOpen);
+    /* Give CSS transition time to finish, then recalculate scale */
+    setTimeout(scalePhone, 280);
+  }
+
+  /* ─────────────────────────────────────────────
+     LOAD SCREEN
+  ───────────────────────────────────────────── */
+  function loadScreen(el) {
+    /* Remove old active */
+    navItems.forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+
+    const file = el.dataset.file;
+    const name = el.dataset.name;
+    const grp  = el.dataset.grp;
+    currentIdx = parseInt(el.dataset.idx, 10);
+
+    /* Update UI */
+    document.getElementById('hd-name').textContent          = name;
+    document.getElementById('btn-link').href                = file;
+    document.getElementById('screen-counter').textContent   = (currentIdx + 1) + ' / ' + TOTAL;
+    document.getElementById('counter-foot').textContent     = 'Màn hình ' + (currentIdx + 1) + ' / ' + TOTAL;
+    document.title = name + ' — Mobile Demo · Quản gia AI';
+
+    /* Hash navigation */
+    history.replaceState(null, '', '#' + file);
+
+    /* Open parent group if closed */
+    if (!grpState[grp]) toggleGroup(grp);
+
+    /* Scroll into view */
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+    /* Disable/enable arrow buttons */
+    updateNavBtns();
+
+    /* Load iframe */
+    showLoading();
+    document.getElementById('screen-iframe').src = file;
+  }
+
+  function loadByIndex(idx) {
+    if (idx < 0 || idx >= TOTAL) return;
+    loadScreen(navItems[idx]);
+  }
+
+  /* ─────────────────────────────────────────────
+     NAVIGATE PREV / NEXT
+  ───────────────────────────────────────────── */
+  function navigate(dir) {
+    loadByIndex(currentIdx + dir);
+  }
+
+  function updateNavBtns() {
+    const atStart = currentIdx === 0;
+    const atEnd   = currentIdx === TOTAL - 1;
+    document.getElementById('btn-prev').disabled       = atStart;
+    document.getElementById('btn-next').disabled       = atEnd;
+    document.getElementById('btn-prev-stage').disabled = atStart;
+    document.getElementById('btn-next-stage').disabled = atEnd;
+  }
+
+  /* ─────────────────────────────────────────────
+     LOADING OVERLAY
+  ───────────────────────────────────────────── */
+  function showLoading() {
+    document.getElementById('loading').classList.remove('hidden');
+  }
+  function hideLoading() {
+    document.getElementById('loading').classList.add('hidden');
+  }
+
+  /* ─────────────────────────────────────────────
+     IFRAME LOAD — inject mobile CSS overrides
+  ───────────────────────────────────────────── */
+  function onIframeLoad() {
+    try {
+      const iframe = document.getElementById('screen-iframe');
+      const doc    = iframe.contentDocument || iframe.contentWindow.document;
+
+      if (doc && doc.head) {
+        /* Remove any previously injected style */
+        const old = doc.getElementById('_phoneCss');
+        if (old) old.remove();
+
+        const st = doc.createElement('style');
+        st.id = '_phoneCss';
+        st.textContent = [
+          '/* ── Mobile override injected by demo-phone.html ── */',
+
+          /* Hide desktop sidebar */
+          'aside { display: none !important; }',
+
+          /* Remove sidebar-driven left margins / widths */
+          '[class*="ml-[240"]  { margin-left:  0 !important; }',
+          '[class*="ml-60"]    { margin-left:  0 !important; }',
+          '[class*="pl-[240"]  { padding-left: 0 !important; }',
+          '[class*="left-[240"]{ left: 0 !important; }',
+          '[class*="w-[240"]   { display: none !important; }',
+
+          /* Make main area fill width */
+          'main { margin-left: 0 !important; width: 100% !important; max-width: 100% !important; }',
+
+          /* Scrollable body */
+          'html, body {',
+          '  height: auto !important;',
+          '  min-height: 100%;',
+          '  overflow-y: auto !important;',
+          '  overflow-x: hidden !important;',
+          '}',
+
+          /* Un-stick the sidebar; keep header sticky */
+          '.sticky:not(header) { position: relative !important; top: auto !important; }',
+
+          /* Flatten desktop flex layouts */
+          '.flex.min-h-screen { flex-direction: column !important; }',
+          '.flex.h-screen      { flex-direction: column !important; height: auto !important; }',
+          '.overflow-hidden     { overflow: visible !important; }',
+          'body.overflow-hidden { overflow-y: auto !important; }',
+
+          /* Bottom padding so content is above home indicator area */
+          'body { padding-bottom: 16px !important; }',
+
+          /* Compact header if present */
+          'header { left: 0 !important; right: 0 !important; }',
+        ].join('\n');
+
+        doc.head.appendChild(st);
+      }
+    } catch (e) {
+      /* Cross-origin pages: silently ignore */
+    }
+
+    /* Hide loading after short delay for render */
+    setTimeout(hideLoading, 180);
+  }
+
+  /* ─────────────────────────────────────────────
+     KEYBOARD SHORTCUTS
+  ───────────────────────────────────────────── */
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { navigate(-1); e.preventDefault(); }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { navigate(1);  e.preventDefault(); }
+    if (e.ctrlKey && e.key === 'b') { toggleSidebar(); e.preventDefault(); }
+  });
+
+  /* ─────────────────────────────────────────────
+     TOUCH SWIPE ON PHONE (swipe left/right)
+  ───────────────────────────────────────────── */
+  (function initSwipe() {
+    const phone = document.getElementById('phone');
+    let startX = 0;
+    phone.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+    phone.addEventListener('touchend', function(e) {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  })();
+
+  /* ─────────────────────────────────────────────
+     INIT
+  ───────────────────────────────────────────── */
+  (function init() {
+    /* Open first group, activate first item */
+    openGroupNow('g1');
+    navItems[0].classList.add('active');
+    document.getElementById('btn-prev').disabled       = true;
+    document.getElementById('btn-prev-stage').disabled = true;
+
+    /* Restore from URL hash */
+    const hash = location.hash.replace('#','');
+    if (hash) {
+      const match = navItems.find(n => n.dataset.file === hash);
+      if (match) {
+        navItems[0].classList.remove('active');
+        loadScreen(match);
+        return;
+      }
+    }
+
+    /* Default counter */
+    document.getElementById('screen-counter').textContent = '1 / ' + TOTAL;
+    document.getElementById('counter-foot').textContent   = 'Màn hình 1 / ' + TOTAL;
+  })();
+</script>
+
+</body>
+</html>

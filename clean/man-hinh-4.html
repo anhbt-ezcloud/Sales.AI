@@ -1,0 +1,1329 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Thư viện tài liệu - AI Sales Agent</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-error": "#ffffff",
+            "surface-variant": "#d3e4fe",
+            "surface-container": "#e5eeff",
+            "secondary-fixed-dim": "#4edea3",
+            "on-tertiary-fixed-variant": "#653e00",
+            "error": "#ba1a1a",
+            "on-primary-container": "#dad7ff",
+            "surface-dim": "#cbdbf5",
+            "on-secondary-container": "#00714d",
+            "on-tertiary-container": "#ffd4a4",
+            "primary-fixed-dim": "#c3c0ff",
+            "surface-tint": "#4d44e3",
+            "secondary-container": "#6cf8bb",
+            "on-surface": "#0b1c30",
+            "primary": "#3525cd",
+            "on-secondary-fixed": "#002113",
+            "surface-container-highest": "#d3e4fe",
+            "outline-variant": "#c7c4d8",
+            "tertiary-container": "#885500",
+            "on-tertiary": "#ffffff",
+            "inverse-surface": "#213145",
+            "surface-bright": "#f8f9ff",
+            "on-secondary-fixed-variant": "#005236",
+            "background": "#f8f9ff",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#c3c0ff",
+            "on-error-container": "#93000a",
+            "secondary": "#006c49",
+            "on-tertiary-fixed": "#2a1700",
+            "surface-container-low": "#eff4ff",
+            "on-primary-fixed": "#0f0069",
+            "secondary-fixed": "#6ffbbe",
+            "primary-fixed": "#e2dfff",
+            "tertiary-fixed-dim": "#ffb95f",
+            "surface-container-high": "#dce9ff",
+            "surface": "#f8f9ff",
+            "tertiary": "#684000",
+            "on-background": "#0b1c30",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary": "#ffffff",
+            "primary-container": "#4f46e5",
+            "on-primary-fixed-variant": "#3323cc",
+            "outline": "#777587",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#ffddb8",
+            "on-surface-variant": "#464555",
+            "inverse-on-surface": "#eaf1ff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+
+    /* === Trạng thái sort header === */
+    th.sort-asc  .sort-icon::after { content: '↑'; margin-left: 4px; color: #3525cd; font-size: 11px; }
+    th.sort-desc .sort-icon::after { content: '↓'; margin-left: 4px; color: #3525cd; font-size: 11px; }
+    th[data-col] { cursor: pointer; user-select: none; }
+    th[data-col]:hover span { color: #3525cd; }
+
+    /* === Bulk action bar === */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    #bulkBar { animation: slideUp 0.25s ease-out; }
+
+    /* === Modal === */
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-panel { animation: modalIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    /* === Scrollbar modal === */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #c7c4d8; border-radius: 10px; }
+
+    /* === Toggle === */
+    .toggle-track  { transition: background-color 0.2s; }
+    .toggle-thumb  { transition: transform 0.2s; }
+    .toggle-on .toggle-track  { background-color: #4f46e5; }
+    .toggle-on .toggle-thumb  { transform: translateX(20px); }
+    .toggle-off .toggle-track { background-color: #c7c4d8; }
+    .toggle-off .toggle-thumb { transform: translateX(0); }
+
+    /* === Grid view === */
+    .grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+
+    /* === Transition === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s,
+                             box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+
+    /* === Spin icon === */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-icon { animation: spin 1.2s linear infinite; display: inline-block; }
+
+    /* === Row selected === */
+    tr.row-selected { background-color: #eff4ff; }
+    tr.row-selected:hover { background-color: #e5eeff; }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface">
+
+<!-- ============================================================
+     SIDEBAR (fixed, 240px)
+     ============================================================ -->
+
+
+<!-- ============================================================
+     TOP NAV BAR
+     ============================================================ -->
+<header class="h-16 fixed top-0 right-0 left-60 z-40 bg-white/80 backdrop-blur-md
+               flex justify-between items-center px-8 border-b border-slate-100">
+  <!-- Breadcrumb + Search -->
+  <div class="flex items-center gap-4">
+    <nav class="flex items-center text-sm font-medium">
+      <span class="text-slate-400">Hệ thống</span>
+      <span class="mx-2 text-slate-300">/</span>
+      <span class="text-indigo-700 font-semibold">Kho tài liệu</span>
+    </nav>
+    <div class="relative ml-4">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                   text-slate-400 text-lg">search</span>
+      <input id="topSearch" type="text"
+             class="pl-10 pr-4 py-1.5 w-64 bg-surface-container-low border-none rounded-full
+                    text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+             placeholder="Tìm kiếm nội dung..."/>
+    </div>
+  </div>
+
+  <!-- Right actions -->
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low
+                cursor-pointer hover:bg-surface-container transition-colors">
+      <div class="w-5 h-5 rounded-md bg-indigo-100 flex items-center justify-center">
+        <span class="text-[9px] font-black text-indigo-700">PC</span>
+      </div>
+      <span class="text-sm font-semibold text-slate-700">Precision Global</span>
+      <span class="material-symbols-outlined text-slate-400">expand_more</span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="relative text-slate-500 hover:text-indigo-600 transition-colors">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+      </button>
+      <button class="text-slate-500 hover:text-indigo-600 transition-colors">
+        <span class="material-symbols-outlined">history</span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center
+                  text-white font-bold text-sm cursor-pointer">A</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main class=" pt-20 px-8 pb-32 min-h-screen">
+
+  <!-- === Header + Upload button === -->
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-on-surface mb-1 flex items-center gap-3">
+        <span>📚</span> Thư viện tài liệu
+      </h2>
+      <p class="text-slate-500 text-sm">Quản lý và huấn luyện AI bằng các tập tin của bạn.</p>
+    </div>
+    <button id="openUploadModal"
+            class="bg-primary text-white px-6 py-2.5 rounded-lg font-semibold
+                   flex items-center gap-2 shadow-md hover:shadow-lg hover:bg-primary-container
+                   transition-all active:scale-95">
+      <span class="material-symbols-outlined">cloud_upload</span>
+      <span>Upload tài liệu</span>
+    </button>
+  </div>
+
+  <!-- === Stats cards === -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-slate-500 text-xs font-medium uppercase tracking-wider">Tổng tài liệu</span>
+        <span class="material-symbols-outlined text-indigo-400 text-xl">folder</span>
+      </div>
+      <div class="text-3xl font-bold text-on-surface" id="statTotal">12</div>
+      <div class="mt-2 text-[11px] text-slate-400">+3 so với tháng trước</div>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-slate-500 text-xs font-medium uppercase tracking-wider">Đã index</span>
+        <span class="material-symbols-outlined text-secondary text-xl">check_circle</span>
+      </div>
+      <div class="text-3xl font-bold text-secondary" id="statIndexed">9</div>
+      <div class="mt-2 text-[11px] text-emerald-600/70">75% Sẵn sàng sử dụng</div>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-slate-500 text-xs font-medium uppercase tracking-wider">Đang xử lý</span>
+        <span class="material-symbols-outlined text-amber-500 text-xl spin-icon">sync</span>
+      </div>
+      <div class="text-3xl font-bold text-amber-600" id="statProcessing">2</div>
+      <div class="mt-2 text-[11px] text-amber-600/70">Dự kiến xong trong 5 phút</div>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex justify-between items-start mb-2">
+        <span class="text-slate-500 text-xs font-medium uppercase tracking-wider">Lỗi</span>
+        <span class="material-symbols-outlined text-error text-xl">report</span>
+      </div>
+      <div class="text-3xl font-bold text-error" id="statError">1</div>
+      <div class="mt-2 text-[11px] text-rose-600/70">Cần kiểm tra lại định dạng</div>
+    </div>
+  </div>
+
+  <!-- === Filter bar === -->
+  <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between flex-wrap gap-4">
+    <div class="flex items-center gap-3 flex-wrap flex-1">
+      <!-- Tìm kiếm -->
+      <div class="relative min-w-[200px]">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                     text-slate-400 text-lg">search</span>
+        <input id="tableSearch" type="text"
+               class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg
+                      text-sm focus:ring-1 focus:ring-indigo-300"
+               placeholder="Tìm theo tên file..."/>
+      </div>
+
+      <!-- Dropdown filters -->
+      <div class="relative">
+        <select id="filterType"
+                class="appearance-none bg-surface-container-low border-none rounded-lg
+                       text-sm px-4 py-2 pr-8 focus:ring-1 focus:ring-indigo-300
+                       text-slate-600 cursor-pointer">
+          <option value="">Loại file</option>
+          <option value="PDF">PDF</option>
+          <option value="DOCX">DOCX</option>
+          <option value="XLSX">XLSX</option>
+          <option value="PPTX">PPTX</option>
+          <option value="TXT">TXT</option>
+        </select>
+        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2
+                     text-sm pointer-events-none text-outline">expand_more</span>
+      </div>
+
+      <div class="relative">
+        <select id="filterOwner"
+                class="appearance-none bg-surface-container-low border-none rounded-lg
+                       text-sm px-4 py-2 pr-8 focus:ring-1 focus:ring-indigo-300
+                       text-slate-600 cursor-pointer">
+          <option value="">Người sở hữu</option>
+          <option value="Minh Phan">Minh Phan</option>
+          <option value="Lan Anh">Lan Anh</option>
+          <option value="Quốc Anh">Quốc Anh</option>
+          <option value="Admin System">Admin System</option>
+          <option value="Huy Trần">Huy Trần</option>
+        </select>
+        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2
+                     text-sm pointer-events-none text-outline">expand_more</span>
+      </div>
+
+      <div class="relative">
+        <select id="filterStatus"
+                class="appearance-none bg-surface-container-low border-none rounded-lg
+                       text-sm px-4 py-2 pr-8 focus:ring-1 focus:ring-indigo-300
+                       text-slate-600 cursor-pointer">
+          <option value="">Trạng thái</option>
+          <option value="ready">Sẵn sàng</option>
+          <option value="processing">Đang xử lý</option>
+          <option value="error">Lỗi</option>
+        </select>
+        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2
+                     text-sm pointer-events-none text-outline">expand_more</span>
+      </div>
+    </div>
+
+    <!-- View toggle + Export -->
+    <div class="flex items-center gap-3">
+      <div class="flex bg-surface-container-low p-1 rounded-lg">
+        <button id="listViewBtn"
+                class="p-1.5 bg-white rounded-md shadow-sm text-indigo-600" title="Danh sách">
+          <span class="material-symbols-outlined text-xl">list</span>
+        </button>
+        <button id="gridViewBtn"
+                class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors" title="Lưới">
+          <span class="material-symbols-outlined text-xl">grid_view</span>
+        </button>
+      </div>
+      <button class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Xuất danh sách">
+        <span class="material-symbols-outlined">ios_share</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- === Data Table (List View) === -->
+  <div id="listViewContainer"
+       class="bg-white rounded-xl shadow-sm overflow-hidden border border-indigo-50">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-indigo-50">
+          <th class="py-4 px-6 w-12 text-center">
+            <input id="selectAll" type="checkbox"
+                   class="rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"/>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="name">
+            <span class="sort-icon">Tên file</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="size">
+            <span class="sort-icon">Kích thước</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="owner">
+            <span class="sort-icon">Người sở hữu</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="status">
+            <span class="sort-icon">Trạng thái</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center"
+              data-col="chats">
+            <span class="sort-icon">Số lần chat</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="date">
+            <span class="sort-icon">Ngày upload</span>
+          </th>
+          <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">
+            Thao tác
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableBody" class="divide-y divide-slate-50">
+        <!-- Rows được render bằng JS -->
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="bg-surface-container-lowest px-6 py-4 flex items-center justify-between
+                border-t border-slate-50">
+      <span id="paginationInfo" class="text-sm text-slate-500 font-medium">
+        Hiển thị 1–10 trên 12 tài liệu
+      </span>
+      <div id="paginationBtns" class="flex items-center gap-1">
+        <!-- Render bằng JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- === Grid View Container (ẩn mặc định) === -->
+  <div id="gridViewContainer" class="hidden">
+    <div id="gridItems" class="grid-view"></div>
+    <!-- Pagination grid -->
+    <div class="mt-6 flex justify-between items-center">
+      <span id="paginationInfoGrid" class="text-sm text-slate-500 font-medium"></span>
+      <div id="paginationBtnsGrid" class="flex items-center gap-1"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================================================
+     BULK ACTION BAR (floating, hiện khi có checkbox được chọn)
+     ============================================================ -->
+<div id="bulkBar" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2
+                          bg-indigo-900/95 backdrop-blur-lg px-8 py-3 rounded-full
+                          flex items-center gap-8 shadow-2xl shadow-indigo-900/40 z-50">
+  <div class="flex items-center gap-3 pr-8 border-r border-indigo-700/50">
+    <span id="selectedCount"
+          class="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center
+                 text-xs font-bold text-white">0</span>
+    <span class="text-indigo-100 font-medium whitespace-nowrap" id="selectedLabel">
+      Đã chọn 0 tài liệu
+    </span>
+  </div>
+  <div class="flex items-center gap-4">
+    <button id="bulkChatBtn"
+            class="flex items-center gap-2 text-indigo-100 hover:text-white
+                   py-2 px-3 rounded-lg hover:bg-indigo-800 transition-colors">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span class="font-medium">Chat với tất cả</span>
+    </button>
+    <button class="flex items-center gap-2 text-indigo-100 hover:text-white
+                   py-2 px-3 rounded-lg hover:bg-indigo-800 transition-colors">
+      <span class="material-symbols-outlined">share</span>
+      <span class="font-medium">Chia sẻ</span>
+    </button>
+    <button id="bulkDeleteBtn"
+            class="flex items-center gap-2 text-rose-300 hover:text-rose-100
+                   py-2 px-3 rounded-lg hover:bg-rose-900/50 transition-colors">
+      <span class="material-symbols-outlined">delete</span>
+      <span class="font-medium">Xóa</span>
+    </button>
+  </div>
+  <button id="closeBulkBar" class="ml-4 text-indigo-400 hover:text-indigo-200 p-1">
+    <span class="material-symbols-outlined">close</span>
+  </button>
+</div>
+
+<!-- ============================================================
+     UPLOAD MODAL (giống man-hinh-3, ẩn mặc định)
+     ============================================================ -->
+<div id="uploadModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+  <div id="uploadBackdrop"
+       class="absolute inset-0 bg-inverse-surface/40 backdrop-blur-[10px]"></div>
+
+  <div class="modal-panel relative z-10 w-full max-w-[600px] mx-4 bg-surface-container-lowest
+              rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+
+    <!-- Header -->
+    <header class="flex items-start justify-between p-6 pb-4 shrink-0">
+      <div>
+        <h2 class="text-xl font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary"
+                style="font-variation-settings: 'FILL' 1;">upload_file</span>
+          Upload tài liệu
+        </h2>
+        <p class="text-sm text-on-surface-variant mt-1">
+          Tài liệu sẽ được xử lý và index vào AI để bạn có thể chat ngay
+        </p>
+      </div>
+      <button id="closeModal" class="p-2 hover:bg-surface-container-low rounded-full text-outline">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <!-- Body -->
+    <div class="flex-1 overflow-y-auto px-6 custom-scrollbar">
+
+      <!-- Dropzone -->
+      <div id="modalDropzone"
+           class="group mt-2 border-2 border-dashed border-outline-variant rounded-xl
+                  bg-surface-container-low p-8 flex flex-col items-center justify-center
+                  text-center hover:border-primary/50 hover:bg-primary/[0.02] transition-all cursor-pointer">
+        <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center
+                    mb-4 group-hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+        </div>
+        <p class="text-sm font-semibold text-on-surface">
+          Kéo thả file vào đây hoặc
+          <label for="modalFileInput" class="text-primary hover:underline cursor-pointer">duyệt thư mục</label>
+        </p>
+        <p class="text-xs text-on-surface-variant mt-1">
+          PDF, DOCX, XLSX, PPTX, TXT, CSV &nbsp;•&nbsp; Tối đa 50 MB
+        </p>
+        <input id="modalFileInput" type="file" class="hidden"
+               accept=".pdf,.doc,.docx,.xlsx,.xls,.ppt,.pptx,.txt,.csv" multiple/>
+      </div>
+
+      <!-- File list (ban đầu rỗng) -->
+      <div class="mt-6 mb-2">
+        <div id="modalUploadList" class="space-y-3"></div>
+      </div>
+
+      <!-- Advanced Options -->
+      <div class="mt-6 mb-6">
+        <button id="advBtn"
+                class="w-full flex items-center justify-between p-3 rounded-lg
+                       bg-surface-container-low hover:bg-surface-container transition-colors">
+          <div class="flex items-center gap-2 text-on-surface">
+            <span class="material-symbols-outlined text-lg">settings</span>
+            <span class="text-sm font-semibold">Tùy chọn nâng cao</span>
+          </div>
+          <span class="material-symbols-outlined text-outline" id="advArrow">expand_more</span>
+        </button>
+        <div id="advContent"
+             class="overflow-hidden transition-all duration-300 max-h-0 opacity-0 px-3">
+          <div class="space-y-5 py-3">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Tự động tóm tắt sau khi upload</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">Tạo bản tóm tắt nội dung chính ngay lập tức</p>
+              </div>
+              <button class="toggle toggle-on flex-shrink-0">
+                <div class="toggle-track w-10 h-5 rounded-full relative px-0.5 flex items-center">
+                  <div class="toggle-thumb w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                </div>
+              </button>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-medium text-on-surface">Chia sẻ với team</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5">Quyền truy cập vào tài liệu này</p>
+              </div>
+              <div class="relative">
+                <select class="appearance-none bg-surface-container-low text-xs font-medium
+                               text-on-surface px-4 py-2 pr-8 rounded-md border-none focus:ring-1 focus:ring-primary">
+                  <option>Toàn team</option>
+                  <option>Riêng tư</option>
+                  <option>Phòng ban Sales</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2
+                             text-[14px] pointer-events-none text-outline">expand_more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="p-6 border-t border-surface-container flex items-center justify-end gap-3
+                   bg-surface-container-low/30 shrink-0">
+      <button id="cancelUpload"
+              class="px-5 py-2.5 rounded-lg text-sm font-semibold text-outline
+                     hover:bg-surface-container transition-all active:scale-95">
+        Hủy
+      </button>
+      <button id="doUpload"
+              class="px-5 py-2.5 rounded-lg text-sm font-bold text-white
+                     bg-gradient-to-r from-primary to-primary-container
+                     shadow-lg shadow-primary/20 hover:shadow-primary/40
+                     transition-all active:scale-95 flex items-center gap-2">
+        <span id="doUploadLabel">Upload &amp; Chat ngay</span>
+        <span class="material-symbols-outlined text-[18px]">send</span>
+      </button>
+    </footer>
+  </div>
+</div>
+
+<!-- ============================================================
+     DELETE CONFIRM DIALOG
+     ============================================================ -->
+<div id="deleteDialog" class="fixed inset-0 z-[200] hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center">
+        <span class="material-symbols-outlined text-error">delete</span>
+      </div>
+      <h3 class="font-bold text-on-surface text-base">Xác nhận xóa</h3>
+    </div>
+    <p class="text-sm text-on-surface-variant mb-6 leading-relaxed" id="deleteDialogMsg">
+      Bạn có chắc muốn xóa tài liệu này? Hành động này không thể hoàn tác.
+    </p>
+    <div class="flex gap-3">
+      <button id="cancelDelete"
+              class="flex-1 py-2.5 border border-outline-variant/40 rounded-xl text-sm
+                     font-semibold hover:bg-surface-container transition-colors">
+        Hủy
+      </button>
+      <button id="confirmDelete"
+              class="flex-1 py-2.5 bg-error text-white rounded-xl text-sm font-semibold
+                     hover:bg-error/90 active:scale-[0.98] transition-all">
+        Xóa
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+<div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300]
+                                 flex flex-col gap-2 items-center pointer-events-none">
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // ================================================================
+  // DỮ LIỆU MẪU (12 tài liệu)
+  // ================================================================
+  const ALL_DOCS = [
+    { id:1,  name:'Hợp đồng kinh doanh Q3.pdf',         ext:'PDF',  size:'2.4 MB',  sizeMB:2.4,  owner:'Minh Phan',     status:'ready',      chats:42,  date:'12/10/2023', dateTs:20231012 },
+    { id:2,  name:'Kịch bản tư vấn Bất động sản.docx',  ext:'DOCX', size:'845 KB',  sizeMB:0.83, owner:'Lan Anh',       status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231017 },
+    { id:3,  name:'Danh sách khách hàng tiềm năng.xlsx', ext:'XLSX', size:'1.2 MB',  sizeMB:1.2,  owner:'Admin System',  status:'ready',      chats:156, date:'10/10/2023', dateTs:20231010 },
+    { id:4,  name:'Hướng dẫn sử dụng API.pdf',           ext:'PDF',  size:'5.1 MB',  sizeMB:5.1,  owner:'Quốc Anh',     status:'error',      chats:0,   date:'09/10/2023', dateTs:20231009 },
+    { id:5,  name:'Kế hoạch Marketing Q4-2023.pptx',     ext:'PPTX', size:'12 MB',   sizeMB:12,   owner:'Lan Anh',       status:'ready',      chats:28,  date:'08/10/2023', dateTs:20231008 },
+    { id:6,  name:'Bảng giá sản phẩm 2024.xlsx',         ext:'XLSX', size:'980 KB',  sizeMB:0.96, owner:'Minh Phan',     status:'ready',      chats:89,  date:'05/10/2023', dateTs:20231005 },
+    { id:7,  name:'Hợp đồng đại lý ABC Corp.pdf',        ext:'PDF',  size:'3.7 MB',  sizeMB:3.7,  owner:'Admin System',  status:'ready',      chats:14,  date:'02/10/2023', dateTs:20231002 },
+    { id:8,  name:'Quy trình onboarding nhân viên.docx', ext:'DOCX', size:'2.1 MB',  sizeMB:2.1,  owner:'Quốc Anh',     status:'ready',      chats:33,  date:'01/10/2023', dateTs:20231001 },
+    { id:9,  name:'Báo cáo doanh thu Q2-2023.pdf',       ext:'PDF',  size:'8.5 MB',  sizeMB:8.5,  owner:'Admin System',  status:'ready',      chats:67,  date:'28/09/2023', dateTs:20230928 },
+    { id:10, name:'Template đề xuất dự án.pptx',         ext:'PPTX', size:'6.3 MB',  sizeMB:6.3,  owner:'Lan Anh',       status:'ready',      chats:19,  date:'25/09/2023', dateTs:20230925 },
+    { id:11, name:'Chính sách bảo mật công ty.pdf',      ext:'PDF',  size:'1.8 MB',  sizeMB:1.8,  owner:'Admin System',  status:'ready',      chats:45,  date:'20/09/2023', dateTs:20230920 },
+    { id:12, name:'Script cold-call khách hàng.txt',     ext:'TXT',  size:'125 KB',  sizeMB:0.12, owner:'Huy Trần',      status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231018 },
+  ];
+
+  const FILE_ICONS = {
+    PDF:  { icon: 'picture_as_pdf', color: 'text-rose-600',    bg: 'bg-rose-50' },
+    DOCX: { icon: 'description',    color: 'text-blue-600',    bg: 'bg-blue-50' },
+    XLSX: { icon: 'table_chart',    color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    PPTX: { icon: 'present_to_all', color: 'text-orange-600',  bg: 'bg-orange-50' },
+    TXT:  { icon: 'article',        color: 'text-slate-600',   bg: 'bg-slate-100' },
+  };
+
+  const STATUS_BADGE = {
+    ready:      `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-container text-on-secondary-container">Sẵn sàng</span>`,
+    processing: `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Đang xử lý</span>`,
+    error:      `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-container text-on-error-container">Lỗi</span>`,
+  };
+
+  // State
+  let docs         = [...ALL_DOCS];
+  let currentPage  = 1;
+  const PAGE_SIZE  = 10;
+  let sortCol      = null;
+  let sortDir      = 'asc';
+  let selectedIds  = new Set();
+  let isListView   = true;
+  let pendingDeleteId = null;
+
+  // ================================================================
+  // RENDER TABLE
+  // ================================================================
+  function getFilteredDocs() {
+    const q       = document.getElementById('tableSearch').value.toLowerCase().trim();
+    const typeF   = document.getElementById('filterType').value.toUpperCase();
+    const ownerF  = document.getElementById('filterOwner').value;
+    const statusF = document.getElementById('filterStatus').value;
+
+    let filtered = docs.filter(d => {
+      const matchQ      = !q || d.name.toLowerCase().includes(q);
+      const matchType   = !typeF   || d.ext === typeF;
+      const matchOwner  = !ownerF  || d.owner === ownerF;
+      const matchStatus = !statusF || d.status === statusF;
+      return matchQ && matchType && matchOwner && matchStatus;
+    });
+
+    if (sortCol) {
+      filtered.sort((a, b) => {
+        let va = a[sortCol], vb = b[sortCol];
+        if (sortCol === 'size')  { va = a.sizeMB; vb = b.sizeMB; }
+        if (sortCol === 'date')  { va = a.dateTs; vb = b.dateTs; }
+        if (sortCol === 'chats') { va = +a.chats; vb = +b.chats; }
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        return sortDir === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+      });
+    }
+
+    return filtered;
+  }
+
+  function renderTable() {
+    const filtered = getFilteredDocs();
+    const total    = filtered.length;
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const page     = filtered.slice(start, start + PAGE_SIZE);
+
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    if (page.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="8" class="py-16 text-center text-slate-400">
+          <span class="material-symbols-outlined text-4xl block mb-2">search_off</span>
+          Không tìm thấy tài liệu phù hợp
+        </td></tr>`;
+    } else {
+      page.forEach(doc => {
+        const fi  = FILE_ICONS[doc.ext] || FILE_ICONS.TXT;
+        const sel = selectedIds.has(doc.id);
+        const tr  = document.createElement('tr');
+        tr.className = 'hover:bg-indigo-50/30 transition-colors group' + (sel ? ' row-selected' : '');
+        tr.dataset.id = doc.id;
+        tr.innerHTML = `
+          <td class="py-4 px-6 text-center">
+            <input type="checkbox" data-id="${doc.id}"
+                   class="row-cb rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                   ${sel ? 'checked' : ''}/>
+          </td>
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded ${fi.bg} ${fi.color} flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-xl"
+                      style="font-variation-settings: 'FILL' 1;">${fi.icon}</span>
+              </div>
+              <div>
+                <p class="font-semibold text-slate-800 text-sm">${escHtml(doc.name)}</p>
+                <p class="text-[11px] text-slate-400">${doc.ext} Document</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-4 text-sm text-slate-600">${doc.size}</td>
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center
+                          text-[10px] font-bold text-indigo-600">
+                ${doc.owner.slice(0,2).toUpperCase()}
+              </div>
+              <span class="text-sm text-slate-700">${escHtml(doc.owner)}</span>
+            </div>
+          </td>
+          <td class="py-4 px-4">${STATUS_BADGE[doc.status] || ''}</td>
+          <td class="py-4 px-4 text-sm text-slate-600 text-center font-medium">${doc.chats}</td>
+          <td class="py-4 px-4 text-sm text-slate-600">${doc.date}</td>
+          <td class="py-4 px-6 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-slate-400 hover:text-primary transition-colors"
+                      title="Chat ngay" data-action="chat" data-id="${doc.id}">
+                <span class="material-symbols-outlined text-lg">chat_bubble</span>
+              </button>
+              <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                      title="Xem" data-action="view" data-id="${doc.id}">
+                <span class="material-symbols-outlined text-lg">visibility</span>
+              </button>
+              <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+                      title="Đổi tên" data-action="rename" data-id="${doc.id}">
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </button>
+              <button class="p-1.5 text-slate-400 hover:text-error transition-colors"
+                      title="Xóa" data-action="delete" data-id="${doc.id}">
+                <span class="material-symbols-outlined text-lg">delete</span>
+              </button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Pagination info
+    const showing = page.length;
+    document.getElementById('paginationInfo').textContent =
+      `Hiển thị ${start + 1}–${start + showing} trên ${total} tài liệu`;
+
+    renderPagination(total, 'paginationBtns', currentPage);
+
+    // Select All state
+    const allOnPage = page.every(d => selectedIds.has(d.id));
+    const someOnPage = page.some(d => selectedIds.has(d.id));
+    const selectAll = document.getElementById('selectAll');
+    selectAll.checked = allOnPage && page.length > 0;
+    selectAll.indeterminate = someOnPage && !allOnPage;
+  }
+
+  // ================================================================
+  // RENDER GRID VIEW
+  // ================================================================
+  function renderGrid() {
+    const filtered = getFilteredDocs();
+    const total    = filtered.length;
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const page     = filtered.slice(start, start + PAGE_SIZE);
+
+    const container = document.getElementById('gridItems');
+    container.innerHTML = '';
+
+    page.forEach(doc => {
+      const fi = FILE_ICONS[doc.ext] || FILE_ICONS.TXT;
+      const sel = selectedIds.has(doc.id);
+      const div = document.createElement('div');
+      div.className = 'bg-white rounded-xl shadow-sm p-4 border hover:shadow-md transition-all cursor-pointer ' +
+        (sel ? 'border-indigo-400' : 'border-indigo-50 hover:border-indigo-200');
+      div.innerHTML = `
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-lg ${fi.bg} ${fi.color} flex items-center justify-center">
+            <span class="material-symbols-outlined"
+                  style="font-variation-settings: 'FILL' 1;">${fi.icon}</span>
+          </div>
+          <input type="checkbox" data-id="${doc.id}"
+                 class="row-cb rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
+                 ${sel ? 'checked' : ''}/>
+        </div>
+        <p class="text-sm font-semibold text-slate-800 line-clamp-2 mb-1">${escHtml(doc.name)}</p>
+        <p class="text-[11px] text-slate-400 mb-3">${doc.size} • ${doc.date}</p>
+        ${STATUS_BADGE[doc.status] || ''}
+        <div class="flex items-center gap-1 mt-3 pt-3 border-t border-slate-50">
+          <button class="p-1.5 text-slate-400 hover:text-primary rounded transition-colors"
+                  title="Chat" data-action="chat" data-id="${doc.id}">
+            <span class="material-symbols-outlined text-lg">chat_bubble</span>
+          </button>
+          <button class="p-1.5 text-slate-400 hover:text-error rounded transition-colors"
+                  title="Xóa" data-action="delete" data-id="${doc.id}">
+            <span class="material-symbols-outlined text-lg">delete</span>
+          </button>
+          <span class="ml-auto text-[11px] text-slate-400">${doc.chats} chats</span>
+        </div>`;
+      container.appendChild(div);
+    });
+
+    document.getElementById('paginationInfoGrid').textContent =
+      `Hiển thị ${start + 1}–${start + page.length} trên ${total} tài liệu`;
+    renderPagination(total, 'paginationBtnsGrid', currentPage);
+  }
+
+  // ================================================================
+  // PAGINATION
+  // ================================================================
+  function renderPagination(total, containerId, page) {
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const c = document.getElementById(containerId);
+    c.innerHTML = '';
+
+    const prev = document.createElement('button');
+    prev.className = 'p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-30';
+    prev.innerHTML = '<span class="material-symbols-outlined">chevron_left</span>';
+    prev.disabled = page <= 1;
+    prev.addEventListener('click', () => { currentPage--; reRender(); });
+    c.appendChild(prev);
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages > 7 && Math.abs(i - page) > 2 && i !== 1 && i !== totalPages) {
+        if (i === page - 3 || i === page + 3) {
+          const dots = document.createElement('span');
+          dots.className = 'px-2 text-slate-400';
+          dots.textContent = '...';
+          c.appendChild(dots);
+        }
+        continue;
+      }
+      const btn = document.createElement('button');
+      btn.className = i === page
+        ? 'w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-sm'
+        : 'w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 font-semibold text-sm';
+      btn.textContent = i;
+      btn.addEventListener('click', () => { currentPage = i; reRender(); });
+      c.appendChild(btn);
+    }
+
+    const next = document.createElement('button');
+    next.className = 'p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-30';
+    next.innerHTML = '<span class="material-symbols-outlined">chevron_right</span>';
+    next.disabled = page >= totalPages;
+    next.addEventListener('click', () => { currentPage++; reRender(); });
+    c.appendChild(next);
+  }
+
+  function reRender() {
+    if (isListView) renderTable(); else renderGrid();
+  }
+
+  // ================================================================
+  // SORT khi click header
+  // ================================================================
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (sortCol === col) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortCol = col;
+        sortDir = 'asc';
+      }
+      // Cập nhật class sort trên headers
+      document.querySelectorAll('th[data-col]').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+      currentPage = 1;
+      reRender();
+    });
+  });
+
+  // ================================================================
+  // FILTER & SEARCH (real-time)
+  // ================================================================
+  ['tableSearch','topSearch','filterType','filterOwner','filterStatus'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      currentPage = 1;
+      // Sync topSearch → tableSearch
+      if (id === 'topSearch') {
+        document.getElementById('tableSearch').value = document.getElementById('topSearch').value;
+      }
+      reRender();
+    });
+    document.getElementById(id)?.addEventListener('change', () => {
+      currentPage = 1;
+      reRender();
+    });
+  });
+
+  // ================================================================
+  // CHECKBOX: Select / deselect
+  // ================================================================
+  document.getElementById('selectAll').addEventListener('change', e => {
+    const filtered = getFilteredDocs();
+    const pageStart = (currentPage - 1) * PAGE_SIZE;
+    const pageDocs  = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+    pageDocs.forEach(d => {
+      if (e.target.checked) selectedIds.add(d.id);
+      else selectedIds.delete(d.id);
+    });
+    reRender();
+    updateBulkBar();
+  });
+
+  document.getElementById('tableBody').addEventListener('change', e => {
+    const cb = e.target.closest('.row-cb');
+    if (!cb) return;
+    const id = Number(cb.dataset.id);
+    if (cb.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    reRender();
+    updateBulkBar();
+  });
+
+  // Delegate cho grid view checkboxes
+  document.getElementById('gridItems').addEventListener('change', e => {
+    const cb = e.target.closest('.row-cb');
+    if (!cb) return;
+    const id = Number(cb.dataset.id);
+    if (cb.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    reRender();
+    updateBulkBar();
+  });
+
+  function updateBulkBar() {
+    const count = selectedIds.size;
+    const bar   = document.getElementById('bulkBar');
+    if (count > 0) {
+      bar.classList.remove('hidden');
+      bar.classList.add('flex');
+      document.getElementById('selectedCount').textContent = count;
+      document.getElementById('selectedLabel').textContent = `Đã chọn ${count} tài liệu`;
+    } else {
+      bar.classList.add('hidden');
+      bar.classList.remove('flex');
+    }
+  }
+
+  document.getElementById('closeBulkBar').addEventListener('click', () => {
+    selectedIds.clear();
+    reRender();
+    updateBulkBar();
+  });
+
+  // Bulk chat → man-hinh-1.html
+  document.getElementById('bulkChatBtn').addEventListener('click', () => {
+    window.location.href = 'man-hinh-1.html';
+  });
+
+  // Bulk delete
+  document.getElementById('bulkDeleteBtn').addEventListener('click', () => {
+    pendingDeleteId = null; // null = bulk
+    document.getElementById('deleteDialogMsg').textContent =
+      `Bạn có chắc muốn xóa ${selectedIds.size} tài liệu đã chọn? Hành động này không thể hoàn tác.`;
+    openDialog('deleteDialog');
+  });
+
+  // ================================================================
+  // ACTION BUTTONS trong row
+  // ================================================================
+  function handleRowAction(action, id) {
+    const doc = docs.find(d => d.id === id);
+    if (!doc) return;
+
+    if (action === 'chat') {
+      window.location.href = 'man-hinh-1.html';
+    } else if (action === 'delete') {
+      pendingDeleteId = id;
+      document.getElementById('deleteDialogMsg').textContent =
+        `Bạn có chắc muốn xóa "${doc.name}"? Hành động này không thể hoàn tác.`;
+      openDialog('deleteDialog');
+    } else if (action === 'rename') {
+      const newName = prompt('Đổi tên tài liệu:', doc.name);
+      if (newName && newName.trim() && newName !== doc.name) {
+        doc.name = newName.trim();
+        reRender();
+        showToast(`Đã đổi tên thành công!`);
+      }
+    } else if (action === 'view') {
+      showToast(`Đang mở xem trước: ${doc.name}`);
+    }
+  }
+
+  // Delegate click cho table
+  document.getElementById('tableBody').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    handleRowAction(btn.dataset.action, Number(btn.dataset.id));
+  });
+
+  // Delegate click cho grid
+  document.getElementById('gridItems').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    handleRowAction(btn.dataset.action, Number(btn.dataset.id));
+  });
+
+  // ================================================================
+  // DELETE DIALOG
+  // ================================================================
+  function openDialog(id) {
+    const d = document.getElementById(id);
+    d.classList.remove('hidden');
+    d.classList.add('flex');
+  }
+  function closeDialog(id) {
+    const d = document.getElementById(id);
+    d.classList.add('hidden');
+    d.classList.remove('flex');
+  }
+
+  document.getElementById('cancelDelete').addEventListener('click', () => closeDialog('deleteDialog'));
+
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+    if (pendingDeleteId !== null) {
+      docs = docs.filter(d => d.id !== pendingDeleteId);
+      selectedIds.delete(pendingDeleteId);
+      showToast('Đã xóa tài liệu thành công!');
+    } else {
+      // Bulk delete
+      const count = selectedIds.size;
+      docs = docs.filter(d => !selectedIds.has(d.id));
+      selectedIds.clear();
+      showToast(`Đã xóa ${count} tài liệu thành công!`);
+    }
+    pendingDeleteId = null;
+    closeDialog('deleteDialog');
+    updateStats();
+    currentPage = 1;
+    reRender();
+    updateBulkBar();
+  });
+
+  // ================================================================
+  // UPDATE STATS khi xóa
+  // ================================================================
+  function updateStats() {
+    const ready      = docs.filter(d => d.status === 'ready').length;
+    const processing = docs.filter(d => d.status === 'processing').length;
+    const error      = docs.filter(d => d.status === 'error').length;
+    document.getElementById('statTotal').textContent      = docs.length;
+    document.getElementById('statIndexed').textContent    = ready;
+    document.getElementById('statProcessing').textContent = processing;
+    document.getElementById('statError').textContent      = error;
+  }
+
+  // ================================================================
+  // VIEW TOGGLE: List / Grid
+  // ================================================================
+  document.getElementById('listViewBtn').addEventListener('click', () => {
+    isListView = true;
+    document.getElementById('listViewContainer').classList.remove('hidden');
+    document.getElementById('gridViewContainer').classList.add('hidden');
+    document.getElementById('listViewBtn').className =
+      'p-1.5 bg-white rounded-md shadow-sm text-indigo-600';
+    document.getElementById('gridViewBtn').className =
+      'p-1.5 text-slate-400 hover:text-slate-600 transition-colors';
+    reRender();
+  });
+
+  document.getElementById('gridViewBtn').addEventListener('click', () => {
+    isListView = false;
+    document.getElementById('listViewContainer').classList.add('hidden');
+    document.getElementById('gridViewContainer').classList.remove('hidden');
+    document.getElementById('listViewBtn').className =
+      'p-1.5 text-slate-400 hover:text-slate-600 transition-colors';
+    document.getElementById('gridViewBtn').className =
+      'p-1.5 bg-white rounded-md shadow-sm text-indigo-600';
+    reRender();
+  });
+
+  // ================================================================
+  // UPLOAD MODAL
+  // ================================================================
+  function openUploadModal() {
+    const m = document.getElementById('uploadModal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+  }
+  function closeUploadModal() {
+    const m = document.getElementById('uploadModal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    document.getElementById('modalUploadList').innerHTML = '';
+    document.getElementById('doUploadLabel').innerHTML = 'Upload &amp; Chat ngay';
+    document.getElementById('doUpload').disabled = false;
+  }
+
+  document.getElementById('openUploadModal').addEventListener('click', openUploadModal);
+  document.getElementById('sidebarUploadBtn').addEventListener('click', openUploadModal);
+  document.getElementById('closeModal').addEventListener('click', closeUploadModal);
+  document.getElementById('cancelUpload').addEventListener('click', closeUploadModal);
+  document.getElementById('uploadBackdrop').addEventListener('click', closeUploadModal);
+
+  // Advanced options accordion (modal)
+  let advOpen = false;
+  document.getElementById('advBtn').addEventListener('click', () => {
+    advOpen = !advOpen;
+    const content = document.getElementById('advContent');
+    const arrow   = document.getElementById('advArrow');
+    content.style.maxHeight = advOpen ? '300px' : '0';
+    content.style.opacity   = advOpen ? '1' : '0';
+    arrow.style.transform   = advOpen ? 'rotate(180deg)' : '';
+  });
+
+  // Toggle switches trong modal
+  document.getElementById('uploadModal').addEventListener('click', e => {
+    const toggle = e.target.closest('.toggle');
+    if (!toggle) return;
+    const isOn = toggle.classList.contains('toggle-on');
+    toggle.classList.toggle('toggle-on', !isOn);
+    toggle.classList.toggle('toggle-off', isOn);
+  });
+
+  // File input
+  document.getElementById('modalFileInput').addEventListener('change', e => {
+    handleModalFiles(e.target.files);
+    e.target.value = '';
+  });
+
+  // Drag & drop vào modal
+  const modalDropzone = document.getElementById('modalDropzone');
+  modalDropzone.addEventListener('dragover', e => {
+    e.preventDefault();
+    modalDropzone.classList.add('border-primary/60', 'bg-primary/[0.04]');
+  });
+  modalDropzone.addEventListener('dragleave', () => {
+    modalDropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]');
+  });
+  modalDropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    modalDropzone.classList.remove('border-primary/60', 'bg-primary/[0.04]');
+    handleModalFiles(e.dataTransfer.files);
+  });
+
+  function getFileIconForModal(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (ext === 'pdf')              return { icon: 'picture_as_pdf', color: 'text-rose-600',    bg: 'bg-rose-50' };
+    if (['doc','docx'].includes(ext)) return { icon: 'description',    color: 'text-blue-600',    bg: 'bg-blue-50' };
+    if (['xlsx','xls'].includes(ext)) return { icon: 'table_chart',    color: 'text-emerald-600', bg: 'bg-emerald-50' };
+    if (['ppt','pptx'].includes(ext)) return { icon: 'present_to_all', color: 'text-orange-600',  bg: 'bg-orange-50' };
+    return { icon: 'article', color: 'text-slate-600', bg: 'bg-slate-100' };
+  }
+
+  function handleModalFiles(files) {
+    const list = document.getElementById('modalUploadList');
+    Array.from(files).forEach(file => {
+      const sizeStr = file.size < 1024*1024
+        ? (file.size/1024).toFixed(0)+' KB'
+        : (file.size/1024/1024).toFixed(1)+' MB';
+      const { icon, color, bg } = getFileIconForModal(file.name);
+      const id = 'mitem-' + Date.now() + Math.random().toString(36).slice(2);
+
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = 'flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50';
+      div.innerHTML = `
+        <div class="w-10 h-10 flex-shrink-0 ${bg} rounded flex items-center justify-center">
+          <span class="material-symbols-outlined ${color} text-xl"
+                style="font-variation-settings: 'FILL' 1;">${icon}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between mb-1">
+            <p class="text-sm font-medium text-on-surface truncate">${escHtml(file.name)}</p>
+            <p class="text-[10px] font-bold text-outline uppercase ml-2">${sizeStr}</p>
+          </div>
+          <div class="flex items-center gap-1.5 status-row">
+            <span class="material-symbols-outlined text-[16px] text-tertiary spin-icon">shield</span>
+            <span class="text-xs font-medium text-tertiary">Đang quét virus...</span>
+          </div>
+        </div>
+        <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors"
+                onclick="document.getElementById('${id}').remove()">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>`;
+      list.appendChild(div);
+
+      // Mô phỏng trạng thái
+      setTimeout(() => {
+        const row = div.querySelector('.status-row');
+        if (row) row.innerHTML = `
+          <span class="material-symbols-outlined text-[16px] text-primary spin-icon">psychology</span>
+          <span class="text-xs font-medium text-primary">Đang tạo embedding...</span>`;
+      }, 1800);
+      setTimeout(() => {
+        const row = div.querySelector('.status-row');
+        if (row) row.innerHTML = `
+          <span class="material-symbols-outlined text-[16px] text-secondary"
+                style="font-variation-settings: 'FILL' 1;">check_circle</span>
+          <span class="text-xs font-medium text-secondary">Sẵn sàng</span>`;
+      }, 4000);
+    });
+  }
+
+  // Nút Upload & Chat ngay
+  document.getElementById('doUpload').addEventListener('click', () => {
+    const btn   = document.getElementById('doUpload');
+    const label = document.getElementById('doUploadLabel');
+    btn.disabled = true;
+    const steps = ['Đang phân tích...', 'Tạo vector index...', 'Sẵn sàng chat!'];
+    let i = 0;
+    const iv = setInterval(() => {
+      label.textContent = steps[i++];
+      if (i >= steps.length) {
+        clearInterval(iv);
+        setTimeout(() => { window.location.href = 'man-hinh-1.html'; }, 600);
+      }
+    }, 700);
+  });
+
+  // ================================================================
+  // TOAST NOTIFICATION
+  // ================================================================
+  function showToast(message, type = 'success') {
+    const colors = type === 'error'
+      ? 'bg-error text-white'
+      : 'bg-inverse-surface text-inverse-on-surface';
+    const icon = type === 'error' ? 'error' : 'check_circle';
+    const iconColor = type === 'error' ? 'text-white' : 'text-secondary-container';
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl
+                       text-sm font-medium ${colors} opacity-0 translate-y-4 transition-all duration-300`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${iconColor}"
+            style="font-variation-settings: 'FILL' 1;">${icon}</span>
+      ${message}`;
+    document.getElementById('toastContainer').appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.replace('opacity-0', 'opacity-100');
+      toast.classList.replace('translate-y-4', 'translate-y-0');
+    });
+    setTimeout(() => {
+      toast.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // ================================================================
+  // TIỆN ÍCH
+  // ================================================================
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // ================================================================
+  // KHỞI TẠO
+  // ================================================================
+  reRender();
+  updateStats();
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════════
+     SIDEBAR ACCORDION — Vanilla JS
+     ═══════════════════════════════════════════════════ */
+  const menuState = { module1: false, module2: false };
+
+  function toggleMenu(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    const chevron  = document.getElementById('chevron-' + id);
+    const trigger  = document.getElementById('trigger-' + id);
+    if (!submenu) return;
+    menuState[id] = !menuState[id];
+    if (menuState[id]) {
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    } else {
+      submenu.style.maxHeight = '0';
+      if (chevron) chevron.style.transform = '';
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function handleMenuKey(e, id) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+  }
+
+  function initSidebarAccordion() {
+    ['module1', 'module2'].forEach(function(id) {
+      const submenu = document.getElementById('submenu-' + id);
+      if (!submenu) return;
+      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
+        submenu.style.transition = 'none';
+        menuState[id] = true;
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        var chev = document.getElementById('chevron-' + id);
+        var trig = document.getElementById('trigger-' + id);
+        if (chev) chev.style.transform = 'rotate(90deg)';
+        if (trig) trig.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+  } else {
+    initSidebarAccordion();
+  }
+</script>
+</body>
+</html>

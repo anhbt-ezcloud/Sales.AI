@@ -1,0 +1,922 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Concierge AI - Document Chat</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Material Symbols Outlined (icons) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind config: màu sắc giữ nguyên từ design gốc -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed-dim": "#c3c0ff",
+            "surface-variant": "#d3e4fe",
+            "secondary-container": "#6cf8bb",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#464555",
+            "tertiary-container": "#885500",
+            "outline-variant": "#c7c4d8",
+            "primary": "#3525cd",
+            "surface-tint": "#4d44e3",
+            "on-background": "#0b1c30",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-secondary": "#ffffff",
+            "on-secondary-fixed": "#002113",
+            "surface-dim": "#cbdbf5",
+            "surface-container-lowest": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "on-tertiary-fixed": "#2a1700",
+            "tertiary-fixed-dim": "#ffb95f",
+            "on-error": "#ffffff",
+            "on-primary-fixed-variant": "#3323cc",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#4edea3",
+            "secondary": "#006c49",
+            "inverse-surface": "#213145",
+            "inverse-primary": "#c3c0ff",
+            "on-primary-fixed": "#0f0069",
+            "error": "#ba1a1a",
+            "surface": "#f8f9ff",
+            "background": "#f8f9ff",
+            "secondary-fixed": "#6ffbbe",
+            "on-primary-container": "#dad7ff",
+            "on-secondary-container": "#00714d",
+            "on-error-container": "#93000a",
+            "outline": "#777587",
+            "surface-container-low": "#eff4ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "on-surface": "#0b1c30",
+            "primary-fixed": "#e2dfff",
+            "on-secondary-fixed-variant": "#005236",
+            "inverse-on-surface": "#eaf1ff",
+            "primary-container": "#4f46e5",
+            "surface-container-high": "#dce9ff",
+            "tertiary-fixed": "#ffddb8",
+            "tertiary": "#684000",
+            "surface-container": "#e5eeff",
+            "on-tertiary-container": "#ffd4a4"
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* === Tin nhắn xuất hiện === */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .message-appear { animation: fadeInUp 0.28s ease-out; }
+
+    /* === Typing dots === */
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+    .typing-dot { animation: blink 1.3s infinite ease-in-out; }
+    .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+    /* === Chat item active === */
+    .chat-item.is-active {
+      background-color: #eff4ff;
+      border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    /* === Tab button active === */
+    .tab-btn.is-active {
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      color: #0b1c30;
+    }
+
+    /* === Hover & transition toàn cục === */
+    a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s,
+                             box-shadow 0.15s, transform 0.15s, opacity 0.15s; }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface overflow-hidden">
+<div class="flex h-screen w-full">
+
+<!-- ============================================================
+     PANEL A: SIDEBAR (fixed, 240px)
+     ============================================================ -->
+
+
+<!-- ============================================================
+     MAIN CANVAS ( để tránh chồng lên sidebar cố định)
+     ============================================================ -->
+<main class=" flex-1 flex overflow-hidden">
+
+  <!-- ============================================================
+       PANEL B: CHAT HISTORY (320px)
+       ============================================================ -->
+  <section class="w-[320px] bg-surface-container-low flex flex-col border-r
+                  border-outline-variant/10 shrink-0">
+
+    <div class="p-4 space-y-4">
+
+      <!-- Nút tạo cuộc chat mới -->
+      <button id="newChatBtn"
+              class="w-full flex items-center justify-center gap-2 py-3 bg-primary-container
+                     text-white rounded-xl font-semibold shadow-lg shadow-primary-container/20
+                     hover:scale-[1.02] active:scale-95 hover:shadow-primary-container/30 transition-all">
+        <span class="material-symbols-outlined">add</span>
+        Cuộc chat mới
+      </button>
+
+      <!-- Tìm kiếm hội thoại -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2
+                     text-outline text-sm">search</span>
+        <input id="historySearch" type="text"
+               class="w-full bg-surface-container-lowest border-none rounded-xl pl-10 text-sm
+                      focus:ring-2 focus:ring-primary/20 placeholder:text-outline/60"
+               placeholder="Tìm kiếm hội thoại..."/>
+      </div>
+
+      <!-- Tabs lọc: Tất cả / Của tôi / Team chia sẻ -->
+      <div class="flex gap-1 p-1 bg-surface-container rounded-lg">
+        <button class="tab-btn is-active px-3 py-1.5 text-xs font-semibold rounded-md
+                       transition-all" data-tab="all">Tất cả</button>
+        <button class="tab-btn px-3 py-1.5 text-xs font-medium text-outline
+                       hover:text-primary rounded-md transition-all"
+                data-tab="mine">Của tôi</button>
+        <button class="tab-btn px-3 py-1.5 text-xs font-medium text-outline
+                       hover:text-primary rounded-md transition-all whitespace-nowrap"
+                data-tab="shared">Team chia sẻ</button>
+      </div>
+
+      <!-- Nút thư viện tài liệu -->
+      <button class="w-full flex items-center gap-3 px-4 py-2.5 bg-secondary-container/20
+                     text-on-secondary-container rounded-xl border border-secondary-container/30
+                     hover:bg-secondary-container/30 transition-all">
+        <span class="material-symbols-outlined text-secondary">library_books</span>
+        <span class="text-xs font-bold uppercase tracking-wider">📚 Thư viện tài liệu</span>
+      </button>
+    </div>
+
+    <!-- Danh sách lịch sử hội thoại -->
+    <div id="chatHistory" class="flex-1 overflow-y-auto px-2 space-y-6 pb-6 scrollbar-hide">
+
+      <!-- === Nhóm: Hôm nay === -->
+      <div class="history-group" data-group="today">
+        <h3 class="px-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest mb-3">
+          Hôm nay
+        </h3>
+        <div class="space-y-1">
+
+          <div class="chat-item is-active group relative bg-surface-container-lowest p-3 rounded-xl
+                      cursor-pointer border border-transparent hover:border-primary-container/20
+                      transition-all shadow-sm"
+               data-id="1" data-tab="mine">
+            <div class="flex justify-between items-start mb-1">
+              <h4 class="text-sm font-semibold text-on-surface truncate pr-4">Phân tích hợp đồng A</h4>
+              <div class="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0 mt-1.5"></div>
+            </div>
+            <p class="text-xs text-outline line-clamp-1 mb-2">Kiểm tra các điều khoản về thanh toán...</p>
+            <div class="flex items-center -space-x-2">
+              <span class="material-symbols-outlined text-xs p-1 bg-surface-container rounded-full
+                           text-primary border border-white">description</span>
+              <span class="material-symbols-outlined text-xs p-1 bg-surface-container rounded-full
+                           text-primary border border-white">analytics</span>
+            </div>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="2" data-tab="mine">
+            <h4 class="text-sm font-medium text-on-surface truncate">Báo giá Premium 2026</h4>
+            <p class="text-xs text-outline line-clamp-1">Thông tin chi tiết về các gói ưu đãi...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="3" data-tab="shared">
+            <h4 class="text-sm font-medium text-on-surface truncate">Đề xuất hợp tác Q2-2026</h4>
+            <p class="text-xs text-outline line-clamp-1">Nội dung thảo luận với team sales...</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- === Nhóm: Hôm qua === -->
+      <div class="history-group" data-group="yesterday">
+        <h3 class="px-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest mb-3">
+          Hôm qua
+        </h3>
+        <div class="space-y-1 opacity-80">
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="4" data-tab="mine">
+            <h4 class="text-sm font-medium text-on-surface truncate">Quy trình vận hành 2.0</h4>
+            <p class="text-xs text-outline line-clamp-1">Tài liệu hướng dẫn triển khai...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="5" data-tab="mine">
+            <h4 class="text-sm font-medium text-on-surface truncate">Kế hoạch Marketing Q4</h4>
+            <p class="text-xs text-outline line-clamp-1">Bản thảo chiến dịch cuối năm...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="6" data-tab="shared">
+            <h4 class="text-sm font-medium text-on-surface truncate">Review sản phẩm mới</h4>
+            <p class="text-xs text-outline line-clamp-1">Nhận xét và góp ý từ team...</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- === Nhóm: Tuần này === -->
+      <div class="history-group" data-group="week">
+        <h3 class="px-4 text-[0.6875rem] font-bold text-outline uppercase tracking-widest mb-3">
+          Tuần này
+        </h3>
+        <div class="space-y-1 opacity-70">
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="7" data-tab="mine">
+            <h4 class="text-sm font-medium text-on-surface truncate">Tổng hợp feedback khách hàng</h4>
+            <p class="text-xs text-outline line-clamp-1">Phân tích 200 phản hồi từ Q3...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="8" data-tab="shared">
+            <h4 class="text-sm font-medium text-on-surface truncate">Ngân sách 2026 - Draft v3</h4>
+            <p class="text-xs text-outline line-clamp-1">Đề xuất ngân sách cho năm tới...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="9" data-tab="mine">
+            <h4 class="text-sm font-medium text-on-surface truncate">Phân tích đối thủ cạnh tranh</h4>
+            <p class="text-xs text-outline line-clamp-1">So sánh tính năng và mức giá...</p>
+          </div>
+
+          <div class="chat-item group p-3 rounded-xl cursor-pointer hover:bg-surface-container
+                      border border-transparent transition-all" data-id="10" data-tab="shared">
+            <h4 class="text-sm font-medium text-on-surface truncate">Hợp đồng khung 2026</h4>
+            <p class="text-xs text-outline line-clamp-1">Review điều khoản với team pháp lý...</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Trạng thái rỗng khi search không tìm thấy -->
+      <div id="historyEmpty" class="hidden text-center py-12 text-outline">
+        <span class="material-symbols-outlined text-4xl mb-3 block">chat_bubble_outline</span>
+        <p class="text-sm">Không tìm thấy hội thoại</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       PANEL C: MAIN CHAT AREA
+       ============================================================ -->
+  <section class="flex-1 flex flex-col bg-surface-bright relative min-w-0">
+
+    <!-- Chat Header -->
+    <header class="h-16 flex items-center justify-between px-6 bg-white/80
+                   backdrop-blur-[15px] sticky top-0 z-10 border-b border-outline-variant/5 shrink-0">
+
+      <div class="flex items-center gap-4 min-w-0 overflow-hidden">
+        <!-- Tiêu đề cuộc chat -->
+        <div class="flex flex-col min-w-0 shrink-0">
+          <div class="flex items-center gap-2">
+            <h2 id="chatTitle" class="font-bold text-on-surface truncate">Phân tích Báo giá 2026</h2>
+            <button class="text-outline hover:text-primary" title="Đổi tên cuộc chat">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-2 h-2 rounded-full bg-secondary"></div>
+            <span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">🟢 AI sẵn sàng</span>
+          </div>
+        </div>
+
+        <div class="h-6 w-px bg-outline-variant/30 shrink-0"></div>
+
+        <!-- Chip tài liệu đang active -->
+        <div id="docChips" class="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-low rounded-full
+                      border border-primary-container/10 hover:border-primary/20 cursor-pointer shrink-0">
+            <span class="material-symbols-outlined text-sm text-primary">picture_as_pdf</span>
+            <span class="text-[11px] font-medium text-on-surface">BaoGia_2026.pdf</span>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-surface-container-low rounded-full
+                      border border-primary-container/10 hover:border-primary/20 cursor-pointer shrink-0">
+            <span class="material-symbols-outlined text-sm text-secondary">table_chart</span>
+            <span class="text-[11px] font-medium text-on-surface">SanPham.xlsx</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex items-center gap-1 shrink-0 ml-2">
+        <button class="p-2 hover:bg-surface-container rounded-full" title="Chia sẻ">
+          <span class="material-symbols-outlined text-outline">share</span>
+        </button>
+        <button class="p-2 hover:bg-surface-container rounded-full" title="Xuất chat">
+          <span class="material-symbols-outlined text-outline">ios_share</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ---- Messages area ---- -->
+    <div id="messagesArea" class="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+
+      <!-- Tin nhắn người dùng (ban đầu) -->
+      <div class="flex justify-end message-appear">
+        <div class="max-w-[70%] bg-primary-container text-white px-5 py-3
+                    rounded-2xl rounded-tr-none shadow-md shadow-primary-container/10">
+          <p class="text-sm leading-relaxed">Giá gói Premium cho khách 50 user là bao nhiêu?</p>
+        </div>
+      </div>
+
+      <!-- Phản hồi bot với citation -->
+      <div class="flex justify-start gap-4 message-appear">
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-white text-sm"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+
+        <div class="max-w-[80%] space-y-4">
+          <!-- Nội dung trả lời -->
+          <div class="bg-white border border-outline-variant/10 p-5 rounded-2xl
+                      rounded-tl-none shadow-sm space-y-3">
+            <p class="text-sm text-on-surface leading-relaxed">
+              Theo bảng giá trong <strong class="text-primary">BaoGia_2026.pdf</strong> trang 12,
+              gói Premium cho 50 user có giá <strong class="text-on-surface font-bold">39 USD/user/tháng</strong>,
+              tổng <strong class="text-on-surface font-bold">1,950 USD/tháng</strong>.
+            </p>
+            <p class="text-sm text-on-surface leading-relaxed">
+              Khi mua hợp đồng 12 tháng được giảm
+              <strong class="text-secondary font-bold">15%</strong> trên tổng hóa đơn.
+              Bạn có muốn tôi tính toán tổng chi phí sau khi giảm cho 1 năm không?
+            </p>
+          </div>
+
+          <!-- Card trích dẫn nguồn -->
+          <div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-primary text-sm">menu_book</span>
+              <span class="text-[0.6875rem] font-bold uppercase tracking-widest text-outline">
+                Nguồn trích dẫn (2)
+              </span>
+            </div>
+            <div class="space-y-2">
+              <a href="#" class="flex items-center justify-between group">
+                <div class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                  <span class="text-xs text-primary font-medium group-hover:underline">BaoGia_2026.pdf</span>
+                </div>
+                <span class="text-[10px] text-outline font-medium">Trang 12</span>
+              </a>
+              <a href="#" class="flex items-center justify-between group">
+                <div class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-secondary-container"></span>
+                  <span class="text-xs text-secondary font-medium group-hover:underline">SanPham.xlsx</span>
+                </div>
+                <span class="text-[10px] text-outline font-medium">Sheet: Pricing</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Feedback row -->
+          <div class="flex items-center gap-4 text-outline px-1">
+            <button class="hover:text-primary" title="Hữu ích">
+              <span class="material-symbols-outlined text-lg">thumb_up</span>
+            </button>
+            <button class="hover:text-error" title="Không hữu ích">
+              <span class="material-symbols-outlined text-lg">thumb_down</span>
+            </button>
+            <button class="copy-msg hover:text-primary" title="Sao chép">
+              <span class="material-symbols-outlined text-lg">content_copy</span>
+            </button>
+            <button class="hover:text-primary" title="Tạo lại">
+              <span class="material-symbols-outlined text-lg">refresh</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing indicator (ẩn mặc định, hiện khi AI đang trả lời) -->
+      <div id="typingIndicator" class="flex items-center gap-4 hidden">
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-white text-sm"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+        <div class="flex gap-1.5 px-4 py-3 bg-surface-container-low rounded-full w-fit">
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+        </div>
+      </div>
+
+    </div><!-- end #messagesArea -->
+
+    <!-- ---- Chat input section ---- -->
+    <div class="px-6 py-4 bg-white border-t border-outline-variant/5 shrink-0">
+      <div class="max-w-4xl mx-auto space-y-4">
+
+        <!-- Prompt chips gợi ý -->
+        <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+          <button class="chip-btn flex items-center gap-1.5 px-3 py-1.5 bg-surface-container
+                         text-xs font-semibold rounded-full hover:bg-primary-container/10
+                         hover:text-primary border border-transparent hover:border-primary-container/20
+                         whitespace-nowrap transition-all"
+                  data-text="Hãy tóm tắt tài liệu này trong 5 điểm chính">
+            <span class="material-symbols-outlined text-sm">description</span>
+            Tóm tắt tài liệu
+          </button>
+
+          <button class="chip-btn flex items-center gap-1.5 px-3 py-1.5 bg-surface-container
+                         text-xs font-semibold rounded-full hover:bg-primary-container/10
+                         hover:text-primary border border-transparent hover:border-primary-container/20
+                         whitespace-nowrap transition-all"
+                  data-text="Cho tôi biết các điểm chính và kết luận quan trọng nhất">
+            <span class="material-symbols-outlined text-sm">star</span>
+            Điểm chính
+          </button>
+
+          <button class="chip-btn flex items-center gap-1.5 px-3 py-1.5 bg-surface-container
+                         text-xs font-semibold rounded-full hover:bg-primary-container/10
+                         hover:text-primary border border-transparent hover:border-primary-container/20
+                         whitespace-nowrap transition-all"
+                  data-text="Trích xuất tất cả số liệu và dữ liệu quan trọng trong tài liệu">
+            <span class="material-symbols-outlined text-sm">equalizer</span>
+            Trích xuất số liệu
+          </button>
+
+          <button class="chip-btn flex items-center gap-1.5 px-3 py-1.5 bg-surface-container
+                         text-xs font-semibold rounded-full hover:bg-primary-container/10
+                         hover:text-primary border border-transparent hover:border-primary-container/20
+                         whitespace-nowrap transition-all"
+                  data-text="So sánh các điều khoản và tìm ra sự khác biệt quan trọng">
+            <span class="material-symbols-outlined text-sm">compare</span>
+            So sánh điều khoản
+          </button>
+
+          <button class="chip-btn flex items-center gap-1.5 px-3 py-1.5 bg-surface-container
+                         text-xs font-semibold rounded-full hover:bg-primary-container/10
+                         hover:text-primary border border-transparent hover:border-primary-container/20
+                         whitespace-nowrap transition-all"
+                  data-text="Liệt kê tất cả các rủi ro tiềm ẩn trong tài liệu này">
+            <span class="material-symbols-outlined text-sm">warning</span>
+            Phân tích rủi ro
+          </button>
+        </div>
+
+        <!-- Input container -->
+        <div class="relative bg-surface-container-lowest rounded-2xl border-2
+                    border-outline-variant/10 focus-within:border-primary/20
+                    focus-within:ring-4 focus-within:ring-primary/5 transition-all p-2">
+          <div class="flex items-end gap-2 px-2 py-1">
+            <button class="p-2 text-outline hover:text-primary rounded-lg
+                           hover:bg-surface-container" title="Đính kèm tài liệu">
+              <span class="material-symbols-outlined">attach_file</span>
+            </button>
+
+            <textarea id="chatInput"
+                      class="flex-1 border-none focus:ring-0 resize-none bg-transparent
+                             py-2 text-sm max-h-32 scrollbar-hide placeholder:text-outline/60"
+                      placeholder="Hỏi bất cứ điều gì về tài liệu..." rows="1"></textarea>
+
+            <button id="sendBtn"
+                    class="bg-primary text-white p-2.5 rounded-xl
+                           hover:shadow-lg hover:shadow-primary/30 active:scale-95 transition-all">
+              <span class="material-symbols-outlined"
+                    style="font-variation-settings: 'FILL' 1;">send</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <p class="text-center text-[10px] text-outline font-medium">
+          AI có thể sai. Hãy kiểm tra trích dẫn nguồn.
+        </p>
+      </div>
+    </div>
+
+  </section><!-- end Panel C -->
+</main>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+  // ================================================================
+  // DỮ LIỆU MẪU: Phản hồi AI demo
+  // ================================================================
+  const AI_RESPONSES = [
+    {
+      text: `Gói <strong class="text-primary">Enterprise</strong> cho 100 user có giá
+             <strong>35 USD/user/tháng</strong>, tổng <strong>3,500 USD/tháng</strong>.
+             Hợp đồng 24 tháng được giảm thêm <strong class="text-secondary">20%</strong>.`,
+      citations: [{ doc: 'BaoGia_2026.pdf', page: 'Trang 14' }]
+    },
+    {
+      text: `Chi phí sau khi giảm 15% cho gói Premium 50 user trong 12 tháng:<br><br>
+             &bull; Giá gốc: 1,950 USD × 12 = <strong>23,400 USD/năm</strong><br>
+             &bull; Chiết khấu 15%: <strong class="text-secondary">– 3,510 USD</strong><br>
+             &bull; <strong>Tổng thanh toán: 19,890 USD/năm</strong>`,
+      citations: [{ doc: 'BaoGia_2026.pdf', page: 'Trang 15' }]
+    },
+    {
+      text: `Theo <strong class="text-primary">SanPham.xlsx</strong>, danh mục bao gồm
+             <strong>3 dòng sản phẩm chính</strong>:<br>
+             Basic (9 USD), Professional (19 USD), Premium (39 USD) tính theo user/tháng.`,
+      citations: [{ doc: 'SanPham.xlsx', page: 'Sheet: Overview' }]
+    },
+    {
+      text: `Điều khoản hủy hợp đồng tại Mục 9.3: Bên mua có quyền hủy với thông báo trước
+             <strong>60 ngày</strong>. Phí hủy sớm là
+             <strong class="text-error">20% giá trị hợp đồng còn lại</strong>.`,
+      citations: [
+        { doc: 'BaoGia_2026.pdf', page: 'Trang 18, Mục 9.3' },
+        { doc: 'SanPham.xlsx', page: 'Sheet: Terms' }
+      ]
+    },
+    {
+      text: `Tôi đã tóm tắt tài liệu. Các điểm quan trọng nhất bao gồm: mức giá cạnh tranh,
+             chính sách chiết khấu theo quy mô đội nhóm, SLA 99.9% uptime,
+             và hỗ trợ onboarding miễn phí trong 30 ngày đầu.`,
+      citations: [{ doc: 'BaoGia_2026.pdf', page: 'Trang 1–3' }]
+    },
+  ];
+
+  let aiResponseIdx = 0;
+
+  // Map tiêu đề theo id hội thoại
+  const CHAT_TITLES = {
+    '1': 'Phân tích hợp đồng A',
+    '2': 'Báo giá Premium 2026',
+    '3': 'Đề xuất hợp tác Q2-2026',
+    '4': 'Quy trình vận hành 2.0',
+    '5': 'Kế hoạch Marketing Q4',
+    '6': 'Review sản phẩm mới',
+    '7': 'Tổng hợp feedback khách hàng',
+    '8': 'Ngân sách 2026 - Draft v3',
+    '9': 'Phân tích đối thủ cạnh tranh',
+    '10': 'Hợp đồng khung 2026',
+  };
+
+  // ================================================================
+  // TABS: Lọc theo "Tất cả / Của tôi / Team chia sẻ"
+  // ================================================================
+  const tabBtns = document.querySelectorAll('.tab-btn');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      filterHistory();
+    });
+  });
+
+  // ================================================================
+  // SEARCH + FILTER lịch sử hội thoại (real-time)
+  // ================================================================
+  const historySearch = document.getElementById('historySearch');
+  const chatItems     = document.querySelectorAll('.chat-item');
+  const historyEmpty  = document.getElementById('historyEmpty');
+
+  historySearch.addEventListener('input', filterHistory);
+
+  function filterHistory() {
+    const query     = historySearch.value.toLowerCase().trim();
+    const activeTab = document.querySelector('.tab-btn.is-active')?.dataset.tab || 'all';
+    let visible = 0;
+
+    chatItems.forEach(item => {
+      const title   = item.querySelector('h4')?.textContent.toLowerCase() || '';
+      const preview = item.querySelector('p')?.textContent.toLowerCase() || '';
+      const itemTab = item.dataset.tab;
+
+      const matchQuery = !query || title.includes(query) || preview.includes(query);
+      const matchTab   = activeTab === 'all' || itemTab === activeTab;
+
+      const show = matchQuery && matchTab;
+      item.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+
+    historyEmpty.classList.toggle('hidden', visible > 0);
+
+    // Ẩn nhóm nếu không có item nào hiển thị
+    document.querySelectorAll('.history-group').forEach(group => {
+      const count = group.querySelectorAll('.chat-item:not(.hidden)').length;
+      group.classList.toggle('hidden', count === 0);
+    });
+  }
+
+  // ================================================================
+  // CLICK CHAT ITEM: Chuyển sang hội thoại khác
+  // ================================================================
+  chatItems.forEach(item => {
+    item.addEventListener('click', () => {
+      chatItems.forEach(i => i.classList.remove('is-active'));
+      item.classList.add('is-active');
+      const title = CHAT_TITLES[item.dataset.id] || 'Cuộc hội thoại';
+      document.getElementById('chatTitle').textContent = title;
+    });
+  });
+
+  // ================================================================
+  // NÚT "CUỘC CHAT MỚI"
+  // ================================================================
+  document.getElementById('newChatBtn').addEventListener('click', () => {
+    chatItems.forEach(i => i.classList.remove('is-active'));
+    document.getElementById('chatTitle').textContent = 'Cuộc chat mới';
+
+    const area = document.getElementById('messagesArea');
+    area.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-full text-center py-20 message-appear">
+        <span class="material-symbols-outlined text-6xl text-outline-variant mb-6"
+              style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        <h3 class="text-xl font-bold text-on-surface mb-2">AI sẵn sàng hỗ trợ</h3>
+        <p class="text-sm text-outline max-w-sm leading-relaxed">
+          Tải tài liệu lên và bắt đầu đặt câu hỏi.<br>
+          Tôi sẽ trả lời dựa trên nội dung tài liệu của bạn.
+        </p>
+      </div>
+      <div id="typingIndicator" class="flex items-center gap-4 hidden">
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-white text-sm"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+        <div class="flex gap-1.5 px-4 py-3 bg-surface-container-low rounded-full w-fit">
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+          <span class="w-2 h-2 bg-outline-variant rounded-full typing-dot"></span>
+        </div>
+      </div>`;
+
+    // Re-attach typing indicator reference
+    aiResponseIdx = 0;
+  });
+
+  // ================================================================
+  // PROMPT CHIPS: Điền sẵn vào input khi click
+  // ================================================================
+  const chatInput = document.getElementById('chatInput');
+
+  document.querySelectorAll('.chip-btn').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chatInput.value = chip.dataset.text;
+      chatInput.focus();
+      autoResize();
+    });
+  });
+
+  // ================================================================
+  // CHAT: Gửi tin nhắn
+  // ================================================================
+  function autoResize() {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + 'px';
+  }
+
+  chatInput.addEventListener('input', autoResize);
+
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    appendMsg('user', escapeHtml(text));
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+
+    const typingEl = getTypingEl();
+    if (typingEl) {
+      typingEl.classList.remove('hidden');
+      scrollBottom();
+    }
+
+    setTimeout(() => {
+      if (typingEl) typingEl.classList.add('hidden');
+      const resp = AI_RESPONSES[aiResponseIdx % AI_RESPONSES.length];
+      aiResponseIdx++;
+      appendMsg('bot', resp.text, resp.citations);
+    }, 1300 + Math.random() * 700);
+  }
+
+  function getTypingEl() {
+    return document.getElementById('typingIndicator');
+  }
+
+  /** Thêm tin nhắn mới vào vùng chat */
+  function appendMsg(role, html, citations = []) {
+    const area     = document.getElementById('messagesArea');
+    const typingEl = getTypingEl();
+    const div      = document.createElement('div');
+    div.classList.add('message-appear');
+
+    if (role === 'user') {
+      div.classList.add('flex', 'justify-end');
+      div.innerHTML = `
+        <div class="max-w-[70%] bg-primary-container text-white px-5 py-3
+                    rounded-2xl rounded-tr-none shadow-md shadow-primary-container/10">
+          <p class="text-sm leading-relaxed">${html}</p>
+        </div>`;
+    } else {
+      div.classList.add('flex', 'justify-start', 'gap-4');
+
+      const citationsHtml = citations.length > 0 ? `
+        <div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-primary text-sm">menu_book</span>
+            <span class="text-[0.6875rem] font-bold uppercase tracking-widest text-outline">
+              Nguồn trích dẫn (${citations.length})
+            </span>
+          </div>
+          <div class="space-y-2">
+            ${citations.map(c => `
+              <a href="#" class="flex items-center justify-between group">
+                <div class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                  <span class="text-xs text-primary font-medium group-hover:underline">${c.doc}</span>
+                </div>
+                <span class="text-[10px] text-outline font-medium">${c.page}</span>
+              </a>`).join('')}
+          </div>
+        </div>` : '';
+
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-white text-sm"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        </div>
+        <div class="max-w-[80%] space-y-4">
+          <div class="bg-white border border-outline-variant/10 p-5 rounded-2xl
+                      rounded-tl-none shadow-sm">
+            <p class="text-sm text-on-surface leading-relaxed">${html}</p>
+          </div>
+          ${citationsHtml}
+          <div class="flex items-center gap-4 text-outline px-1">
+            <button class="hover:text-primary" title="Hữu ích">
+              <span class="material-symbols-outlined text-lg">thumb_up</span>
+            </button>
+            <button class="hover:text-error" title="Không hữu ích">
+              <span class="material-symbols-outlined text-lg">thumb_down</span>
+            </button>
+            <button class="copy-msg hover:text-primary" title="Sao chép">
+              <span class="material-symbols-outlined text-lg">content_copy</span>
+            </button>
+            <button class="hover:text-primary" title="Tạo lại">
+              <span class="material-symbols-outlined text-lg">refresh</span>
+            </button>
+          </div>
+        </div>`;
+    }
+
+    // Chèn trước typing indicator để typing luôn ở dưới cùng
+    area.insertBefore(div, typingEl);
+    scrollBottom();
+  }
+
+  function scrollBottom() {
+    const area = document.getElementById('messagesArea');
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // ================================================================
+  // SỰ KIỆN COPY (delegate từ messagesArea)
+  // ================================================================
+  document.getElementById('messagesArea').addEventListener('click', e => {
+    const btn = e.target.closest('.copy-msg');
+    if (!btn) return;
+    const msgText = btn.closest('.space-y-4')?.querySelector('.bg-white p')?.textContent || '';
+    navigator.clipboard?.writeText(msgText).then(() => showToast('Đã sao chép nội dung!'));
+  });
+
+  // ================================================================
+  // TOAST NOTIFICATION
+  // ================================================================
+  function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = [
+      'fixed bottom-6 left-1/2 -translate-x-1/2',
+      'bg-on-surface text-inverse-on-surface',
+      'px-5 py-3 rounded-xl shadow-xl z-[200]',
+      'text-sm font-medium flex items-center gap-2',
+      'opacity-0 translate-y-4 transition-all duration-300'
+    ].join(' ');
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm"
+            style="color:#6cf8bb">check_circle</span> ${message}`;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.replace('opacity-0', 'opacity-100');
+      toast.classList.replace('translate-y-4', 'translate-y-0');
+    });
+
+    setTimeout(() => {
+      toast.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => toast.remove(), 300);
+    }, 2800);
+  }
+</script>
+
+<script>
+  /* ═══════════════════════════════════════════════════
+     SIDEBAR ACCORDION — Vanilla JS
+     ═══════════════════════════════════════════════════ */
+  const menuState = { module1: false, module2: false };
+
+  function toggleMenu(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    const chevron  = document.getElementById('chevron-' + id);
+    const trigger  = document.getElementById('trigger-' + id);
+    if (!submenu) return;
+    menuState[id] = !menuState[id];
+    if (menuState[id]) {
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      if (chevron) chevron.style.transform = 'rotate(90deg)';
+      if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    } else {
+      submenu.style.maxHeight = '0';
+      if (chevron) chevron.style.transform = '';
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function handleMenuKey(e, id) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+  }
+
+  function initSidebarAccordion() {
+    ['module1', 'module2'].forEach(function(id) {
+      const submenu = document.getElementById('submenu-' + id);
+      if (!submenu) return;
+      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
+        submenu.style.transition = 'none';
+        menuState[id] = true;
+        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+        var chev = document.getElementById('chevron-' + id);
+        var trig = document.getElementById('trigger-' + id);
+        if (chev) chev.style.transform = 'rotate(90deg)';
+        if (trig) trig.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+  } else {
+    initSidebarAccordion();
+  }
+</script>
+</body>
+</html>
