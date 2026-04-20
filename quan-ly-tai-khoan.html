@@ -25,7 +25,7 @@
     </a>
     <div>
       <h1 class="text-2xl font-bold text-slate-900">Quản lý tài khoản</h1>
-      <p class="text-sm text-slate-500">Quản lý tài khoản người dùng và cấp quyền</p>
+      <p class="text-sm text-slate-500">Quản lý tài khoản người dùng và nhóm</p>
     </div>
   </div>
 </header>
@@ -44,35 +44,72 @@
     </div>
   </div>
 
-  <!-- Tất khoản Users -->
-  <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-slate-900">Danh sách tài khoản</h2>
-      <button id="add-user-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center gap-2">
-        <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
-        Thêm tài khoản
-      </button>
-    </div>
+  <!-- Tabs -->
+  <div class="flex gap-1 border-b border-slate-200 mb-6">
+    <button id="tab-btn-accounts" onclick="switchTab('accounts')"
+            class="px-5 py-2.5 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 -mb-px bg-transparent transition-colors flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:18px;">people</span>Tài khoản
+    </button>
+    <button id="tab-btn-groups" onclick="switchTab('groups')"
+            class="px-5 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-500 -mb-px bg-transparent hover:text-slate-700 transition-colors flex items-center gap-1.5">
+      <span class="material-symbols-outlined" style="font-size:18px;">group_work</span>Nhóm
+    </button>
+  </div>
 
-    <table class="w-full text-left border-collapse text-sm">
-      <thead>
-        <tr class="border-b border-slate-100 bg-slate-50/50">
-          <th class="px-6 py-3 font-semibold text-slate-700">Tên</th>
-          <th class="px-6 py-3 font-semibold text-slate-700">Email</th>
-          <th class="px-6 py-3 font-semibold text-slate-700">Role</th>
-          <th class="px-6 py-3 font-semibold text-slate-700 text-center">Tài liệu được cấp</th>
-          <th class="px-6 py-3 font-semibold text-slate-700 text-right">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody id="users-tbody">
-        <!-- Render bởi JS -->
-      </tbody>
-    </table>
+  <!-- Tab: Tài khoản -->
+  <div id="tab-accounts">
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">Danh sách tài khoản</h2>
+        <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center gap-2">
+          <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
+          Thêm tài khoản
+        </button>
+      </div>
+      <table class="w-full text-left border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-slate-100 bg-slate-50/50">
+            <th class="px-6 py-3 font-semibold text-slate-700">Tên</th>
+            <th class="px-6 py-3 font-semibold text-slate-700">Email</th>
+            <th class="px-6 py-3 font-semibold text-slate-700">Role</th>
+            <th class="px-6 py-3 font-semibold text-slate-700">Thuộc nhóm</th>
+            <th class="px-6 py-3 font-semibold text-slate-700 text-center">Tài liệu được cấp</th>
+            <th class="px-6 py-3 font-semibold text-slate-700 text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Nhóm -->
+  <div id="tab-groups" class="hidden">
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">Quản lý nhóm</h2>
+        <button onclick="openCreateGroupDialog()"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center gap-2">
+          <span class="material-symbols-outlined" style="font-size:18px;">group_add</span>
+          + Tạo nhóm mới
+        </button>
+      </div>
+      <table class="w-full text-left border-collapse text-sm">
+        <thead>
+          <tr class="border-b border-slate-100 bg-slate-50/50">
+            <th class="px-6 py-3 font-semibold text-slate-700">Tên nhóm</th>
+            <th class="px-6 py-3 font-semibold text-slate-700 text-center">Số thành viên</th>
+            <th class="px-6 py-3 font-semibold text-slate-700 text-center">Tài liệu được cấp</th>
+            <th class="px-6 py-3 font-semibold text-slate-700 text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="groups-tbody"></tbody>
+      </table>
+    </div>
   </div>
 
 </main>
 
-<!-- Dialog: Cấp quyền tài liệu -->
+<!-- ═══ DIALOG: Cấp quyền tài liệu cho User ═══ -->
 <div id="perm-dialog" class="fixed inset-0 z-50 hidden items-center justify-center">
   <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePermDialog()"></div>
   <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-auto">
@@ -85,14 +122,9 @@
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
-
     <div class="p-6 space-y-4">
       <p class="text-sm text-slate-600">Chọn tài liệu Công khai mà user này được phép xem:</p>
-
-      <div id="perm-file-list" class="space-y-2 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto">
-        <!-- Checkbox list render bởi JS -->
-      </div>
-
+      <div id="perm-file-list" class="space-y-2 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto"></div>
       <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="radio" name="perm-level" value="view" checked class="accent-indigo-600">
@@ -104,14 +136,107 @@
         </label>
       </div>
     </div>
-
     <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex gap-3 justify-end">
-      <button onclick="closePermDialog()" class="px-5 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 font-medium">
-        Hủy
+      <button onclick="closePermDialog()" class="px-5 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 font-medium">Hủy</button>
+      <button onclick="savePermissions()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Lưu quyền truy cập</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Tạo nhóm mới ═══ -->
+<div id="create-group-dialog" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeCreateGroupDialog()"></div>
+  <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+    <div class="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <h3 class="text-lg font-bold text-slate-900">Tạo nhóm mới</h3>
+      <button onclick="closeCreateGroupDialog()" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+        <span class="material-symbols-outlined">close</span>
       </button>
-      <button onclick="savePermissions()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
-        Lưu quyền truy cập
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Tên nhóm <span class="text-red-500">*</span></label>
+        <input id="new-group-name" type="text" placeholder="VD: Nhóm Sales, Nhóm Kế toán..."
+               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Thành viên</label>
+        <div id="new-group-members" class="space-y-1 border border-slate-200 rounded-lg p-3 max-h-52 overflow-y-auto"></div>
+      </div>
+    </div>
+    <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex gap-3 justify-end">
+      <button onclick="closeCreateGroupDialog()" class="px-5 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium">Hủy</button>
+      <button onclick="saveNewGroup()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Tạo nhóm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Quản lý thành viên nhóm ═══ -->
+<div id="members-dialog" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeMembersDialog()"></div>
+  <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+    <div class="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-bold text-slate-900">Thành viên nhóm</h3>
+        <p id="members-group-name" class="text-sm text-slate-500 mt-0.5"></p>
+      </div>
+      <button onclick="closeMembersDialog()" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+        <span class="material-symbols-outlined">close</span>
       </button>
+    </div>
+    <div class="p-6">
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Chọn thành viên:</p>
+      <div id="members-list" class="space-y-1 border border-slate-200 rounded-lg p-3 max-h-64 overflow-y-auto"></div>
+    </div>
+    <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex gap-3 justify-end">
+      <button onclick="closeMembersDialog()" class="px-5 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium">Hủy</button>
+      <button onclick="saveMembersDialog()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Cấp quyền tài liệu cho Nhóm ═══ -->
+<div id="grant-group-perm-dialog" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeGrantGroupPermDialog()"></div>
+  <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-auto">
+    <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-bold text-slate-900">Cấp quyền tài liệu cho nhóm</h3>
+        <p id="grant-group-name" class="text-sm text-slate-500 mt-0.5"></p>
+      </div>
+      <button onclick="closeGrantGroupPermDialog()" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-slate-600 mb-3">Chọn tài liệu Công khai mà nhóm này được phép xem:</p>
+      <div id="grant-group-file-list" class="space-y-2 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto"></div>
+    </div>
+    <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex gap-3 justify-end">
+      <button onclick="closeGrantGroupPermDialog()" class="px-5 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium">Hủy</button>
+      <button onclick="saveGroupPermissions()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Lưu quyền</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DIALOG: Đổi tên nhóm ═══ -->
+<div id="rename-group-dialog" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closeRenameGroupDialog()"></div>
+  <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4">
+    <div class="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <h3 class="text-lg font-bold text-slate-900">Đổi tên nhóm</h3>
+      <button onclick="closeRenameGroupDialog()" class="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="p-6">
+      <label class="block text-sm font-semibold text-slate-700 mb-1">Tên nhóm mới</label>
+      <input id="rename-group-input" type="text"
+             class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+    </div>
+    <div class="border-t border-slate-200 px-6 py-4 bg-slate-50 flex gap-3 justify-end">
+      <button onclick="closeRenameGroupDialog()" class="px-5 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium">Hủy</button>
+      <button onclick="saveRenameGroup()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">Lưu</button>
     </div>
   </div>
 </div>
@@ -121,35 +246,67 @@
 
 <!-- JavaScript -->
 <script>
-  // Check nếu không phải admin → redirect
+  // Đọc userId từ URL param (do demo shell truyền vào)
+  (function() {
+    const _uid = new URLSearchParams(location.search).get('userId');
+    if (_uid) { const _u = ACCOUNTS.find(a => a.id === _uid); if (_u) currentUser = _u; }
+  })();
+
   if (!isAdmin(currentUser)) {
     document.getElementById('admin-only').classList.remove('hidden');
-    setTimeout(() => {
-      window.location.href = 'chat-tai-lieu.html';
-    }, 3000);
+    setTimeout(() => window.location.href = 'chat-tai-lieu.html', 3000);
   }
 
-  const PUBLIC_FILES = Object.values(FILES).filter(f => f.ownerId === 'admin1');
-  let pendingUserId = null;
+  const PUBLIC_FILES = Object.values(FILES).filter(f => {
+    const id = f.folderId || '';
+    return id === 'public' || id.startsWith('public_');
+  });
 
-  // Render bảng user
+  let pendingUserId  = null;
+  let pendingGroupId = null;
+
+  // ── Tab switching ──────────────────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('tab-accounts').classList.toggle('hidden', tab !== 'accounts');
+    document.getElementById('tab-groups').classList.toggle('hidden', tab !== 'groups');
+    ['accounts', 'groups'].forEach(t => {
+      const btn = document.getElementById('tab-btn-' + t);
+      if (t === tab) {
+        btn.classList.add('border-indigo-600', 'text-indigo-600');
+        btn.classList.remove('border-transparent', 'text-slate-500');
+      } else {
+        btn.classList.remove('border-indigo-600', 'text-indigo-600');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      }
+    });
+  }
+
+  // ── Render Users ───────────────────────────────────────────────
   function renderUsers() {
     const tbody = document.getElementById('users-tbody');
     tbody.innerHTML = '';
-
     ACCOUNTS.forEach(acc => {
       const tr = document.createElement('tr');
       tr.className = 'border-b border-slate-100 hover:bg-indigo-50/30 transition-colors';
       const grantedCount = countGrantedFiles(acc.id);
-      const roleLabel = acc.role === 'admin' ? 'Admin 👨‍💼' : 'User 👤';
-      const roleBadge = acc.role === 'admin' 
+      const roleBadge = acc.role === 'admin'
         ? '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">Admin</span>'
         : '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">User</span>';
+
+      const userGroups = typeof getGroupsForUser === 'function'
+        ? getGroupsForUser(acc.id)
+        : GROUPS.filter(g => g.memberIds.includes(acc.id));
+      const groupChips = userGroups.length > 0
+        ? userGroups.map(g =>
+            `<span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-100 text-indigo-700">${escHtml(g.name)}</span>`
+          ).join('')
+        : '<span class="text-slate-300 text-xs">—</span>';
 
       tr.innerHTML = `
         <td class="px-6 py-4 font-semibold text-slate-900">${escHtml(acc.name)}</td>
         <td class="px-6 py-4 text-slate-600 text-sm">${escHtml(acc.email)}</td>
         <td class="px-6 py-4">${roleBadge}</td>
+        <td class="px-6 py-4"><div class="flex flex-wrap gap-1">${groupChips}</div></td>
         <td class="px-6 py-4 text-center">
           <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
             ${grantedCount} tài liệu
@@ -157,7 +314,7 @@
         </td>
         <td class="px-6 py-4 text-right">
           ${acc.role === 'user' ? `
-            <button onclick="openPermDialog('${acc.id}','${escAttr(acc.name)}')" 
+            <button onclick="openPermDialog('${acc.id}','${escAttr(acc.name)}')"
                     class="px-3 py-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg text-sm font-medium">
               Cấp quyền
             </button>
@@ -167,17 +324,73 @@
     });
   }
 
-  // Open permission dialog
+  // ── Render Groups ──────────────────────────────────────────────
+  function renderGroups() {
+    const tbody = document.getElementById('groups-tbody');
+    tbody.innerHTML = '';
+    const groups = typeof getGroups === 'function' ? getGroups() : GROUPS;
+    if (groups.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-slate-400 text-sm">
+        Chưa có nhóm nào. Nhấn "+ Tạo nhóm mới" để bắt đầu.
+      </td></tr>`;
+      return;
+    }
+    groups.forEach(group => {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-100 hover:bg-indigo-50/30 transition-colors';
+      const docCount = typeof countGroupFilesGranted === 'function'
+        ? countGroupFilesGranted(group.id)
+        : Object.values(FILE_PERMISSIONS).filter(p => (p.groups || []).includes(group.id)).length;
+      tr.innerHTML = `
+        <td class="px-6 py-4 font-semibold text-slate-900">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-indigo-500 text-xl">group_work</span>
+            ${escHtml(group.name)}
+          </div>
+        </td>
+        <td class="px-6 py-4 text-center">
+          <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+            ${group.memberIds.length} người
+          </span>
+        </td>
+        <td class="px-6 py-4 text-center">
+          <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+            ${docCount} tài liệu
+          </span>
+        </td>
+        <td class="px-6 py-4 text-right">
+          <div class="flex items-center justify-end gap-1 flex-wrap">
+            <button onclick="openMembersDialog('${group.id}')"
+                    class="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-medium flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:14px;">manage_accounts</span>Thành viên
+            </button>
+            <button onclick="openGrantGroupPermDialog('${group.id}')"
+                    class="px-3 py-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs font-medium flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:14px;">lock_open</span>Cấp quyền
+            </button>
+            <button onclick="openRenameGroupDialog('${group.id}','${escAttr(group.name)}')"
+                    class="px-2 py-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg" title="Đổi tên">
+              <span class="material-symbols-outlined" style="font-size:15px;">edit</span>
+            </button>
+            <button onclick="confirmDeleteGroup('${group.id}','${escAttr(group.name)}')"
+                    class="px-2 py-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg" title="Xóa nhóm">
+              <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
+            </button>
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ── Permission Dialog (User) ───────────────────────────────────
   function openPermDialog(userId, userName) {
     pendingUserId = userId;
     document.getElementById('perm-user-name').textContent = `Cho: ${userName}`;
-
     const fileList = document.getElementById('perm-file-list');
     fileList.innerHTML = '';
-
     PUBLIC_FILES.forEach(file => {
-      const perms = FILE_PERMISSIONS[file.id] || [];
-      const isGranted = perms.includes(userId);
+      const perms = FILE_PERMISSIONS[file.id] || { users: [], groups: [] };
+      const isGranted = (perms.users || []).includes(userId);
       const label = document.createElement('label');
       label.className = 'flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer';
       label.innerHTML = `
@@ -185,46 +398,183 @@
         <span class="text-sm text-slate-700">${escHtml(file.name)}</span>`;
       fileList.appendChild(label);
     });
-
-    document.getElementById('perm-dialog').classList.remove('hidden');
-    document.getElementById('perm-dialog').classList.add('flex');
+    showDialog('perm-dialog');
   }
-
-  function closePermDialog() {
-    document.getElementById('perm-dialog').classList.add('hidden');
-    document.getElementById('perm-dialog').classList.remove('flex');
-    pendingUserId = null;
-  }
-
+  function closePermDialog() { hideDialog('perm-dialog'); pendingUserId = null; }
   function savePermissions() {
-    const checkboxes = document.querySelectorAll('#perm-file-list input[type=checkbox]');
-    const grantedFileIds = [];
-    
-    checkboxes.forEach(cb => {
-      if (cb.checked) {
-        grantedFileIds.push(cb.dataset.fileId);
-      }
-    });
-
-    // Update FILE_PERMISSIONS
     PUBLIC_FILES.forEach(file => {
-      const perms = FILE_PERMISSIONS[file.id] || [];
-      const idx = perms.indexOf(pendingUserId);
-      
-      if (grantedFileIds.includes(file.id.toString())) {
-        if (idx === -1) perms.push(pendingUserId);
-      } else {
-        if (idx !== -1) perms.splice(idx, 1);
-      }
-      
-      FILE_PERMISSIONS[file.id] = perms;
+      if (!FILE_PERMISSIONS[file.id]) FILE_PERMISSIONS[file.id] = { users: [], groups: [] };
+      const cb = document.querySelector(`#perm-file-list input[data-file-id="${file.id}"]`);
+      if (!cb) return;
+      const users = FILE_PERMISSIONS[file.id].users || [];
+      const idx = users.indexOf(pendingUserId);
+      if (cb.checked && idx === -1) users.push(pendingUserId);
+      if (!cb.checked && idx !== -1) users.splice(idx, 1);
+      FILE_PERMISSIONS[file.id].users = users;
     });
-
     showToast(`Cập nhật quyền thành công cho ${ACCOUNTS.find(a => a.id === pendingUserId)?.name}!`, 'success');
     closePermDialog();
     renderUsers();
   }
 
+  // ── Create Group Dialog ────────────────────────────────────────
+  function openCreateGroupDialog() {
+    document.getElementById('new-group-name').value = '';
+    const memberList = document.getElementById('new-group-members');
+    memberList.innerHTML = '';
+    ACCOUNTS.filter(a => a.role === 'user').forEach(acc => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm';
+      label.innerHTML = `
+        <input type="checkbox" value="${acc.id}" class="accent-indigo-600 new-member-cb">
+        <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+          ${acc.name.slice(0,2).toUpperCase()}
+        </div>
+        <span class="font-medium">${escHtml(acc.name)}</span>
+        <span class="text-slate-400">${escHtml(acc.email)}</span>`;
+      memberList.appendChild(label);
+    });
+    showDialog('create-group-dialog');
+    setTimeout(() => document.getElementById('new-group-name').focus(), 50);
+  }
+  function closeCreateGroupDialog() { hideDialog('create-group-dialog'); }
+  function saveNewGroup() {
+    const name = document.getElementById('new-group-name').value.trim();
+    if (!name) { showToast('Vui lòng nhập tên nhóm!', 'error'); return; }
+    const memberIds = [...document.querySelectorAll('.new-member-cb:checked')].map(cb => cb.value);
+    if (typeof addGroup === 'function') {
+      addGroup(name, memberIds);
+    } else {
+      GROUPS.push({ id: 'g_' + Date.now(), name, memberIds });
+    }
+    showToast(`Đã tạo nhóm "${name}" thành công!`, 'success');
+    closeCreateGroupDialog();
+    renderGroups();
+    renderUsers();
+  }
+
+  // ── Members Dialog ─────────────────────────────────────────────
+  function openMembersDialog(groupId) {
+    pendingGroupId = groupId;
+    const group = (typeof getGroupById === 'function' ? getGroupById(groupId) : null)
+                || GROUPS.find(g => g.id === groupId);
+    if (!group) return;
+    document.getElementById('members-group-name').textContent = group.name;
+    const list = document.getElementById('members-list');
+    list.innerHTML = '';
+    ACCOUNTS.filter(a => a.role === 'user').forEach(acc => {
+      const isMember = group.memberIds.includes(acc.id);
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm';
+      label.innerHTML = `
+        <input type="checkbox" value="${acc.id}" class="accent-indigo-600 member-cb" ${isMember ? 'checked' : ''}>
+        <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+          ${acc.name.slice(0,2).toUpperCase()}
+        </div>
+        <span class="font-medium">${escHtml(acc.name)}</span>`;
+      list.appendChild(label);
+    });
+    showDialog('members-dialog');
+  }
+  function closeMembersDialog() { hideDialog('members-dialog'); pendingGroupId = null; }
+  function saveMembersDialog() {
+    const group = GROUPS.find(g => g.id === pendingGroupId);
+    if (!group) return;
+    group.memberIds = [...document.querySelectorAll('.member-cb:checked')].map(cb => cb.value);
+    showToast(`Đã cập nhật thành viên nhóm "${group.name}"!`, 'success');
+    closeMembersDialog();
+    renderGroups();
+    renderUsers();
+  }
+
+  // ── Grant Group Perm Dialog ────────────────────────────────────
+  function openGrantGroupPermDialog(groupId) {
+    pendingGroupId = groupId;
+    const group = GROUPS.find(g => g.id === groupId);
+    if (!group) return;
+    document.getElementById('grant-group-name').textContent = `Nhóm: ${group.name}`;
+    const fileList = document.getElementById('grant-group-file-list');
+    fileList.innerHTML = '';
+    PUBLIC_FILES.forEach(file => {
+      const perms = FILE_PERMISSIONS[file.id] || { users: [], groups: [] };
+      const isGranted = (perms.groups || []).includes(groupId);
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer';
+      label.innerHTML = `
+        <input type="checkbox" data-file-id="${file.id}" class="accent-indigo-600 group-file-cb" ${isGranted ? 'checked' : ''}>
+        <span class="text-sm text-slate-700">${escHtml(file.name)}</span>`;
+      fileList.appendChild(label);
+    });
+    showDialog('grant-group-perm-dialog');
+  }
+  function closeGrantGroupPermDialog() { hideDialog('grant-group-perm-dialog'); pendingGroupId = null; }
+  function saveGroupPermissions() {
+    PUBLIC_FILES.forEach(file => {
+      if (!FILE_PERMISSIONS[file.id]) FILE_PERMISSIONS[file.id] = { users: [], groups: [] };
+      const cb = document.querySelector(`#grant-group-file-list input[data-file-id="${file.id}"]`);
+      if (!cb) return;
+      const groups = FILE_PERMISSIONS[file.id].groups || [];
+      const idx = groups.indexOf(pendingGroupId);
+      if (cb.checked && idx === -1) groups.push(pendingGroupId);
+      if (!cb.checked && idx !== -1) groups.splice(idx, 1);
+      FILE_PERMISSIONS[file.id].groups = groups;
+    });
+    const group = GROUPS.find(g => g.id === pendingGroupId);
+    showToast(`Đã cấp quyền tài liệu cho nhóm "${group?.name}"!`, 'success');
+    closeGrantGroupPermDialog();
+    renderGroups();
+  }
+
+  // ── Rename Group Dialog ────────────────────────────────────────
+  function openRenameGroupDialog(groupId, currentName) {
+    pendingGroupId = groupId;
+    document.getElementById('rename-group-input').value = currentName;
+    showDialog('rename-group-dialog');
+    setTimeout(() => document.getElementById('rename-group-input').focus(), 50);
+  }
+  function closeRenameGroupDialog() { hideDialog('rename-group-dialog'); pendingGroupId = null; }
+  function saveRenameGroup() {
+    const name = document.getElementById('rename-group-input').value.trim();
+    if (!name) { showToast('Vui lòng nhập tên nhóm!', 'error'); return; }
+    if (typeof renameGroup === 'function') {
+      renameGroup(pendingGroupId, name);
+    } else {
+      const g = GROUPS.find(g => g.id === pendingGroupId);
+      if (g) g.name = name;
+    }
+    showToast('Đổi tên nhóm thành công!', 'success');
+    closeRenameGroupDialog();
+    renderGroups();
+    renderUsers();
+  }
+
+  // ── Delete Group ───────────────────────────────────────────────
+  function confirmDeleteGroup(groupId, groupName) {
+    if (!confirm(`Bạn có chắc muốn xóa nhóm "${groupName}"?\nThành viên sẽ mất quyền truy cập qua nhóm này.`)) return;
+    if (typeof deleteGroup === 'function') {
+      deleteGroup(groupId);
+    } else {
+      const idx = GROUPS.findIndex(g => g.id === groupId);
+      if (idx !== -1) GROUPS.splice(idx, 1);
+    }
+    showToast(`Đã xóa nhóm "${groupName}"!`, 'success');
+    renderGroups();
+    renderUsers();
+  }
+
+  // ── Dialog helpers ─────────────────────────────────────────────
+  function showDialog(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+  }
+  function hideDialog(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────
   function showToast(msg, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -235,11 +585,12 @@
     setTimeout(() => toast.remove(), 3000);
   }
 
-  function escHtml(s) { const d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+  function escHtml(s) { const d = document.createElement('div'); d.appendChild(document.createTextNode(String(s || ''))); return d.innerHTML; }
   function escAttr(s) { return escHtml(s).replace(/"/g, '&quot;'); }
 
   // Init
   renderUsers();
+  renderGroups();
 </script>
 
 </body>

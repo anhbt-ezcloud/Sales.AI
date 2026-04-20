@@ -849,9 +849,10 @@
     /* Cuộn nav item vào vùng nhìn thấy */
     el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
-    /* Load iframe */
+    /* Load iframe — kèm userId để các trang con biết role đúng */
     showLoading();
-    document.getElementById('screen-iframe').src = file;
+    const _uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : 'admin1';
+    document.getElementById('screen-iframe').src = file + (file.includes('?') ? '&' : '?') + 'userId=' + encodeURIComponent(_uid);
 
     /* Đóng sidebar overlay trên mobile */
     if (window.innerWidth < 768) closeMobile();
@@ -929,7 +930,8 @@
     document.getElementById('overlay').classList.remove('show');
     sidebarOpen = false;
     showLoading();
-    document.getElementById('screen-iframe').src = file;
+    const _uid2 = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : 'admin1';
+    document.getElementById('screen-iframe').src = file + (file.includes('?') ? '&' : '?') + 'userId=' + encodeURIComponent(_uid2);
   }
 
   /* ── Quay lại màn hình trước ─────────────────────────────── */

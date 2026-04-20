@@ -691,43 +691,53 @@
 </div>
 
 <!-- ============================================================
-     PERMISSIONS DIALOG
+     PERMISSIONS DIALOG (file-level: Theo user / Theo nhóm)
      ============================================================ -->
 <div id="permDialog" class="fixed inset-0 z-[200] hidden items-center justify-center">
   <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePermDialog()"></div>
-  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-    <div class="flex items-center gap-3 mb-5">
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-auto">
+    <div class="flex items-center gap-3 mb-4">
       <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary">manage_accounts</span>
       </div>
       <div>
-        <h3 class="font-bold text-on-surface text-base">Phân quyền thư mục</h3>
+        <h3 class="font-bold text-on-surface text-base">Phân quyền tài liệu</h3>
         <p class="text-xs text-slate-500" id="permFolderName">Công khai / Sales</p>
+      </div>
+      <button onclick="closePermDialog()" class="ml-auto p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-200 mb-4">
+      <button id="perm-tab-btn-users" onclick="switchPermTab('users')"
+              class="px-4 py-2 text-xs font-semibold border-b-2 border-primary text-primary -mb-px bg-transparent flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:15px;">person</span>Theo user
+      </button>
+      <button id="perm-tab-btn-groups" onclick="switchPermTab('groups')"
+              class="px-4 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-500 -mb-px bg-transparent hover:text-slate-700 flex items-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:15px;">group</span>Theo nhóm
+      </button>
+    </div>
+
+    <!-- Tab: Theo user -->
+    <div id="perm-tab-users">
+      <p class="text-xs text-slate-500 mb-3">Chọn user được phép xem tài liệu này:</p>
+      <div id="permUserList" class="space-y-1 border border-slate-200 rounded-lg p-3 max-h-52 overflow-y-auto">
+        <!-- Populated by openPermDialog() -->
       </div>
     </div>
 
-    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Role được xem</p>
-    <div class="grid grid-cols-2 gap-2 mb-4" id="permRoleList">
-      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
-        <input type="checkbox" value="sales" class="accent-primary" checked> Sales
-      </label>
-      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
-        <input type="checkbox" value="ketoan" class="accent-primary"> Kế toán
-      </label>
-      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
-        <input type="checkbox" value="marketing" class="accent-primary"> Marketing
-      </label>
-      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
-        <input type="checkbox" value="all" class="accent-primary"> Tất cả
-      </label>
+    <!-- Tab: Theo nhóm -->
+    <div id="perm-tab-groups" class="hidden">
+      <p class="text-xs text-slate-500 mb-3">Chọn nhóm được phép xem tài liệu này:</p>
+      <div id="permGroupList" class="space-y-1 border border-slate-200 rounded-lg p-3 max-h-52 overflow-y-auto">
+        <!-- Populated by openPermDialog() -->
+      </div>
     </div>
 
-    <label class="flex items-center gap-3 mb-6 cursor-pointer">
-      <input type="checkbox" id="permApplyChildren" class="accent-primary" checked>
-      <span class="text-sm text-slate-700">Áp dụng cho tất cả file trong thư mục</span>
-    </label>
-
-    <div class="flex gap-3">
+    <div class="flex gap-3 mt-5">
       <button onclick="closePermDialog()"
               class="flex-1 py-2.5 border border-outline-variant/40 rounded-xl text-sm
                      font-semibold hover:bg-surface-container transition-colors">
@@ -925,6 +935,14 @@
                   ${escHtml(doc.name)}
                 </a>
                 <p class="text-[11px] text-slate-400">${doc.ext} Document</p>
+                ${currentUser.isAdmin && doc.docType === 'public' ? (() => {
+                  const key = 'fd' + doc.id;
+                  const perms = (typeof FILE_PERMISSIONS !== 'undefined' && FILE_PERMISSIONS[key]) || { users: [], groups: [] };
+                  const uC = (perms.users || []).length;
+                  const gC = (perms.groups || []).length;
+                  const label = (uC === 0 && gC === 0) ? 'Chưa cấp quyền' : 'Đã cấp ' + [uC > 0 ? uC + ' người' : '', gC > 0 ? gC + ' nhóm' : ''].filter(Boolean).join(' + ');
+                  return `<span class="text-[10px] font-medium text-indigo-500">${label}</span>`;
+                })() : ''}
               </div>
             </div>
           </td>
@@ -952,6 +970,11 @@
                       title="Xem" data-action="view" data-id="${doc.id}">
                 <span class="material-symbols-outlined text-lg">visibility</span>
               </button>
+              ${currentUser.isAdmin && doc.docType === 'public' ? `
+              <button class="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                      title="Phân quyền" data-action="perm" data-id="${doc.id}">
+                <span class="material-symbols-outlined text-lg">manage_accounts</span>
+              </button>` : ''}
               <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors"
                       title="Đổi tên" data-action="rename" data-id="${doc.id}">
                 <span class="material-symbols-outlined text-lg">edit</span>
@@ -1209,6 +1232,8 @@
       }
     } else if (action === 'view') {
       window.location.href = 'xem-tai-lieu.html?id=' + doc.id;
+    } else if (action === 'perm') {
+      openPermDialog(doc.docType, doc.id);
     }
   }
 
@@ -1570,10 +1595,12 @@
     if (e.key === 'Escape') closeCtxMenu();
   });
 
-  // ================================================================
   // PERMISSIONS DIALOG
   // ================================================================
-  function openPermDialog(folderId) {
+  let permDocId = null; // ID của doc đang được phân quyền
+
+  function openPermDialog(folderId, docId) {
+    permDocId = docId || null;
     const FOLDER_LABELS = {
       'public':          'Công khai',
       'public/sales':    'Công khai / Sales',
@@ -1582,15 +1609,87 @@
       'private':         'Cá nhân',
       'shared':          'Chia sẻ với tôi',
     };
-    document.getElementById('permFolderName').textContent = FOLDER_LABELS[folderId] || folderId;
+    const doc = docId ? ALL_DOCS.find(d => d.id === docId) : null;
+    document.getElementById('permFolderName').textContent =
+      doc ? doc.name : (FOLDER_LABELS[folderId] || folderId);
+
+    // Get permissions key
+    const permKey = docId ? ('fd' + docId) : null;
+    const savedPerms = (permKey && FILE_PERMISSIONS && FILE_PERMISSIONS[permKey])
+      ? FILE_PERMISSIONS[permKey]
+      : { users: [], groups: [] };
+
+    // Populate user list
+    const userList = document.getElementById('permUserList');
+    userList.innerHTML = '';
+    const allAccounts = typeof ACCOUNTS !== 'undefined' ? ACCOUNTS.filter(a => a.role !== 'admin') : [];
+    allAccounts.forEach(acc => {
+      const checked = (savedPerms.users || []).includes(acc.id);
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm';
+      label.innerHTML = `
+        <input type="checkbox" value="${acc.id}" class="accent-primary perm-user-cb" ${checked ? 'checked' : ''}>
+        <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+          ${acc.name.slice(0,2).toUpperCase()}
+        </div>
+        <span>${escHtml(acc.name)}</span>`;
+      userList.appendChild(label);
+    });
+    if (allAccounts.length === 0) {
+      userList.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">Không có user nào</p>';
+    }
+
+    // Populate group list
+    const groupList = document.getElementById('permGroupList');
+    groupList.innerHTML = '';
+    const allGroups = typeof GROUPS !== 'undefined' ? GROUPS : [];
+    allGroups.forEach(g => {
+      const checked = (savedPerms.groups || []).includes(g.id);
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2.5 p-2 hover:bg-slate-50 rounded cursor-pointer text-sm';
+      label.innerHTML = `
+        <input type="checkbox" value="${g.id}" class="accent-primary perm-group-cb" ${checked ? 'checked' : ''}>
+        <span class="material-symbols-outlined text-primary" style="font-size:16px;">group</span>
+        <span>${escHtml(g.name)}</span>
+        <span class="text-xs text-slate-400 ml-auto">${g.memberIds.length} thành viên</span>`;
+      groupList.appendChild(label);
+    });
+    if (allGroups.length === 0) {
+      groupList.innerHTML = '<p class="text-xs text-slate-400 text-center py-3">Chưa có nhóm nào</p>';
+    }
+
+    // Reset to users tab
+    switchPermTab('users');
     openDialog('permDialog');
   }
 
-  function closePermDialog() { closeDialog('permDialog'); }
+  function switchPermTab(tab) {
+    document.getElementById('perm-tab-users').classList.toggle('hidden', tab !== 'users');
+    document.getElementById('perm-tab-groups').classList.toggle('hidden', tab !== 'groups');
+    ['users','groups'].forEach(t => {
+      const btn = document.getElementById('perm-tab-btn-' + t);
+      if (t === tab) {
+        btn.classList.add('border-primary', 'text-primary');
+        btn.classList.remove('border-transparent', 'text-slate-500');
+      } else {
+        btn.classList.remove('border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      }
+    });
+  }
+
+  function closePermDialog() { closeDialog('permDialog'); permDocId = null; }
 
   function savePermissions() {
+    if (permDocId && typeof FILE_PERMISSIONS !== 'undefined') {
+      const key = 'fd' + permDocId;
+      if (!FILE_PERMISSIONS[key]) FILE_PERMISSIONS[key] = { users: [], groups: [] };
+      FILE_PERMISSIONS[key].users = [...document.querySelectorAll('.perm-user-cb:checked')].map(cb => cb.value);
+      FILE_PERMISSIONS[key].groups = [...document.querySelectorAll('.perm-group-cb:checked')].map(cb => cb.value);
+    }
     closePermDialog();
     showToast('Đã lưu phân quyền thành công!');
+    reRender(); // refresh badge
   }
 
   // ================================================================

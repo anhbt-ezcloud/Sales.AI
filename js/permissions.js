@@ -16,6 +16,15 @@ const ACCOUNTS = [
 let currentUser = ACCOUNTS[0]; // mặc định admin
 
 /* ══════════════════════════════════════
+   MOCK DATA: NHÓM
+══════════════════════════════════════ */
+const GROUPS = [
+  { id: 'g_sales',      name: 'Nhóm Sales',     memberIds: ['user1', 'user2'] },
+  { id: 'g_accounting', name: 'Nhóm Kế toán',   memberIds: [] },
+  { id: 'g_marketing',  name: 'Nhóm Marketing', memberIds: [] },
+];
+
+/* ══════════════════════════════════════
    MOCK DATA: CẤU TRÚC THƯ MỤC & TÀI LIỆU
 ══════════════════════════════════════ */
 
@@ -101,13 +110,13 @@ const FILES = {
   },
 };
 
-/* Quyền xem file: fileId => [userIds được xem] */
+/* Quyền xem file: fileId => { users: [userIds], groups: [groupIds] } */
 const FILE_PERMISSIONS = {
-  'f001': ['user1', 'user2'],      // admin cấp cho user1 và user2
-  'f002': ['user1'],                // admin cấp cho user1
-  'f003': ['user2'],                // admin cấp cho user2
-  'f004': [],                        // user1 tự upload, không cấp ai
-  'f005': ['user1'],                // user2 share trực tiếp cho user1
+  'f001': { users: ['user1', 'user2'], groups: ['g_sales']    },
+  'f002': { users: ['user1'],          groups: []              },
+  'f003': { users: ['user2'],          groups: []              },
+  'f004': { users: [],                 groups: []              },
+  'f005': { users: ['user1'],          groups: []              },
 };
 
 /* ══════════════════════════════════════
@@ -143,12 +152,17 @@ function canView(file, user) {
   // 1. File mình tự upload
   if (file.ownerId === user.id) return true;
   
-  // 2. File được admin cấp quyền
-  const perms = FILE_PERMISSIONS[file.id] || [];
-  if (perms.includes(user.id)) return true;
-  
-  // 3. File được share trực tiếp (check thêm nếu cần)
-  
+  // 2. File được admin cấp quyền (theo user)
+  const perms = FILE_PERMISSIONS[file.id] || { users: [], groups: [] };
+  if ((perms.users || []).includes(user.id)) return true;
+
+  // 3. File được cấp quyền qua nhóm
+  for (var _gi = 0; _gi < (perms.groups || []).length; _gi++) {
+    var _gId = perms.groups[_gi];
+    var _grp = GROUPS.find(function(g) { return g.id === _gId; });
+    if (_grp && _grp.memberIds.includes(user.id)) return true;
+  }
+
   return false;
 }
 
@@ -178,7 +192,13 @@ function getFilesInFolder(folderId, user) {
  * @param {array} userIds
  */
 function grantFilePermission(fileId, userIds) {
-  FILE_PERMISSIONS[fileId] = userIds;
+  if (!FILE_PERMISSIONS[fileId]) FILE_PERMISSIONS[fileId] = { users: [], groups: [] };
+  FILE_PERMISSIONS[fileId].users = userIds;
+}
+
+function grantGroupPermission(fileId, groupIds) {
+  if (!FILE_PERMISSIONS[fileId]) FILE_PERMISSIONS[fileId] = { users: [], groups: [] };
+  FILE_PERMISSIONS[fileId].groups = groupIds;
 }
 
 /**
@@ -207,8 +227,14 @@ function deleteFile(fileId) {
  * @return {string}
  */
 function getPermissionBadge(fileId) {
-  const count = (FILE_PERMISSIONS[fileId] || []).length;
-  return count > 0 ? `Đã cấp cho ${count} người` : 'Chưa cấp';
+  const perms = FILE_PERMISSIONS[fileId] || { users: [], groups: [] };
+  const uCount = (perms.users || []).length;
+  const gCount = (perms.groups || []).length;
+  if (uCount === 0 && gCount === 0) return 'Chưa cấp';
+  const parts = [];
+  if (uCount > 0) parts.push(uCount + ' người');
+  if (gCount > 0) parts.push(gCount + ' nhóm');
+  return 'Đã cấp cho ' + parts.join(' + ');
 }
 
 /**
@@ -256,8 +282,20 @@ function isAdmin(user) {
  */
 function countGrantedFiles(userId) {
   let count = 0;
-  for (const [fileId, userIds] of Object.entries(FILE_PERMISSIONS)) {
-    if (userIds.includes(userId)) count++;
+  for (const perms of Object.values(FILE_PERMISSIONS)) {
+    if ((perms.users || []).includes(userId)) { count++; continue; }
+    for (const gId of (perms.groups || [])) {
+      const _grp = GROUPS.find(function(g) { return g.id === gId; });
+      if (_grp && _grp.memberIds.includes(userId)) { count++; break; }
+    }
+  }
+  return count;
+}
+
+function countGroupFilesGranted(groupId) {
+  let count = 0;
+  for (const perms of Object.values(FILE_PERMISSIONS)) {
+    if ((perms.groups || []).includes(groupId)) count++;
   }
   return count;
 }
@@ -451,4 +489,57 @@ function getUploadServerConfig() {
     chunkSize: 5 * 1024 * 1024, // 5 MB chunks
     timeout: 30000 // 30s
   };
+}
+
+/* ══════════════════════════════════════
+   HELPER: THAO TÁC NHÓM
+══════════════════════════════════════ */
+
+function getGroups() { return GROUPS; }
+
+function getGroupById(groupId) {
+  return GROUPS.find(function(g) { return g.id === groupId; }) || null;
+}
+
+function addGroup(name, memberIds) {
+  const id = 'g_' + Date.now();
+  GROUPS.push({ id: id, name: name, memberIds: memberIds || [] });
+  return id;
+}
+
+function deleteGroup(groupId) {
+  const idx = GROUPS.findIndex(function(g) { return g.id === groupId; });
+  if (idx === -1) return false;
+  GROUPS.splice(idx, 1);
+  for (const perms of Object.values(FILE_PERMISSIONS)) {
+    const gi = (perms.groups || []).indexOf(groupId);
+    if (gi !== -1) perms.groups.splice(gi, 1);
+  }
+  return true;
+}
+
+function renameGroup(groupId, newName) {
+  const group = getGroupById(groupId);
+  if (!group) return false;
+  group.name = newName;
+  return true;
+}
+
+function addMemberToGroup(groupId, userId) {
+  const group = getGroupById(groupId);
+  if (!group) return false;
+  if (!group.memberIds.includes(userId)) group.memberIds.push(userId);
+  return true;
+}
+
+function removeMemberFromGroup(groupId, userId) {
+  const group = getGroupById(groupId);
+  if (!group) return false;
+  const idx = group.memberIds.indexOf(userId);
+  if (idx !== -1) group.memberIds.splice(idx, 1);
+  return true;
+}
+
+function getGroupsForUser(userId) {
+  return GROUPS.filter(function(g) { return g.memberIds.includes(userId); });
 }

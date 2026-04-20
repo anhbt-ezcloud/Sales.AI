@@ -304,22 +304,44 @@
           <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wide">
             Chia sẻ với
           </p>
-          <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
-            <input id="shareSearch" type="text"
-                   class="w-full pl-9 pr-4 py-2 bg-white border border-outline-variant/30 rounded-lg
-                          text-sm focus:ring-1 focus:ring-primary placeholder:text-slate-300"
-                   placeholder="Tìm tên user hoặc nhóm..."/>
+          <!-- Tabs: Người dùng / Nhóm -->
+          <div class="flex border-b border-outline-variant/30 -mx-1 mb-1">
+            <button id="share-tab-btn-user" onclick="switchShareTab('user')"
+                    class="px-4 py-2 text-xs font-semibold border-b-2 border-primary text-primary -mb-px bg-transparent flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:15px;">person</span>Người dùng
+            </button>
+            <button id="share-tab-btn-group" onclick="switchShareTab('group')"
+                    class="px-4 py-2 text-xs font-semibold border-b-2 border-transparent text-on-surface-variant -mb-px bg-transparent hover:text-on-surface flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:15px;">group</span>Nhóm
+            </button>
           </div>
-          <div class="flex flex-wrap gap-2" id="shareChips">
-            <span class="inline-flex items-center gap-1 bg-primary-fixed text-on-primary-fixed
-                         text-xs font-medium px-2.5 py-1 rounded-full">
-              Lan Anh (Sales)
-              <button class="hover:text-error ml-0.5" onclick="removeChip(this)">
-                <span class="material-symbols-outlined" style="font-size:12px;">close</span>
-              </button>
-            </span>
+          <!-- Tab: Người dùng -->
+          <div id="share-tab-user">
+            <div class="relative mb-2">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+              <input id="shareSearch" type="text"
+                     class="w-full pl-9 pr-4 py-2 bg-white border border-outline-variant/30 rounded-lg
+                            text-sm focus:ring-1 focus:ring-primary placeholder:text-slate-300"
+                     placeholder="Tìm tên user..."/>
+            </div>
+            <div class="flex flex-wrap gap-2" id="shareChips">
+              <span class="inline-flex items-center gap-1 bg-primary-fixed text-on-primary-fixed
+                           text-xs font-medium px-2.5 py-1 rounded-full">
+                Lan Anh (Sales)
+                <button class="hover:text-error ml-0.5" onclick="removeChip(this)">
+                  <span class="material-symbols-outlined" style="font-size:12px;">close</span>
+                </button>
+              </span>
+            </div>
           </div>
+          <!-- Tab: Nhóm -->
+          <div id="share-tab-group" class="hidden">
+            <div id="shareGroupList" class="space-y-0.5 max-h-44 overflow-y-auto rounded-lg
+                                            border border-outline-variant/20 p-1">
+              <!-- Populated by populateShareGroups() -->
+            </div>
+          </div>
+          <!-- Mức quyền -->
           <div class="flex items-center gap-3">
             <span class="text-xs font-medium text-on-surface-variant whitespace-nowrap">Mức quyền:</span>
             <select id="sharePermission"
@@ -579,14 +601,23 @@
 <script>
   // ================================================================
   // USER & PERMISSIONS
-  // Lấy user hiện tại từ permissions.js; fallback cho chế độ chạy độc lập
+  // Ƭu tiên lấy userId từ URL param (do demo shell truyền vào)
+  // fallback về getCurrentUser() của permissions.js
   // ================================================================
-  const uploadUser = (typeof getCurrentUser === 'function' && getCurrentUser())
-    || (typeof currentUser !== 'undefined' && currentUser)
-    || { id: 'user1', name: 'Người dùng', role: 'user' };
-  const uploadUserIsAdmin = typeof isAdmin === 'function'
-    ? isAdmin(uploadUser)
-    : uploadUser.role === 'admin';
+  (function resolveUploadUser() {
+    const _urlUserId = new URLSearchParams(location.search).get('userId');
+    const _byUrl = _urlUserId && typeof ACCOUNTS !== 'undefined'
+      ? ACCOUNTS.find(function(a){ return a.id === _urlUserId; })
+      : null;
+    const _byFn = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    const _byCur = typeof currentUser !== 'undefined' ? currentUser : null;
+    window._uploadUser = _byUrl || _byFn || _byCur || { id: 'user1', name: 'Người dùng', role: 'user' };
+    window._uploadUserIsAdmin = typeof isAdmin === 'function'
+      ? isAdmin(window._uploadUser)
+      : window._uploadUser.role === 'admin';
+  })();
+  const uploadUser        = window._uploadUser;
+  const uploadUserIsAdmin = window._uploadUserIsAdmin;
 
   const FOLDER_OPTIONS = [
     { value: 'private',          label: '🔒 Cá nhân (riêng tôi)',       adminOnly: false },
@@ -629,15 +660,55 @@
       }
     });
 
-    // Vô hiệu radio "Công khai" nếu không phải Admin
-    const optPublic = document.getElementById('opt-public');
-    if (optPublic) {
-      const radio = optPublic.querySelector('input');
-      if (!uploadUserIsAdmin) {
-        radio.disabled = true;
-        optPublic.title = 'Chỉ Admin mới có thể upload tài liệu Công khai';
-      }
+    // User: ẨN HOÀN TOÀN radio "Công khai" và section phân quyền role khỏi DOM
+    if (!uploadUserIsAdmin) {
+      const optPublic = document.getElementById('opt-public');
+      const sectionPublic = document.getElementById('section-public');
+      if (optPublic) optPublic.remove();
+      if (sectionPublic) sectionPublic.remove();
+      // Đảm bảo "Cá nhân" được chọn mặc định
+      const radioPrivate = document.querySelector('input[name="docType"][value="private"]');
+      if (radioPrivate) radioPrivate.checked = true;
     }
+
+    // Populate nhóm trong tab Chia sẻ
+    populateShareGroups();
+  }
+
+  function populateShareGroups() {
+    const groupList = document.getElementById('shareGroupList');
+    if (!groupList) return;
+    groupList.innerHTML = '';
+    const groups = typeof GROUPS !== 'undefined' ? GROUPS : [];
+    if (groups.length === 0) {
+      groupList.innerHTML = '<p class="text-xs text-on-surface-variant px-2 py-3 text-center">Chưa có nhóm nào được tạo</p>';
+      return;
+    }
+    groups.forEach(g => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2.5 px-3 py-2 hover:bg-surface-container rounded-lg cursor-pointer';
+      label.innerHTML = `
+        <input type="checkbox" value="${g.id}" class="accent-primary share-group-cb">
+        <span class="material-symbols-outlined text-primary" style="font-size:16px;">group</span>
+        <span class="text-sm font-medium">${escHtml(g.name)}</span>
+        <span class="text-xs text-on-surface-variant ml-auto">${g.memberIds.length} thành viên</span>`;
+      groupList.appendChild(label);
+    });
+  }
+
+  function switchShareTab(tab) {
+    document.getElementById('share-tab-user').classList.toggle('hidden', tab !== 'user');
+    document.getElementById('share-tab-group').classList.toggle('hidden', tab !== 'group');
+    ['user','group'].forEach(t => {
+      const btn = document.getElementById('share-tab-btn-' + t);
+      if (t === tab) {
+        btn.classList.add('border-primary', 'text-primary');
+        btn.classList.remove('border-transparent', 'text-on-surface-variant');
+      } else {
+        btn.classList.remove('border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-on-surface-variant');
+      }
+    });
   }
 
   // ================================================================
