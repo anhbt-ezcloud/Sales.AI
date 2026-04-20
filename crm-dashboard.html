@@ -4,6 +4,18 @@
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>CRM Hub & Dashboard - AI Sales Agent</title>
+
+  <!-- Apply saved theme/font before first paint — prevents FOUC -->
+  <script>
+    (function(){
+      var t=localStorage.getItem('app-theme')||'purple';
+      var s=localStorage.getItem('app-font-scale')||'medium';
+      var sc={small:0.9,medium:1,large:1.15,xlarge:1.3};
+      document.documentElement.classList.add('theme-'+t);
+      document.documentElement.style.setProperty('--font-scale',sc[s]||1);
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -13,9 +25,22 @@
       theme: {
         extend: {
           colors: {
-            "primary": "#3525cd", "primary-container": "#4f46e5", "primary-fixed": "#e2dfff",
-            "primary-fixed-dim": "#c3c0ff", "on-primary": "#ffffff", "on-primary-container": "#dad7ff",
-            "on-primary-fixed": "#0f0069", "on-primary-fixed-variant": "#3323cc",
+            /*
+             * Primary palette — all resolved via CSS custom properties so
+             * switching .theme-* on <html> updates every bg-primary,
+             * text-primary, ring-primary/N usage site-wide, with no JS
+             * DOM walking needed.
+             */
+            "primary":                  "rgb(var(--color-primary) / <alpha-value>)",
+            "primary-container":        "rgb(var(--color-primary-container) / <alpha-value>)",
+            "primary-fixed":            "rgb(var(--color-primary-fixed) / <alpha-value>)",
+            "primary-fixed-dim":        "rgb(var(--color-primary-fixed-dim) / <alpha-value>)",
+            "on-primary":               "rgb(var(--color-on-primary) / <alpha-value>)",
+            "on-primary-container":     "rgb(var(--color-on-primary-container) / <alpha-value>)",
+            "on-primary-fixed":         "rgb(var(--color-on-primary-fixed) / <alpha-value>)",
+            "on-primary-fixed-variant": "rgb(var(--color-on-primary-fixed-variant) / <alpha-value>)",
+            "inverse-primary":          "rgb(var(--color-primary-fixed-dim) / <alpha-value>)",
+            /* Secondary / Tertiary / Error — semantic fixed colors */
             "secondary": "#006c49", "secondary-container": "#6cf8bb", "secondary-fixed": "#6ffbbe",
             "secondary-fixed-dim": "#4edea3", "on-secondary": "#ffffff", "on-secondary-container": "#00714d",
             "on-secondary-fixed": "#002113", "on-secondary-fixed-variant": "#005236",
@@ -23,6 +48,7 @@
             "tertiary-fixed-dim": "#ffb95f", "on-tertiary": "#ffffff", "on-tertiary-container": "#ffd4a4",
             "on-tertiary-fixed": "#2a1700", "on-tertiary-fixed-variant": "#653e00",
             "error": "#ba1a1a", "error-container": "#ffdad6", "on-error": "#ffffff", "on-error-container": "#93000a",
+            /* Surfaces */
             "surface": "#f8f9ff", "surface-dim": "#cbdbf5", "surface-bright": "#f8f9ff",
             "surface-container-lowest": "#ffffff", "surface-container-low": "#eff4ff",
             "surface-container": "#e5eeff", "surface-container-high": "#dce9ff",
@@ -30,7 +56,7 @@
             "on-surface": "#0b1c30", "on-surface-variant": "#464555",
             "background": "#f8f9ff", "on-background": "#0b1c30",
             "outline": "#777587", "outline-variant": "#c7c4d8",
-            "inverse-surface": "#213145", "inverse-on-surface": "#eaf1ff", "inverse-primary": "#c3c0ff"
+            "inverse-surface": "#213145", "inverse-on-surface": "#eaf1ff"
           },
           borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
           fontFamily: { "headline": ["Inter"], "body": ["Inter"], "label": ["Inter"] }
@@ -39,17 +65,117 @@
     }
   </script>
   <style>
+    /*
+    ═══════════════════════════════════════════════════════════════
+    THEME SYSTEM — how to add a new theme
+    ───────────────────────────────────────────────────────────────
+    1. Add a .theme-<name> { } block below overriding the eight
+       --color-primary-* RGB triplets plus the three --sidebar-*
+       values.  RGB triplets use space-separated notation so
+       Tailwind's opacity modifier syntax works:
+         bg-primary/10  →  rgb(var(--color-primary) / 0.1)
+    2. Add a swatch <button onclick="applyTheme('<name>')"> inside
+       the #settingsPanel grid.
+    3. No other changes needed — every bg-primary, text-primary,
+       ring-primary, hover:bg-primary-container etc. inherits the
+       new values automatically via the cascade.
+    ═══════════════════════════════════════════════════════════════
+    */
+
+    /* Font scale — changed by setFontSize(), persisted in localStorage */
+    :root { --font-scale: 1; }
+    html  { font-size: calc(16px * var(--font-scale)); }
+
+    /* ── Default theme: purple ── */
+    :root, .theme-purple {
+      --color-primary:                  53 37 205;
+      --color-primary-container:        79 70 229;
+      --color-primary-fixed:            226 223 255;
+      --color-primary-fixed-dim:        195 192 255;
+      --color-on-primary:               255 255 255;
+      --color-on-primary-container:     218 215 255;
+      --color-on-primary-fixed:         15 0 105;
+      --color-on-primary-fixed-variant: 51 35 204;
+      --sidebar-bg:                     #eff4ff;
+      --sidebar-hover:                  rgba(211,228,254,0.6);
+      --sidebar-active:                 #4f46e5;
+    }
+
+    .theme-green {
+      --color-primary:                  22 163 74;
+      --color-primary-container:        21 128 61;
+      --color-primary-fixed:            220 252 231;
+      --color-primary-fixed-dim:        187 247 208;
+      --color-on-primary:               255 255 255;
+      --color-on-primary-container:     20 83 45;
+      --color-on-primary-fixed:         5 46 22;
+      --color-on-primary-fixed-variant: 22 101 52;
+      --sidebar-bg:                     #f0fdf4;
+      --sidebar-hover:                  rgba(187,247,208,0.6);
+      --sidebar-active:                 #16a34a;
+    }
+
+    .theme-blue {
+      --color-primary:                  37 99 235;
+      --color-primary-container:        29 78 216;
+      --color-primary-fixed:            219 234 254;
+      --color-primary-fixed-dim:        191 219 254;
+      --color-on-primary:               255 255 255;
+      --color-on-primary-container:     30 64 175;
+      --color-on-primary-fixed:         23 37 84;
+      --color-on-primary-fixed-variant: 29 78 216;
+      --sidebar-bg:                     #eff6ff;
+      --sidebar-hover:                  rgba(191,219,254,0.6);
+      --sidebar-active:                 #2563eb;
+    }
+
+    .theme-orange {
+      --color-primary:                  234 88 12;
+      --color-primary-container:        194 65 12;
+      --color-primary-fixed:            255 237 213;
+      --color-primary-fixed-dim:        254 215 170;
+      --color-on-primary:               255 255 255;
+      --color-on-primary-container:     124 45 18;
+      --color-on-primary-fixed:         67 20 7;
+      --color-on-primary-fixed-variant: 154 52 18;
+      --sidebar-bg:                     #fff7ed;
+      --sidebar-hover:                  rgba(254,215,170,0.6);
+      --sidebar-active:                 #ea580c;
+    }
+
+    /* ── Base ── */
     body { font-family: 'Inter', sans-serif; }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; vertical-align: middle; }
     a, button { transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s, transform .15s; }
+    input[type="radio"] { accent-color: rgb(var(--color-primary)); }
+
+    /* ── Sidebar theme ── */
+    #main-sidebar { background-color: var(--sidebar-bg); }
+    .sb-link { color: #475569; }
+    .sb-link:hover { background-color: var(--sidebar-hover); }
+    .sb-trigger:hover { background-color: var(--sidebar-hover); }
+    .sb-active { background-color: var(--sidebar-active) !important; color: #fff !important; }
+
+    /* ── Task card title highlight on hover ── */
+    .task-card:hover .task-title { color: rgb(var(--color-primary)); }
+    .activity-line { width: 2px; background: currentColor; }
+
+    /* ── Animations ── */
     @keyframes fadeInUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     .fade-in { animation: fadeInUp .3s ease-out both; }
     @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
     .pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
     @keyframes toast-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
     .toast-anim { animation: toast-in .25s ease-out; }
-    .task-card:hover .task-title { color: #3525cd; }
-    .activity-line { width: 2px; background: currentColor; }
+
+    /* ── Settings panel ── */
+    #settingsPanel { transform: translateX(100%); transition: transform 0.3s ease; }
+    #settingsPanel.open  { transform: translateX(0); }
+    .theme-swatch { border: 2px solid transparent; transition: border-color .15s, background-color .15s; }
+    .theme-swatch.active { border-color: rgb(var(--color-primary)); background-color: rgb(var(--color-primary-fixed)); }
+    .font-option { border: 1px solid #e2e8f0; cursor: pointer; transition: border-color .15s, background-color .15s; }
+    .font-option:hover { background-color: #f8fafc; }
+    .font-option.active { border-color: rgb(var(--color-primary)); background-color: rgb(var(--color-primary-fixed)); }
   </style>
 </head>
 <body class="bg-surface text-on-surface">
@@ -57,14 +183,14 @@
 <!-- ===============================================================
      FIXED SIDEBAR
      =============================================================== -->
-<aside class="w-[240px] h-screen fixed left-0 top-0 flex flex-col py-6 px-4 bg-[#eff4ff] z-50">
+<aside id="main-sidebar" class="w-[240px] h-screen fixed left-0 top-0 flex flex-col py-6 px-4 z-50">
   <div class="mb-6 px-2 flex items-center gap-3">
-    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow">
+    <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow">
       <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">smart_toy</span>
     </div>
     <div>
       <h1 class="text-base font-bold text-primary leading-tight">Quản gia AI</h1>
-      <p class="text-[10px] uppercase tracking-widest text-slate-500">Sales Intelligence</p>
+      <p class="text-[0.625rem] uppercase tracking-widest text-slate-500">Sales Intelligence</p>
     </div>
   </div>
 
@@ -72,21 +198,21 @@
     <!-- ── MODULE 1: Chat tài liệu ── -->
     <button id="trigger-module1" aria-expanded="false" aria-controls="submenu-module1"
       onclick="toggleMenu('module1')" onkeydown="handleMenuKey(event,'module1')"
-      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">chat</span>
-      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">Chat tài liệu</span>
-      <span id="chevron-module1" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+      class="sb-trigger w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:0.875rem;">chat</span>
+      <span class="text-[0.625rem] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">Chat tài liệu</span>
+      <span id="chevron-module1" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:1rem;transition:transform 0.3s ease-in-out;">chevron_right</span>
     </button>
     <div id="submenu-module1" role="region" aria-labelledby="trigger-module1"
       class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
       <div class="space-y-0.5 pb-1">
-        <a href="man-hinh-1.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="chat-tai-lieu.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">chat_bubble</span><span>Chat tài liệu</span>
         </a>
-        <a href="man-hinh-2.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="chat-tai-lieu-mobile.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">forum</span><span>Concierge AI</span>
         </a>
-        <a href="man-hinh-4.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="thu-vien-tai-lieu.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">description</span><span>Thư viện tài liệu</span>
         </a>
       </div>
@@ -97,35 +223,35 @@
     <!-- ── MODULE 2: CRM & Công việc ── -->
     <button id="trigger-module2" aria-expanded="false" aria-controls="submenu-module2"
       onclick="toggleMenu('module2')" onkeydown="handleMenuKey(event,'module2')"
-      class="w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md hover:bg-[#d3e4fe]/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:14px;">business_center</span>
-      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">CRM &amp; Công việc</span>
-      <span id="chevron-module2" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:16px;transition:transform 0.3s ease-in-out;">chevron_right</span>
+      class="sb-trigger w-full flex items-center gap-2 px-3 pt-2 pb-1.5 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <span class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:0.875rem;">business_center</span>
+      <span class="text-[0.625rem] font-bold text-slate-400 uppercase tracking-widest flex-1 text-left">CRM &amp; Công việc</span>
+      <span id="chevron-module2" class="material-symbols-outlined text-slate-400 shrink-0" style="font-size:1rem;transition:transform 0.3s ease-in-out;">chevron_right</span>
     </button>
     <div id="submenu-module2" role="region" aria-labelledby="trigger-module2"
       class="overflow-hidden" style="max-height:0;transition:max-height 0.3s ease-in-out;">
       <div class="space-y-0.5 pb-1">
-        <a href="man-hinh-7.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="crm-cong-viec.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">dashboard</span><span>Dashboard CRM</span>
         </a>
-        <a href="man-hinh-8.html" class="flex items-center gap-3 px-3 py-2 rounded-md bg-[#4f46e5] text-white">
+        <a href="crm-dashboard.html" class="sb-active flex items-center gap-3 px-3 py-2 rounded-md">
           <span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">assignment</span><span>CRM Hub</span>
         </a>
-        <a href="man-hinh-11.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="chat-hoi-dap-crm.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">support_agent</span><span>Chat CRM</span>
         </a>
-        <a href="man-hinh-12.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="ai-goi-y-hanh-dong.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">auto_awesome</span><span>AI Gợi ý</span>
         </a>
-        <a href="man-hinh-10.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="kanban-deals.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">view_kanban</span><span>Kanban Deals</span>
         </a>
-        <a href="man-hinh-9.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="thong-bao-inbox.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">notifications</span>
           <span class="flex-1">Thông báo</span>
-          <span class="bg-error text-white text-[10px] font-bold px-1.5 rounded-full">5</span>
+          <span class="bg-error text-white text-[0.625rem] font-bold px-1.5 rounded-full">5</span>
         </a>
-        <a href="man-hinh-15.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-[#d3e4fe]/60 transition-colors">
+        <a href="cau-hinh-ket-noi-crm.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
           <span class="material-symbols-outlined text-sm">settings</span><span>Cấu hình CRM</span>
         </a>
       </div>
@@ -133,20 +259,20 @@
   </nav>
 
   <div class="pt-4 border-t border-outline-variant/20 space-y-1 text-sm">
-    <a href="man-hinh-17.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+    <a href="cai-dat.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
       <span class="material-symbols-outlined text-sm">manage_accounts</span><span>Cài đặt</span>
     </a>
-    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+    <a href="#" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
       <span class="material-symbols-outlined">help</span><span>Trợ giúp</span>
     </a>
-    <a href="man-hinh-16.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-500 hover:bg-[#d3e4fe]/60">
+    <a href="dang-nhap-dang-ky.html" class="sb-link flex items-center gap-3 px-3 py-2 rounded-md transition-colors">
       <span class="material-symbols-outlined text-sm">logout</span><span>Đăng xuất</span>
     </a>
     <div class="flex items-center gap-3 px-2 pt-2">
-      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">QL</div>
+      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold">QL</div>
       <div class="overflow-hidden">
         <p class="text-xs font-bold truncate">Quản lý Bán hàng</p>
-        <p class="text-[10px] text-slate-500 truncate">admin@aisales.vn</p>
+        <p class="text-[0.625rem] text-slate-500 truncate">admin@aisales.vn</p>
       </div>
     </div>
   </div>
@@ -173,15 +299,15 @@
              placeholder="Tìm kiếm deals, khách hàng..." type="text"/>
     </div>
     <div class="flex items-center gap-3">
-      <a href="man-hinh-9.html" class="text-slate-500 hover:text-primary relative">
+      <a href="thong-bao-inbox.html" class="text-slate-500 hover:text-primary relative">
         <span class="material-symbols-outlined">notifications</span>
         <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
       </a>
-      <button class="text-slate-500 hover:text-primary">
+      <button onclick="openSettings()" class="text-slate-500 hover:text-primary">
         <span class="material-symbols-outlined">settings</span>
       </button>
       <div class="h-8 w-px bg-outline-variant/30"></div>
-      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white text-xs font-bold">QL</div>
+      <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold">QL</div>
     </div>
   </div>
 </header>
@@ -198,7 +324,7 @@
         <p class="text-outline text-xs font-semibold uppercase tracking-wider mb-2">Doanh thu tháng này</p>
         <h3 class="text-2xl font-bold">1,240,000,000 ₫</h3>
       </div>
-      <div class="mt-4 flex items-center text-secondary text-sm font-medium">
+      <div class="mt-4 flex items-center text-primary text-sm font-medium">
         <span class="material-symbols-outlined text-sm mr-1">trending_up</span>+12% so với tháng trước
       </div>
     </div>
@@ -216,10 +342,11 @@
         <p class="text-outline text-xs font-semibold uppercase tracking-wider mb-2">Tỷ lệ chốt (Win Rate)</p>
         <h3 class="text-2xl font-bold">24%</h3>
       </div>
-      <div class="mt-4 flex items-center text-secondary text-sm font-medium">
+      <div class="mt-4 flex items-center text-primary text-sm font-medium">
         <span class="material-symbols-outlined text-sm mr-1">arrow_upward</span>Tăng 2% tuần này
       </div>
     </div>
+    <!-- AI Efficiency card uses bg-primary-container — follows theme via CSS var -->
     <div class="bg-primary-container p-6 rounded-lg shadow-md flex flex-col justify-between text-on-primary fade-in" style="animation-delay:.15s">
       <div>
         <div class="flex items-center gap-2 mb-2">
@@ -292,35 +419,35 @@
         <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-surface-bright/50 text-sm">
           <div class="flex gap-2">
             <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-primary" style="font-size:16px;">smart_toy</span>
+              <span class="material-symbols-outlined text-primary" style="font-size:1rem;">smart_toy</span>
             </div>
             <div class="bg-white p-3 rounded-xl rounded-tl-none shadow-sm border border-outline-variant/10">
               Xin chào! Tôi có thể giúp gì cho bạn về dữ liệu CRM hôm nay?
             </div>
           </div>
           <div class="flex gap-2 flex-row-reverse">
-            <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 text-[10px] text-white font-bold">QL</div>
+            <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 text-[0.625rem] text-on-primary font-bold">QL</div>
             <div class="bg-primary p-3 rounded-xl rounded-tr-none shadow-sm text-on-primary">
               Tóm tắt tương tác với chị Lan Anh (Momo)
             </div>
           </div>
           <div class="flex gap-2">
             <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-primary" style="font-size:16px;">smart_toy</span>
+              <span class="material-symbols-outlined text-primary" style="font-size:1rem;">smart_toy</span>
             </div>
             <div class="bg-white p-3 rounded-xl rounded-tl-none shadow-sm border border-outline-variant/10">
-              Chị Lan Anh vừa xem tài liệu <a href="man-hinh-5.html" class="text-primary font-medium hover:underline">BaoGia_2026.pdf</a> cách đây 2 giờ. Ngoài ra, chị ấy đã xem trang Bảng giá 3 lần sáng nay. Bạn nên gọi điện ngay để tư vấn thêm.
+              Chị Lan Anh vừa xem tài liệu <a href="xem-tai-lieu.html" class="text-primary font-medium hover:underline">BaoGia_2026.pdf</a> cách đây 2 giờ. Ngoài ra, chị ấy đã xem trang Bảng giá 3 lần sáng nay. Bạn nên gọi điện ngay để tư vấn thêm.
             </div>
           </div>
         </div>
         <!-- Quick chips -->
         <div class="px-4 py-2 flex flex-wrap gap-2 border-t border-outline-variant/5">
           <button onclick="quickChat('Top 5 deals tháng này là ai?')"
-                  class="text-[10px] bg-surface-container-high px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
+                  class="text-[0.625rem] bg-surface-container-high px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
             Top 5 deals tháng này là ai?
           </button>
           <button onclick="quickChat('Pipeline tháng sau thế nào?')"
-                  class="text-[10px] bg-surface-container-high px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
+                  class="text-[0.625rem] bg-surface-container-high px-2 py-1 rounded-full hover:bg-primary-fixed transition-colors">
             Pipeline tháng sau thế nào?
           </button>
         </div>
@@ -355,6 +482,87 @@
 <!-- Toast -->
 <div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"></div>
 
+<!-- ===============================================================
+     SETTINGS PANEL
+     =============================================================== -->
+<div id="settingsOverlay" class="fixed inset-0 bg-black/30 z-[100] hidden" onclick="closeSettings()"></div>
+
+<aside id="settingsPanel" class="fixed right-0 top-0 h-screen w-[320px] bg-white z-[101] shadow-2xl flex flex-col">
+  <div class="p-6 border-b border-outline-variant/20 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">palette</span>
+      <h2 class="font-bold text-base">Cài đặt giao diện</h2>
+    </div>
+    <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 rounded-md p-1">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-6 space-y-8">
+
+    <!-- Theme color -->
+    <div>
+      <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Màu chủ đạo</p>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="applyTheme('purple')" data-theme="purple"
+                class="theme-swatch flex items-center gap-3 p-3 rounded-lg text-left">
+          <span class="w-5 h-5 rounded-full shrink-0" style="background:#3525cd;"></span>
+          <span class="text-sm font-medium">Tím</span>
+        </button>
+        <button onclick="applyTheme('green')" data-theme="green"
+                class="theme-swatch flex items-center gap-3 p-3 rounded-lg text-left">
+          <span class="w-5 h-5 rounded-full shrink-0" style="background:#16a34a;"></span>
+          <span class="text-sm font-medium">Xanh lá</span>
+        </button>
+        <button onclick="applyTheme('blue')" data-theme="blue"
+                class="theme-swatch flex items-center gap-3 p-3 rounded-lg text-left">
+          <span class="w-5 h-5 rounded-full shrink-0" style="background:#2563eb;"></span>
+          <span class="text-sm font-medium">Xanh dương</span>
+        </button>
+        <button onclick="applyTheme('orange')" data-theme="orange"
+                class="theme-swatch flex items-center gap-3 p-3 rounded-lg text-left">
+          <span class="w-5 h-5 rounded-full shrink-0" style="background:#ea580c;"></span>
+          <span class="text-sm font-medium">Cam</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Font size -->
+    <div>
+      <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cỡ chữ</p>
+      <div class="space-y-2">
+        <button onclick="setFontSize('small')" data-size="small"
+                class="font-option w-full flex items-center justify-between px-4 py-3 rounded-lg">
+          <span class="text-sm">Nhỏ</span>
+          <span class="text-xs text-slate-400">90%</span>
+        </button>
+        <button onclick="setFontSize('medium')" data-size="medium"
+                class="font-option w-full flex items-center justify-between px-4 py-3 rounded-lg">
+          <span class="text-sm">Vừa</span>
+          <span class="text-xs text-slate-400">100% — mặc định</span>
+        </button>
+        <button onclick="setFontSize('large')" data-size="large"
+                class="font-option w-full flex items-center justify-between px-4 py-3 rounded-lg">
+          <span class="text-sm">Lớn</span>
+          <span class="text-xs text-slate-400">115%</span>
+        </button>
+        <button onclick="setFontSize('xlarge')" data-size="xlarge"
+                class="font-option w-full flex items-center justify-between px-4 py-3 rounded-lg">
+          <span class="text-sm">Rất lớn</span>
+          <span class="text-xs text-slate-400">130%</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 border-t border-outline-variant/20">
+    <button onclick="resetSettings()"
+            class="w-full py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+      Khôi phục mặc định
+    </button>
+  </div>
+</aside>
+
 <script>
 // ========== TASKS DATA ==========
 const TASKS = [
@@ -376,14 +584,14 @@ const TASKS = [
     priority: 'Hot Deal', priorityColor: 'bg-secondary-container text-on-secondary-container',
     deal: 'Hoạt động mới nhất: 2 giờ trước', title: 'Deal nóng: Momo Group',
     desc: 'Gợi ý: Khách hàng vừa tải xuống báo giá. Đây là thời điểm vàng để thực hiện cuộc gọi tư vấn trực tiếp.',
-    btnLabel: 'Gọi ngay', btnClass: 'bg-secondary text-on-secondary hover:opacity-90', btnIcon: 'call',
+    btnLabel: 'Gọi ngay', btnClass: 'bg-primary text-on-primary hover:opacity-90', btnIcon: 'call',
     action: () => { showToast('Đang kết nối cuộc gọi với Momo Group...'); }
   },
   {
-    priority: 'Proposal Due', priorityColor: 'bg-indigo-100 text-indigo-700',
+    priority: 'Proposal Due', priorityColor: 'bg-primary-fixed text-on-primary-fixed-variant',
     deal: 'Deadline: 25/04/2026', title: 'Gửi Proposal - Grab Delivery',
     desc: 'Gợi ý: Proposal chưa được gửi sau buổi họp demo tuần trước. Cần gửi trước 25/04 để giữ momentum.',
-    btnLabel: 'Tạo Proposal', btnClass: 'bg-indigo-600 text-white hover:bg-indigo-700', btnIcon: 'description',
+    btnLabel: 'Tạo Proposal', btnClass: 'bg-primary text-on-primary hover:bg-primary-container', btnIcon: 'description',
     action: () => { showToast('Đang tạo Proposal tự động...'); }
   },
 ];
@@ -412,7 +620,7 @@ function renderTasks() {
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tighter ${t.priorityColor}">${t.priority}</span>
+            <span class="px-2 py-0.5 rounded text-[0.625rem] font-bold uppercase tracking-tighter ${t.priorityColor}">${t.priority}</span>
             <span class="text-xs text-outline font-medium">${t.deal}</span>
           </div>
           <h4 class="task-title text-base font-bold transition-colors">${t.title}</h4>
@@ -450,7 +658,7 @@ function sendChat() {
   const box = document.getElementById('chatMessages');
   box.insertAdjacentHTML('beforeend', `
     <div class="flex gap-2 flex-row-reverse">
-      <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 text-[10px] text-white font-bold">QL</div>
+      <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 text-[0.625rem] text-on-primary font-bold">QL</div>
       <div class="bg-primary p-3 rounded-xl rounded-tr-none shadow-sm text-on-primary text-sm">${msg}</div>
     </div>
     <div id="typing" class="flex gap-1.5 items-center p-3 bg-white rounded-lg rounded-tl-none w-12">
@@ -467,7 +675,7 @@ function sendChat() {
     box.insertAdjacentHTML('beforeend', `
       <div class="flex gap-2">
         <div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-primary" style="font-size:16px;">smart_toy</span>
+          <span class="material-symbols-outlined text-primary" style="font-size:1rem;">smart_toy</span>
         </div>
         <div class="bg-white p-3 rounded-xl rounded-tl-none shadow-sm border border-outline-variant/10 text-sm">${reply}</div>
       </div>`);
@@ -502,57 +710,119 @@ function showToast(msg, type = 'success') {
 renderTasks();
 renderActivity();
 </script>
+
 <script>
-  /* ═══════════════════════════════════════════════════
-     SIDEBAR ACCORDION — Vanilla JS
-     ═══════════════════════════════════════════════════ */
-  const menuState = { module1: false, module2: false };
+/* ═══════════════════════════════════════════════════
+   SIDEBAR ACCORDION — Vanilla JS
+   ═══════════════════════════════════════════════════ */
+const menuState = { module1: false, module2: false };
 
-  function toggleMenu(id) {
-    const submenu = document.getElementById('submenu-' + id);
-    const chevron  = document.getElementById('chevron-' + id);
-    const trigger  = document.getElementById('trigger-' + id);
-    if (!submenu) return;
-    menuState[id] = !menuState[id];
-    if (menuState[id]) {
-      submenu.style.maxHeight = submenu.scrollHeight + 'px';
-      if (chevron) chevron.style.transform = 'rotate(90deg)';
-      if (trigger) trigger.setAttribute('aria-expanded', 'true');
-    } else {
-      submenu.style.maxHeight = '0';
-      if (chevron) chevron.style.transform = '';
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  function handleMenuKey(e, id) {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
-  }
-
-  function initSidebarAccordion() {
-    ['module1', 'module2'].forEach(function(id) {
-      const submenu = document.getElementById('submenu-' + id);
-      if (!submenu) return;
-      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
-        submenu.style.transition = 'none';
-        menuState[id] = true;
-        submenu.style.maxHeight = submenu.scrollHeight + 'px';
-        var chev = document.getElementById('chevron-' + id);
-        var trig = document.getElementById('trigger-' + id);
-        if (chev) chev.style.transform = 'rotate(90deg)';
-        if (trig) trig.setAttribute('aria-expanded', 'true');
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
-        });
-      }
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+function toggleMenu(id) {
+  const submenu = document.getElementById('submenu-' + id);
+  const chevron  = document.getElementById('chevron-' + id);
+  const trigger  = document.getElementById('trigger-' + id);
+  if (!submenu) return;
+  menuState[id] = !menuState[id];
+  if (menuState[id]) {
+    submenu.style.maxHeight = submenu.scrollHeight + 'px';
+    if (chevron) chevron.style.transform = 'rotate(90deg)';
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
   } else {
-    initSidebarAccordion();
+    submenu.style.maxHeight = '0';
+    if (chevron) chevron.style.transform = '';
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
   }
+}
+
+function handleMenuKey(e, id) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
+}
+
+function initSidebarAccordion() {
+  ['module1', 'module2'].forEach(function(id) {
+    const submenu = document.getElementById('submenu-' + id);
+    if (!submenu) return;
+    if (submenu.querySelector('a.sb-active')) {
+      submenu.style.transition = 'none';
+      menuState[id] = true;
+      submenu.style.maxHeight = submenu.scrollHeight + 'px';
+      var chev = document.getElementById('chevron-' + id);
+      var trig = document.getElementById('trigger-' + id);
+      if (chev) chev.style.transform = 'rotate(90deg)';
+      if (trig) trig.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
+      });
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSidebarAccordion);
+} else {
+  initSidebarAccordion();
+}
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   THEME & FONT SIZE SETTINGS
+   ═══════════════════════════════════════════════════ */
+const THEMES = ['purple', 'green', 'blue', 'orange'];
+const FONT_SCALES = { small: 0.9, medium: 1, large: 1.15, xlarge: 1.3 };
+
+function applyTheme(name, silent) {
+  THEMES.forEach(t => document.documentElement.classList.remove('theme-' + t));
+  document.documentElement.classList.add('theme-' + name);
+  localStorage.setItem('app-theme', name);
+  document.querySelectorAll('.theme-swatch').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === name);
+  });
+  if (!silent) showToast('Đã đổi theme: ' + name);
+}
+
+function setFontSize(size, silent) {
+  const scale = FONT_SCALES[size] || 1;
+  document.documentElement.style.setProperty('--font-scale', scale);
+  localStorage.setItem('app-font-scale', size);
+  document.querySelectorAll('.font-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === size);
+  });
+  if (!silent) showToast('Đã đổi cỡ chữ: ' + size);
+}
+
+function openSettings() {
+  document.getElementById('settingsPanel').classList.add('open');
+  document.getElementById('settingsOverlay').classList.remove('hidden');
+  /* Sync UI state with current settings */
+  const curTheme = localStorage.getItem('app-theme') || 'purple';
+  const curSize  = localStorage.getItem('app-font-scale') || 'medium';
+  document.querySelectorAll('.theme-swatch').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === curTheme);
+  });
+  document.querySelectorAll('.font-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === curSize);
+  });
+}
+
+function closeSettings() {
+  document.getElementById('settingsPanel').classList.remove('open');
+  document.getElementById('settingsOverlay').classList.add('hidden');
+}
+
+function resetSettings() {
+  applyTheme('purple');
+  setFontSize('medium');
+}
+
+/* Re-apply on load (the pre-render script already set CSS vars,
+   this pass syncs the panel UI active states without a toast) */
+(function initSettings() {
+  const t = localStorage.getItem('app-theme') || 'purple';
+  const s = localStorage.getItem('app-font-scale') || 'medium';
+  applyTheme(t, true);
+  setFontSize(s, true);
+})();
 </script>
 </body>
 </html>

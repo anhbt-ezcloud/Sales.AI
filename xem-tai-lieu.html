@@ -7,6 +7,7 @@
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="js/permissions.js"></script>
 
   <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -225,6 +226,11 @@
 
     <!-- Action buttons -->
     <div class="flex items-center gap-1 shrink-0 ml-3">
+      <a href="thu-vien-tai-lieu.html"
+         class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant hover:text-primary"
+         title="Quay lại Thư viện">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
       <a href="man-hinh-1.html"
          class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant hover:text-primary"
          title="Chat về tài liệu này">
@@ -241,7 +247,7 @@
         <span class="material-symbols-outlined">more_vert</span>
       </button>
       <div class="w-px h-6 bg-outline-variant/30 mx-1"></div>
-      <a href="man-hinh-1.html"
+      <a href="thu-vien-tai-lieu.html"
          class="p-2 hover:bg-error-container hover:text-on-error-container rounded-lg
                 text-on-surface-variant" title="Đóng">
         <span class="material-symbols-outlined">close</span>
@@ -658,6 +664,31 @@
      JAVASCRIPT
      ============================================================ -->
 <script>
+  // ================================================================
+  // CHECK PERMISSION
+  // ================================================================
+  const urlParams = new URLSearchParams(location.search);
+  const fileId = urlParams.get('id');
+  
+  if (fileId) {
+    const fileObj = FILES[fileId];
+    if (!fileObj || !canView(fileObj, currentUser)) {
+      // Không có quyền → hiển thị message
+      document.body.innerHTML = `
+        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-center;background:#f1f4ff;z-index:9999;">
+          <div style="background:white;border-radius:12px;padding:40px;text-align:center;max-width:400px;box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+            <div style="font-size:64px;margin-bottom:16px;">🔒</div>
+            <h1 style="font-size:24px;font-weight:bold;color:#1e293b;margin-bottom:8px;">Bạn không có quyền</h1>
+            <p style="color:#64748b;margin-bottom:24px;font-size:14px;">Bạn không có quyền xem tài liệu này. Vui lòng liên hệ admin để được cấp quyền.</p>
+            <a href="thu-vien-tai-lieu.html" style="display:inline-block;background:#3525cd;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+              ← Quay lại Thư viện
+            </a>
+          </div>
+        </div>`;
+      throw new Error('Unauthorized');
+    }
+  }
+
   // ================================================================
   // TABS SWITCHING
   // ================================================================

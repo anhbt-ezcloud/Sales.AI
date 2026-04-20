@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
@@ -7,6 +7,7 @@
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="../js/permissions.js"></script>
 
   <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -138,21 +139,46 @@
     /* === Row selected === */
     tr.row-selected { background-color: #eff4ff; }
     tr.row-selected:hover { background-color: #e5eeff; }
+
+    /* === Folder tree === */
+    .ft-item { display:flex; align-items:center; gap:6px; padding:5px 10px;
+                border-radius:7px; cursor:pointer; user-select:none;
+                transition:background 0.12s, color 0.12s; font-size:13px; color:#3f3f50; }
+    .ft-item:hover { background:#e8edf8; }
+    .ft-item.active { background:#4f46e5; color:#fff; }
+    .ft-item.active .ft-icon { color:#c3c0ff; }
+    .ft-icon { font-size:16px; color:#7c7b96; flex-shrink:0; }
+    .ft-chevron { font-size:14px; color:#a5b4fc; margin-left:auto; flex-shrink:0;
+                  transition:transform 0.2s; }
+    .ft-chevron.open { transform:rotate(90deg); }
+    .ft-children { overflow:hidden; transition:max-height 0.25s ease; }
+    .ft-count { margin-left:auto; font-size:10px; font-weight:700; background:#e0e7ff;
+                color:#4338ca; padding:1px 6px; border-radius:99px; }
+    .ft-item.active .ft-count { background:rgba(255,255,255,0.25); color:#fff; }
+
+    /* === Context menu === */
+    #ctxMenu { position:fixed; z-index:9000; min-width:200px; background:#fff;
+               border:1px solid #e2e8f0; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.12);
+               padding:4px 0; animation:modalIn 0.12s ease-out; }
+    .ctx-item { display:flex; align-items:center; gap:8px; padding:8px 14px;
+                font-size:13px; cursor:pointer; color:#334155; transition:background 0.1s; }
+    .ctx-item:hover { background:#f1f5f9; }
+    .ctx-item.danger { color:#dc2626; }
+    .ctx-item.danger:hover { background:#fff1f2; }
+    .ctx-sep { border:none; border-top:1px solid #f1f5f9; margin:3px 0; }
+    .ctx-icon { font-size:16px; color:#94a3b8; flex-shrink:0; }
+    .ctx-item.danger .ctx-icon { color:#fca5a5; }
+    .ctx-disabled { opacity:0.42; pointer-events:none; }
   </style>
 </head>
 
 <body class="bg-background text-on-surface">
 
 <!-- ============================================================
-     SIDEBAR (fixed, 240px)
+     TOP NAV BAR (inline, không fixed — trang chạy trong iframe)
      ============================================================ -->
-
-
-<!-- ============================================================
-     TOP NAV BAR
-     ============================================================ -->
-<header class="h-16 fixed top-0 right-0 left-60 z-40 bg-white/80 backdrop-blur-md
-               flex justify-between items-center px-8 border-b border-slate-100">
+<header class="h-14 bg-white/90 backdrop-blur-md sticky top-0 z-40
+               flex justify-between items-center px-6 border-b border-slate-100 shadow-sm">
   <!-- Breadcrumb + Search -->
   <div class="flex items-center gap-4">
     <nav class="flex items-center text-sm font-medium">
@@ -198,7 +224,7 @@
 <!-- ============================================================
      MAIN CONTENT
      ============================================================ -->
-<main class=" pt-20 px-8 pb-32 min-h-screen">
+<main class="px-6 py-6 pb-32 min-h-screen">
 
   <!-- === Header + Upload button === -->
   <div class="flex justify-between items-end mb-8">
@@ -208,13 +234,13 @@
       </h2>
       <p class="text-slate-500 text-sm">Quản lý và huấn luyện AI bằng các tập tin của bạn.</p>
     </div>
-    <button id="openUploadModal"
-            class="bg-primary text-white px-6 py-2.5 rounded-lg font-semibold
-                   flex items-center gap-2 shadow-md hover:shadow-lg hover:bg-primary-container
-                   transition-all active:scale-95">
+    <a href="upload-tai-lieu.html"
+       class="bg-primary text-white px-6 py-2.5 rounded-lg font-semibold
+              flex items-center gap-2 shadow-md hover:shadow-lg hover:bg-primary-container
+              transition-all active:scale-95">
       <span class="material-symbols-outlined">cloud_upload</span>
       <span>Upload tài liệu</span>
-    </button>
+    </a>
   </div>
 
   <!-- === Stats cards === -->
@@ -255,6 +281,78 @@
       <div class="mt-2 text-[11px] text-rose-600/70">Cần kiểm tra lại định dạng</div>
     </div>
   </div>
+
+  <!-- === Two-column: folder tree + content === -->
+  <div class="flex gap-6 items-start">
+
+  <!-- ── Folder tree panel ── -->
+  <aside class="w-52 shrink-0 bg-white rounded-xl shadow-sm p-3 sticky top-4">
+    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">Thư mục</p>
+
+    <!-- All -->
+    <div class="ft-item active" id="ft-all" onclick="selectFolder(null, this)">
+      <span class="material-symbols-outlined ft-icon">inbox</span>
+      <span>Tất cả tài liệu</span>
+      <span class="ft-count" id="ft-count-all">12</span>
+    </div>
+
+    <!-- Công khai -->
+    <div class="ft-item" id="ft-public" onclick="selectFolder('public', this)"
+         oncontextmenu="openCtxMenu(event,'public')">
+      <span class="material-symbols-outlined ft-icon">public</span>
+      <span>Công khai</span>
+      <button class="ft-chevron" id="ftchev-public"
+              onclick="event.stopPropagation(); toggleFtGroup('public')"
+              tabindex="-1">
+        <span class="material-symbols-outlined" style="font-size:14px;">chevron_right</span>
+      </button>
+    </div>
+    <div id="ftg-public" class="ft-children pl-4" style="max-height:0;">
+      <div class="ft-item" id="ft-public/sales"
+           onclick="selectFolder('public/sales',this)"
+           oncontextmenu="openCtxMenu(event,'public/sales')">
+        <span class="material-symbols-outlined ft-icon" style="font-size:13px;">group</span>
+        <span>Sales</span>
+      </div>
+      <div class="ft-item" id="ft-public/ketoan"
+           onclick="selectFolder('public/ketoan',this)"
+           oncontextmenu="openCtxMenu(event,'public/ketoan')">
+        <span class="material-symbols-outlined ft-icon" style="font-size:13px;">receipt_long</span>
+        <span>Kế toán</span>
+      </div>
+      <div class="ft-item" id="ft-public/marketing"
+           onclick="selectFolder('public/marketing',this)"
+           oncontextmenu="openCtxMenu(event,'public/marketing')">
+        <span class="material-symbols-outlined ft-icon" style="font-size:13px;">campaign</span>
+        <span>Marketing</span>
+      </div>
+    </div>
+
+    <!-- Cá nhân -->
+    <div class="ft-item" id="ft-private" onclick="selectFolder('private',this)"
+         oncontextmenu="openCtxMenu(event,'private')">
+      <span class="material-symbols-outlined ft-icon">lock</span>
+      <span>Cá nhân</span>
+    </div>
+
+    <!-- Chia sẻ với tôi -->
+    <div class="ft-item" id="ft-shared" onclick="selectFolder('shared',this)"
+         oncontextmenu="openCtxMenu(event,'shared')">
+      <span class="material-symbols-outlined ft-icon">group_add</span>
+      <span>Chia sẻ với tôi</span>
+    </div>
+
+    <hr class="my-2 border-slate-100">
+
+    <a href="upload-tai-lieu.html"
+       class="ft-item text-primary font-semibold hover:bg-indigo-50">
+      <span class="material-symbols-outlined ft-icon text-primary">upload_file</span>
+      <span>Upload mới</span>
+    </a>
+  </aside>
+
+  <!-- ── Right content: filter + table ── -->
+  <div class="flex-1 min-w-0">
 
   <!-- === Filter bar === -->
   <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between flex-wrap gap-4">
@@ -359,6 +457,10 @@
             <span class="sort-icon">Người sở hữu</span>
           </th>
           <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
+              data-col="docType">
+            <span class="sort-icon">Loại</span>
+          </th>
+          <th class="py-4 px-4 text-xs font-bold uppercase tracking-wider text-slate-500"
               data-col="status">
             <span class="sort-icon">Trạng thái</span>
           </th>
@@ -402,6 +504,9 @@
     </div>
   </div>
 
+  </div><!-- end right content -->
+  </div><!-- end two-column flex -->
+
 </main>
 
 <!-- ============================================================
@@ -443,7 +548,7 @@
 </div>
 
 <!-- ============================================================
-     UPLOAD MODAL (giống man-hinh-3, ẩn mặc định)
+     UPLOAD MODAL (inline fallback, ẩn mặc định)
      ============================================================ -->
 <div id="uploadModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
   <div id="uploadBackdrop"
@@ -564,6 +669,81 @@
 </div>
 
 <!-- ============================================================
+     CONTEXT MENU (folder tree right-click)
+     ============================================================ -->
+<div id="ctxMenu" class="hidden" role="menu">
+  <div class="ctx-item" id="ctx-upload" onclick="ctxAction('upload')">
+    <span class="material-symbols-outlined ctx-icon">upload_file</span>Upload vào đây
+  </div>
+  <div class="ctx-item ctx-disabled" id="ctx-mkdir" onclick="ctxAction('mkdir')">
+    <span class="material-symbols-outlined ctx-icon">create_new_folder</span>Tạo thư mục con
+  </div>
+  <hr class="ctx-sep">
+  <div class="ctx-item ctx-disabled" id="ctx-perm" onclick="ctxAction('perm')">
+    <span class="material-symbols-outlined ctx-icon">manage_accounts</span>Phân quyền
+  </div>
+  <div class="ctx-item ctx-disabled" id="ctx-rename" onclick="ctxAction('rename')">
+    <span class="material-symbols-outlined ctx-icon">edit</span>Đổi tên
+  </div>
+  <hr class="ctx-sep">
+  <div class="ctx-item danger ctx-disabled" id="ctx-delete" onclick="ctxAction('delete')">
+    <span class="material-symbols-outlined ctx-icon">delete</span>Xóa thư mục
+  </div>
+</div>
+
+<!-- ============================================================
+     PERMISSIONS DIALOG
+     ============================================================ -->
+<div id="permDialog" class="fixed inset-0 z-[200] hidden items-center justify-center">
+  <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePermDialog()"></div>
+  <div class="modal-panel relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary">manage_accounts</span>
+      </div>
+      <div>
+        <h3 class="font-bold text-on-surface text-base">Phân quyền thư mục</h3>
+        <p class="text-xs text-slate-500" id="permFolderName">Công khai / Sales</p>
+      </div>
+    </div>
+
+    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Role được xem</p>
+    <div class="grid grid-cols-2 gap-2 mb-4" id="permRoleList">
+      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
+        <input type="checkbox" value="sales" class="accent-primary" checked> Sales
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
+        <input type="checkbox" value="ketoan" class="accent-primary"> Kế toán
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
+        <input type="checkbox" value="marketing" class="accent-primary"> Marketing
+      </label>
+      <label class="flex items-center gap-2 text-sm cursor-pointer px-3 py-2 rounded-lg bg-surface-container-low">
+        <input type="checkbox" value="all" class="accent-primary"> Tất cả
+      </label>
+    </div>
+
+    <label class="flex items-center gap-3 mb-6 cursor-pointer">
+      <input type="checkbox" id="permApplyChildren" class="accent-primary" checked>
+      <span class="text-sm text-slate-700">Áp dụng cho tất cả file trong thư mục</span>
+    </label>
+
+    <div class="flex gap-3">
+      <button onclick="closePermDialog()"
+              class="flex-1 py-2.5 border border-outline-variant/40 rounded-xl text-sm
+                     font-semibold hover:bg-surface-container transition-colors">
+        Hủy
+      </button>
+      <button onclick="savePermissions()"
+              class="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold
+                     hover:bg-primary-container active:scale-[0.98] transition-all">
+        Lưu phân quyền
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      DELETE CONFIRM DIALOG
      ============================================================ -->
 <div id="deleteDialog" class="fixed inset-0 z-[200] hidden items-center justify-center">
@@ -607,20 +787,37 @@
   // ================================================================
   // DỮ LIỆU MẪU (12 tài liệu)
   // ================================================================
+  // currentUser — đổi isAdmin:true để test giao diện Admin
+  const currentUser = { id:'u1', name:'Nguyễn Sales', role:'sales', isAdmin:false };
+
   const ALL_DOCS = [
-    { id:1,  name:'Hợp đồng kinh doanh Q3.pdf',         ext:'PDF',  size:'2.4 MB',  sizeMB:2.4,  owner:'Minh Phan',     status:'ready',      chats:42,  date:'12/10/2023', dateTs:20231012 },
-    { id:2,  name:'Kịch bản tư vấn Bất động sản.docx',  ext:'DOCX', size:'845 KB',  sizeMB:0.83, owner:'Lan Anh',       status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231017 },
-    { id:3,  name:'Danh sách khách hàng tiềm năng.xlsx', ext:'XLSX', size:'1.2 MB',  sizeMB:1.2,  owner:'Admin System',  status:'ready',      chats:156, date:'10/10/2023', dateTs:20231010 },
-    { id:4,  name:'Hướng dẫn sử dụng API.pdf',           ext:'PDF',  size:'5.1 MB',  sizeMB:5.1,  owner:'Quốc Anh',     status:'error',      chats:0,   date:'09/10/2023', dateTs:20231009 },
-    { id:5,  name:'Kế hoạch Marketing Q4-2023.pptx',     ext:'PPTX', size:'12 MB',   sizeMB:12,   owner:'Lan Anh',       status:'ready',      chats:28,  date:'08/10/2023', dateTs:20231008 },
-    { id:6,  name:'Bảng giá sản phẩm 2024.xlsx',         ext:'XLSX', size:'980 KB',  sizeMB:0.96, owner:'Minh Phan',     status:'ready',      chats:89,  date:'05/10/2023', dateTs:20231005 },
-    { id:7,  name:'Hợp đồng đại lý ABC Corp.pdf',        ext:'PDF',  size:'3.7 MB',  sizeMB:3.7,  owner:'Admin System',  status:'ready',      chats:14,  date:'02/10/2023', dateTs:20231002 },
-    { id:8,  name:'Quy trình onboarding nhân viên.docx', ext:'DOCX', size:'2.1 MB',  sizeMB:2.1,  owner:'Quốc Anh',     status:'ready',      chats:33,  date:'01/10/2023', dateTs:20231001 },
-    { id:9,  name:'Báo cáo doanh thu Q2-2023.pdf',       ext:'PDF',  size:'8.5 MB',  sizeMB:8.5,  owner:'Admin System',  status:'ready',      chats:67,  date:'28/09/2023', dateTs:20230928 },
-    { id:10, name:'Template đề xuất dự án.pptx',         ext:'PPTX', size:'6.3 MB',  sizeMB:6.3,  owner:'Lan Anh',       status:'ready',      chats:19,  date:'25/09/2023', dateTs:20230925 },
-    { id:11, name:'Chính sách bảo mật công ty.pdf',      ext:'PDF',  size:'1.8 MB',  sizeMB:1.8,  owner:'Admin System',  status:'ready',      chats:45,  date:'20/09/2023', dateTs:20230920 },
-    { id:12, name:'Script cold-call khách hàng.txt',     ext:'TXT',  size:'125 KB',  sizeMB:0.12, owner:'Huy Trần',      status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231018 },
+    { id:1,  name:'Hợp đồng kinh doanh Q3.pdf',         ext:'PDF',  size:'2.4 MB',  sizeMB:2.4,  owner:'Admin System',  ownerId:'admin', status:'ready',      chats:42,  date:'12/10/2023', dateTs:20231012, docType:'public',  visibleRoles:['all']        },
+    { id:2,  name:'Kịch bản tư vấn Bất động sản.docx',  ext:'DOCX', size:'845 KB',  sizeMB:0.83, owner:'Lan Anh',        ownerId:'u2',    status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231017, docType:'private', visibleRoles:[]             },
+    { id:3,  name:'Danh sách khách hàng tiềm năng.xlsx', ext:'XLSX', size:'1.2 MB',  sizeMB:1.2,  owner:'Admin System',  ownerId:'admin', status:'ready',      chats:156, date:'10/10/2023', dateTs:20231010, docType:'public',  visibleRoles:['sales']      },
+    { id:4,  name:'Hướng dẫn sử dụng API.pdf',           ext:'PDF',  size:'5.1 MB',  sizeMB:5.1,  owner:'Quốc Anh',      ownerId:'u3',    status:'error',      chats:0,   date:'09/10/2023', dateTs:20231009, docType:'private', visibleRoles:[]             },
+    { id:5,  name:'Kế hoạch Marketing Q4-2023.pptx',     ext:'PPTX', size:'12 MB',   sizeMB:12,   owner:'Admin System',  ownerId:'admin', status:'ready',      chats:28,  date:'08/10/2023', dateTs:20231008, docType:'public',  visibleRoles:['marketing']  },
+    { id:6,  name:'Bảng giá sản phẩm 2024.xlsx',         ext:'XLSX', size:'980 KB',  sizeMB:0.96, owner:'Minh Phan',     ownerId:'u4',    status:'ready',      chats:89,  date:'05/10/2023', dateTs:20231005, docType:'shared',  sharedWith:['u1','u3']     },
+    { id:7,  name:'Hợp đồng đại lý ABC Corp.pdf',        ext:'PDF',  size:'3.7 MB',  sizeMB:3.7,  owner:'Admin System',  ownerId:'admin', status:'ready',      chats:14,  date:'02/10/2023', dateTs:20231002, docType:'public',  visibleRoles:['all']        },
+    { id:8,  name:'Quy trình onboarding nhân viên.docx', ext:'DOCX', size:'2.1 MB',  sizeMB:2.1,  owner:'Nguyễn Sales',  ownerId:'u1',    status:'ready',      chats:33,  date:'01/10/2023', dateTs:20231001, docType:'private', visibleRoles:[]             },
+    { id:9,  name:'Báo cáo doanh thu Q2-2023.pdf',       ext:'PDF',  size:'8.5 MB',  sizeMB:8.5,  owner:'Admin System',  ownerId:'admin', status:'ready',      chats:67,  date:'28/09/2023', dateTs:20230928, docType:'public',  visibleRoles:['all']        },
+    { id:10, name:'Template đề xuất dự án.pptx',         ext:'PPTX', size:'6.3 MB',  sizeMB:6.3,  owner:'Lan Anh',       ownerId:'u2',    status:'ready',      chats:19,  date:'25/09/2023', dateTs:20230925, docType:'shared',  sharedWith:['u1']          },
+    { id:11, name:'Chính sách bảo mật công ty.pdf',      ext:'PDF',  size:'1.8 MB',  sizeMB:1.8,  owner:'Admin System',  ownerId:'admin', status:'ready',      chats:45,  date:'20/09/2023', dateTs:20230920, docType:'public',  visibleRoles:['all']        },
+    { id:12, name:'Script cold-call khách hàng.txt',     ext:'TXT',  size:'125 KB',  sizeMB:0.12, owner:'Nguyễn Sales',  ownerId:'u1',    status:'processing', chats:0,   date:'Vừa xong',   dateTs:20231018, docType:'private', visibleRoles:[]             },
   ];
+
+  const DOC_TYPE_BADGE = {
+    public:  `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-100 text-indigo-700">Công khai</span>`,
+    private: `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500">Cá nhân</span>`,
+    shared:  `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">Chia sẻ</span>`,
+  };
+
+  function canView(doc, user) {
+    if (user.isAdmin) return true;
+    if (doc.docType === 'private') return doc.ownerId === user.id;
+    if (doc.docType === 'public')  return (doc.visibleRoles||[]).includes('all') || (doc.visibleRoles||[]).includes(user.role);
+    if (doc.docType === 'shared')  return (doc.sharedWith||[]).includes(user.id) || (doc.sharedWith||[]).includes(user.role);
+    return false;
+  }
 
   const FILE_ICONS = {
     PDF:  { icon: 'picture_as_pdf', color: 'text-rose-600',    bg: 'bg-rose-50' },
@@ -645,6 +842,7 @@
   let selectedIds  = new Set();
   let isListView   = true;
   let pendingDeleteId = null;
+  let activeFolderId  = null; // null = tất cả
 
   // ================================================================
   // RENDER TABLE
@@ -656,11 +854,21 @@
     const statusF = document.getElementById('filterStatus').value;
 
     let filtered = docs.filter(d => {
+      if (!canView(d, currentUser)) return false;
       const matchQ      = !q || d.name.toLowerCase().includes(q);
       const matchType   = !typeF   || d.ext === typeF;
       const matchOwner  = !ownerF  || d.owner === ownerF;
       const matchStatus = !statusF || d.status === statusF;
-      return matchQ && matchType && matchOwner && matchStatus;
+      // Folder filter
+      let matchFolder = true;
+      if (activeFolderId === 'public')  matchFolder = d.docType === 'public';
+      else if (activeFolderId === 'private') matchFolder = d.docType === 'private' && d.ownerId === currentUser.id;
+      else if (activeFolderId === 'shared')  matchFolder = d.docType === 'shared';
+      else if (activeFolderId && activeFolderId.startsWith('public/')) {
+        const role = activeFolderId.replace('public/', '');
+        matchFolder = d.docType === 'public' && ((d.visibleRoles||[]).includes(role) || (d.visibleRoles||[]).includes('all'));
+      }
+      return matchQ && matchType && matchOwner && matchStatus && matchFolder;
     });
 
     if (sortCol) {
@@ -689,7 +897,7 @@
 
     if (page.length === 0) {
       tbody.innerHTML = `
-        <tr><td colspan="8" class="py-16 text-center text-slate-400">
+        <tr><td colspan="9" class="py-16 text-center text-slate-400">
           <span class="material-symbols-outlined text-4xl block mb-2">search_off</span>
           Không tìm thấy tài liệu phù hợp
         </td></tr>`;
@@ -713,7 +921,10 @@
                       style="font-variation-settings: 'FILL' 1;">${fi.icon}</span>
               </div>
               <div>
-                <p class="font-semibold text-slate-800 text-sm">${escHtml(doc.name)}</p>
+                <a href="xem-tai-lieu.html?id=${doc.id}"
+                   class="font-semibold text-slate-800 text-sm hover:text-primary hover:underline underline-offset-2 transition-colors">
+                  ${escHtml(doc.name)}
+                </a>
                 <p class="text-[11px] text-slate-400">${doc.ext} Document</p>
               </div>
             </div>
@@ -728,6 +939,7 @@
               <span class="text-sm text-slate-700">${escHtml(doc.owner)}</span>
             </div>
           </td>
+          <td class="py-4 px-4">${DOC_TYPE_BADGE[doc.docType] || ''}</td>
           <td class="py-4 px-4">${STATUS_BADGE[doc.status] || ''}</td>
           <td class="py-4 px-4 text-sm text-slate-600 text-center font-medium">${doc.chats}</td>
           <td class="py-4 px-4 text-sm text-slate-600">${doc.date}</td>
@@ -962,9 +1174,9 @@
     updateBulkBar();
   });
 
-  // Bulk chat → man-hinh-1.html
+  // Bulk chat → chat-tai-lieu.html
   document.getElementById('bulkChatBtn').addEventListener('click', () => {
-    window.location.href = 'man-hinh-1.html';
+    window.location.href = 'chat-tai-lieu.html';
   });
 
   // Bulk delete
@@ -983,7 +1195,7 @@
     if (!doc) return;
 
     if (action === 'chat') {
-      window.location.href = 'man-hinh-1.html';
+      window.location.href = 'chat-tai-lieu.html';
     } else if (action === 'delete') {
       pendingDeleteId = id;
       document.getElementById('deleteDialogMsg').textContent =
@@ -997,7 +1209,7 @@
         showToast(`Đã đổi tên thành công!`);
       }
     } else if (action === 'view') {
-      showToast(`Đang mở xem trước: ${doc.name}`);
+      window.location.href = 'xem-tai-lieu.html?id=' + doc.id;
     }
   }
 
@@ -1106,11 +1318,9 @@
     document.getElementById('doUpload').disabled = false;
   }
 
-  document.getElementById('openUploadModal').addEventListener('click', openUploadModal);
-  document.getElementById('sidebarUploadBtn').addEventListener('click', openUploadModal);
-  document.getElementById('closeModal').addEventListener('click', closeUploadModal);
-  document.getElementById('cancelUpload').addEventListener('click', closeUploadModal);
-  document.getElementById('uploadBackdrop').addEventListener('click', closeUploadModal);
+  document.getElementById('closeModal')?.addEventListener('click', closeUploadModal);
+  document.getElementById('cancelUpload')?.addEventListener('click', closeUploadModal);
+  document.getElementById('uploadBackdrop')?.addEventListener('click', closeUploadModal);
 
   // Advanced options accordion (modal)
   let advOpen = false;
@@ -1223,7 +1433,7 @@
       label.textContent = steps[i++];
       if (i >= steps.length) {
         clearInterval(iv);
-        setTimeout(() => { window.location.href = 'man-hinh-1.html'; }, 600);
+        setTimeout(() => { window.location.href = 'chat-tai-lieu.html'; }, 600);
       }
     }, 700);
   });
@@ -1232,11 +1442,11 @@
   // TOAST NOTIFICATION
   // ================================================================
   function showToast(message, type = 'success') {
-    const colors = type === 'error'
-      ? 'bg-error text-white'
-      : 'bg-inverse-surface text-inverse-on-surface';
-    const icon = type === 'error' ? 'error' : 'check_circle';
-    const iconColor = type === 'error' ? 'text-white' : 'text-secondary-container';
+    const colors = type === 'error' ? 'bg-error text-white'
+                 : type === 'info'  ? 'bg-slate-700 text-white'
+                 : 'bg-inverse-surface text-inverse-on-surface';
+    const icon = type === 'error' ? 'error' : type === 'info' ? 'info' : 'check_circle';
+    const iconColor = (type === 'error' || type === 'info') ? 'text-white' : 'text-secondary-container';
 
     const toast = document.createElement('div');
     toast.className = `pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl
@@ -1267,63 +1477,130 @@
   }
 
   // ================================================================
+  // FOLDER TREE
+  // ================================================================
+  const ftGroupOpen = {};
+
+  function toggleFtGroup(id) {
+    const el = document.getElementById('ftg-' + id);
+    const chev = document.getElementById('ftchev-' + id);
+    if (!el) return;
+    ftGroupOpen[id] = !ftGroupOpen[id];
+    if (ftGroupOpen[id]) {
+      el.style.maxHeight = el.scrollHeight + 'px';
+      if (chev) chev.querySelector('span').style.transform = 'rotate(90deg)';
+    } else {
+      el.style.maxHeight = '0';
+      if (chev) chev.querySelector('span').style.transform = '';
+    }
+  }
+
+  function selectFolder(folderId, el) {
+    activeFolderId = folderId;
+    // Update active state
+    document.querySelectorAll('.ft-item').forEach(i => i.classList.remove('active'));
+    if (el) el.classList.add('active');
+    currentPage = 1;
+    reRender();
+    updateFolderCounts();
+  }
+
+  function updateFolderCounts() {
+    const visible = ALL_DOCS.filter(d => canView(d, currentUser));
+    document.getElementById('ft-count-all').textContent = visible.length;
+  }
+
+  // ================================================================
+  // CONTEXT MENU
+  // ================================================================
+  let ctxFolderId = null;
+
+  function openCtxMenu(event, folderId) {
+    event.preventDefault();
+    event.stopPropagation();
+    ctxFolderId = folderId;
+
+    const menu = document.getElementById('ctxMenu');
+    menu.classList.remove('hidden');
+
+    // Admin-only items
+    const adminItems = ['ctx-mkdir', 'ctx-perm', 'ctx-rename', 'ctx-delete'];
+    adminItems.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('ctx-disabled', !currentUser.isAdmin);
+    });
+
+    // Position near cursor (keep within viewport)
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x = event.clientX, y = event.clientY;
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+    menu.style.right = 'auto';
+    // Adjust if overflow
+    requestAnimationFrame(() => {
+      const rect = menu.getBoundingClientRect();
+      if (rect.right  > vw - 8) menu.style.left = (x - rect.width) + 'px';
+      if (rect.bottom > vh - 8) menu.style.top  = (y - rect.height) + 'px';
+    });
+  }
+
+  function closeCtxMenu() {
+    document.getElementById('ctxMenu').classList.add('hidden');
+    ctxFolderId = null;
+  }
+
+  function ctxAction(action) {
+    closeCtxMenu();
+    if (action === 'upload') {
+      window.location.href = 'upload-tai-lieu.html';
+    } else if (action === 'perm' && currentUser.isAdmin) {
+      openPermDialog(ctxFolderId);
+    } else if (action === 'mkdir' && currentUser.isAdmin) {
+      showToast('Tính năng tạo thư mục con sẽ có trong phiên bản tiếp theo!', 'info');
+    } else if (action === 'rename' && currentUser.isAdmin) {
+      showToast('Tính năng đổi tên sẽ có trong phiên bản tiếp theo!', 'info');
+    } else if (action === 'delete' && currentUser.isAdmin) {
+      showToast('Tính năng xóa thư mục sẽ có trong phiên bản tiếp theo!', 'info');
+    }
+  }
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('ctxMenu').contains(e.target)) closeCtxMenu();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeCtxMenu();
+  });
+
+  // ================================================================
+  // PERMISSIONS DIALOG
+  // ================================================================
+  function openPermDialog(folderId) {
+    const FOLDER_LABELS = {
+      'public':          'Công khai',
+      'public/sales':    'Công khai / Sales',
+      'public/ketoan':   'Công khai / Kế toán',
+      'public/marketing':'Công khai / Marketing',
+      'private':         'Cá nhân',
+      'shared':          'Chia sẻ với tôi',
+    };
+    document.getElementById('permFolderName').textContent = FOLDER_LABELS[folderId] || folderId;
+    openDialog('permDialog');
+  }
+
+  function closePermDialog() { closeDialog('permDialog'); }
+
+  function savePermissions() {
+    closePermDialog();
+    showToast('Đã lưu phân quyền thành công!');
+  }
+
+  // ================================================================
   // KHỞI TẠO
   // ================================================================
   reRender();
   updateStats();
+  updateFolderCounts();
 </script>
 
-<script>
-  /* ═══════════════════════════════════════════════════
-     SIDEBAR ACCORDION — Vanilla JS
-     ═══════════════════════════════════════════════════ */
-  const menuState = { module1: false, module2: false };
-
-  function toggleMenu(id) {
-    const submenu = document.getElementById('submenu-' + id);
-    const chevron  = document.getElementById('chevron-' + id);
-    const trigger  = document.getElementById('trigger-' + id);
-    if (!submenu) return;
-    menuState[id] = !menuState[id];
-    if (menuState[id]) {
-      submenu.style.maxHeight = submenu.scrollHeight + 'px';
-      if (chevron) chevron.style.transform = 'rotate(90deg)';
-      if (trigger) trigger.setAttribute('aria-expanded', 'true');
-    } else {
-      submenu.style.maxHeight = '0';
-      if (chevron) chevron.style.transform = '';
-      if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  function handleMenuKey(e, id) {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMenu(id); }
-  }
-
-  function initSidebarAccordion() {
-    ['module1', 'module2'].forEach(function(id) {
-      const submenu = document.getElementById('submenu-' + id);
-      if (!submenu) return;
-      if (submenu.querySelector('a[class*="bg-[#4f46e5]"]')) {
-        submenu.style.transition = 'none';
-        menuState[id] = true;
-        submenu.style.maxHeight = submenu.scrollHeight + 'px';
-        var chev = document.getElementById('chevron-' + id);
-        var trig = document.getElementById('trigger-' + id);
-        if (chev) chev.style.transform = 'rotate(90deg)';
-        if (trig) trig.setAttribute('aria-expanded', 'true');
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() { submenu.style.transition = 'max-height 0.3s ease-in-out'; });
-        });
-      }
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSidebarAccordion);
-  } else {
-    initSidebarAccordion();
-  }
-</script>
 </body>
 </html>

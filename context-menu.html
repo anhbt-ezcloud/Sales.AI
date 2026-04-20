@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="vi">
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Context Menu - AI Sales Agent</title>
+  <title>Tùy chọn nhanh - AI Quản gia</title>
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -142,11 +142,41 @@
 <!-- ============================================================
      BACKGROUND: Chat interface (blurred / dimmed)
      ============================================================ -->
-
+<aside class="bg-[#eff4ff] font-inter text-[0.875rem] leading-[1.6]
+              h-screen w-[240px] fixed left-0 top-0 flex flex-col py-4 z-10
+              opacity-40 select-none pointer-events-none">
+  <div class="px-6 mb-8">
+    <h1 class="text-lg font-semibold text-[#3525cd]">Concierge AI</h1>
+    <p class="text-xs text-slate-500">Gói Doanh nghiệp</p>
+  </div>
+  <nav class="flex-1 space-y-1">
+    <div class="bg-[#4f46e5] text-white rounded-md mx-2 px-4 py-2.5 flex items-center gap-3">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span>Chat tài liệu</span>
+    </div>
+    <div class="text-slate-600 mx-2 px-4 py-2.5 flex items-center gap-3">
+      <span class="material-symbols-outlined">group</span>
+      <span>CRM &amp; Công việc</span>
+    </div>
+    <div class="text-slate-600 mx-2 px-4 py-2.5 flex items-center gap-3">
+      <span class="material-symbols-outlined">assignment</span>
+      <span>Dự án</span>
+    </div>
+    <div class="text-slate-600 mx-2 px-4 py-2.5 flex items-center gap-3">
+      <span class="material-symbols-outlined">analytics</span>
+      <span>Báo cáo</span>
+    </div>
+  </nav>
+  <div class="mt-auto px-2 space-y-1">
+    <div class="w-full bg-primary text-white py-2 px-4 rounded-md text-sm font-medium mb-4 text-center">
+      Nâng cấp ngay
+    </div>
+  </div>
+</aside>
 
 <!-- TopBar (mờ) -->
 <header class="bg-white/80 backdrop-blur-[15px] text-sm flex items-center justify-between
-               w-full px-6 sticky top-0 z-10  h-16 shadow-sm opacity-40
+               w-full px-6 sticky top-0 z-10 ml-[240px] h-16 shadow-sm opacity-40
                select-none pointer-events-none" style="width: calc(100% - 240px);">
   <div class="flex items-center gap-4">
     <h2 class="font-bold text-[#3525cd] text-lg">Chat Tài Liệu</h2>
@@ -167,7 +197,7 @@
 </header>
 
 <!-- Main content (mờ) -->
-<main class=" p-6 min-h-[calc(100vh-64px)] relative bg-surface opacity-40 pointer-events-none select-none">
+<main class="ml-[240px] p-6 min-h-[calc(100vh-64px)] relative bg-surface opacity-40 pointer-events-none select-none">
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Chat card giả -->
     <div class="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm">

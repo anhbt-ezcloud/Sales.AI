@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Upload Tài liệu - AI Sales Agent</title>
+  <title>Upload Tài liệu - Quản gia AI</title>
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="../js/permissions.js"></script>
 
   <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -132,6 +133,25 @@
       from { width: 0%; }
     }
     .progress-bar { animation: progressFill 1.5s ease-out forwards; }
+
+    /* === Radio option card === */
+    .doc-type-option { border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+                       transition: border-color 0.15s, background-color 0.15s; }
+    .doc-type-option:has(input:checked) { border-color: #4f46e5; background: #f5f3ff; }
+    .doc-type-option:has(input:disabled) { opacity: 0.45; cursor: not-allowed; }
+
+    /* === Section conditional === */
+    .cond-section { overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease; }
+    .cond-section.hidden-section { max-height: 0; opacity: 0; pointer-events: none; }
+    .cond-section.shown-section  { max-height: 400px; opacity: 1; }
+
+    /* === File type badge === */
+    .badge-public  { background: #e0e7ff; color: #4338ca; font-size: 9px; font-weight: 700;
+                     padding: 1px 6px; border-radius: 99px; letter-spacing: .03em; }
+    .badge-private { background: #f1f5f9; color: #475569; font-size: 9px; font-weight: 700;
+                     padding: 1px 6px; border-radius: 99px; letter-spacing: .03em; }
+    .badge-shared  { background: #d1fae5; color: #065f46; font-size: 9px; font-weight: 700;
+                     padding: 1px 6px; border-radius: 99px; letter-spacing: .03em; }
   </style>
 </head>
 
@@ -190,7 +210,7 @@
           Tài liệu sẽ được xử lý và index vào AI để bạn có thể chat ngay
         </p>
       </div>
-      <a href="man-hinh-4.html"
+      <a href="javascript:history.back()"
          class="p-2 hover:bg-surface-container-low rounded-full text-outline hover:text-on-surface"
          title="Đóng">
         <span class="material-symbols-outlined">close</span>
@@ -199,6 +219,118 @@
 
     <!-- === Modal Body (scrollable) === -->
     <div class="flex-1 overflow-y-auto px-6 custom-scrollbar">
+
+      <!-- ════ PHÂN QUYỀN: chọn thư mục đích ════ -->
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
+          <span class="material-symbols-outlined text-sm mr-1" style="vertical-align:middle;">folder_open</span>
+          Thư mục đích
+        </label>
+        <div class="relative">
+          <select id="destFolder"
+                  class="w-full appearance-none bg-surface-container-low border border-outline-variant/30
+                         rounded-lg px-3 py-2.5 text-sm text-on-surface pr-10
+                         focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
+            <!-- Populated by initUploadUI() based on role -->
+          </select>
+          <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2
+                       text-outline pointer-events-none text-sm">expand_more</span>
+        </div>
+      </div>
+
+      <!-- ════ LOẠI TÀI LIỆU: radio cards ════ -->
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">
+          <span class="material-symbols-outlined text-sm mr-1" style="vertical-align:middle;">lock_open</span>
+          Loại tài liệu
+        </label>
+        <div class="space-y-2" id="docTypeWrapper">
+          <!-- Công khai — chỉ admin mới thấy/dùng -->
+          <label id="opt-public" class="doc-type-option flex items-center gap-3 p-3">
+            <input type="radio" name="docType" value="public" class="accent-primary shrink-0">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold">Công khai</p>
+              <p class="text-xs text-on-surface-variant">Hiển thị cho user theo phân quyền role</p>
+            </div>
+            <span class="badge-public shrink-0">Admin</span>
+          </label>
+          <!-- Cá nhân — mặc định -->
+          <label class="doc-type-option flex items-center gap-3 p-3">
+            <input type="radio" name="docType" value="private" class="accent-primary shrink-0" checked>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold">Cá nhân</p>
+              <p class="text-xs text-on-surface-variant">Chỉ mình tôi xem và hỏi đáp</p>
+            </div>
+            <span class="material-symbols-outlined text-slate-400 text-sm">lock</span>
+          </label>
+          <!-- Chia sẻ ngay -->
+          <label class="doc-type-option flex items-center gap-3 p-3">
+            <input type="radio" name="docType" value="shared" class="accent-primary shrink-0">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold">Chia sẻ ngay sau khi upload</p>
+              <p class="text-xs text-on-surface-variant">Chọn người / nhóm / role được chia sẻ</p>
+            </div>
+            <span class="material-symbols-outlined text-slate-400 text-sm">group_add</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Conditional: Công khai → chọn role được xem -->
+      <div id="section-public" class="cond-section hidden-section mb-4">
+        <div class="bg-primary-fixed/60 rounded-lg p-4 space-y-2">
+          <p class="text-xs font-bold text-on-primary-fixed uppercase tracking-wide mb-3">
+            Role được phép xem tài liệu này
+          </p>
+          <div class="grid grid-cols-2 gap-2" id="roleCheckboxes">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" value="sales" class="accent-primary rounded"> Sales
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" value="ketoan" class="accent-primary rounded"> Kế toán
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" value="marketing" class="accent-primary rounded"> Marketing
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" value="all" class="accent-primary rounded" checked> Tất cả
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conditional: Chia sẻ → chọn user/nhóm + quyền -->
+      <div id="section-share" class="cond-section hidden-section mb-4">
+        <div class="bg-surface-container-low rounded-lg p-4 space-y-3">
+          <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wide">
+            Chia sẻ với
+          </p>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+            <input id="shareSearch" type="text"
+                   class="w-full pl-9 pr-4 py-2 bg-white border border-outline-variant/30 rounded-lg
+                          text-sm focus:ring-1 focus:ring-primary placeholder:text-slate-300"
+                   placeholder="Tìm tên user hoặc nhóm..."/>
+          </div>
+          <div class="flex flex-wrap gap-2" id="shareChips">
+            <span class="inline-flex items-center gap-1 bg-primary-fixed text-on-primary-fixed
+                         text-xs font-medium px-2.5 py-1 rounded-full">
+              Lan Anh (Sales)
+              <button class="hover:text-error ml-0.5" onclick="removeChip(this)">
+                <span class="material-symbols-outlined" style="font-size:12px;">close</span>
+              </button>
+            </span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-medium text-on-surface-variant whitespace-nowrap">Mức quyền:</span>
+            <select id="sharePermission"
+                    class="flex-1 appearance-none bg-white border border-outline-variant/30
+                           rounded-lg text-sm px-3 py-1.5 focus:ring-1 focus:ring-primary cursor-pointer">
+              <option value="view">👁 Xem (View)</option>
+              <option value="edit">✏️ Chỉnh sửa (Edit)</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       <!-- ---- Dropzone ---- -->
       <div id="dropzone"
@@ -231,25 +363,22 @@
         </h3>
         <div id="uploadList" class="space-y-3">
 
-          <!-- Item 1: Embedding (demo ban đầu) -->
-          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
-               data-status="embedding">
+          <!-- Item 1: Embedding -->
+          <div class="upload-item flex items-center gap-3 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="embedding" data-doctype="public">
             <div class="w-10 h-10 flex-shrink-0 bg-primary-fixed rounded flex items-center justify-center">
               <span class="material-symbols-outlined text-primary text-xl"
                     style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start mb-1">
+              <div class="flex items-center gap-2 mb-1">
                 <p class="text-sm font-medium text-on-surface truncate">BaoGia_2026.pdf</p>
-                <p class="text-[10px] font-bold text-outline uppercase ml-2">8.2 MB</p>
+                <span class="badge-public shrink-0">Công khai</span>
+                <p class="text-[10px] font-bold text-outline uppercase ml-auto">8.2 MB</p>
               </div>
               <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-primary spin-icon">
-                  psychology
-                </span>
-                <span class="text-xs font-medium text-primary status-text">
-                  Đang tạo embedding (3/8 chunk)...
-                </span>
+                <span class="material-symbols-outlined text-[16px] text-primary spin-icon">psychology</span>
+                <span class="text-xs font-medium text-primary">Đang tạo embedding (3/8 chunk)...</span>
               </div>
             </div>
             <button class="p-1.5 text-slate-300 hover:text-error rounded transition-colors" title="Huỷ">
@@ -258,15 +387,16 @@
           </div>
 
           <!-- Item 2: Sẵn sàng -->
-          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
-               data-status="ready">
+          <div class="upload-item flex items-center gap-3 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="ready" data-doctype="private">
             <div class="w-10 h-10 flex-shrink-0 bg-secondary-container/30 rounded flex items-center justify-center">
               <span class="material-symbols-outlined text-secondary text-xl">description</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start mb-1">
+              <div class="flex items-center gap-2 mb-1">
                 <p class="text-sm font-medium text-on-surface truncate">HopDong_Mau.docx</p>
-                <p class="text-[10px] font-bold text-outline uppercase ml-2">1.5 MB</p>
+                <span class="badge-private shrink-0">Cá nhân</span>
+                <p class="text-[10px] font-bold text-outline uppercase ml-auto">1.5 MB</p>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-secondary"
@@ -280,20 +410,19 @@
           </div>
 
           <!-- Item 3: Đang quét -->
-          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-surface-container-low/50"
-               data-status="scanning">
+          <div class="upload-item flex items-center gap-3 p-3 rounded-lg bg-surface-container-low/50"
+               data-status="scanning" data-doctype="shared">
             <div class="w-10 h-10 flex-shrink-0 bg-tertiary-container/10 rounded flex items-center justify-center">
               <span class="material-symbols-outlined text-tertiary text-xl">present_to_all</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start mb-1">
+              <div class="flex items-center gap-2 mb-1">
                 <p class="text-sm font-medium text-on-surface truncate">Kế hoạch marketing.pptx</p>
-                <p class="text-[10px] font-bold text-outline uppercase ml-2">12 MB</p>
+                <span class="badge-shared shrink-0">Chia sẻ</span>
+                <p class="text-[10px] font-bold text-outline uppercase ml-auto">12 MB</p>
               </div>
               <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-tertiary spin-icon">
-                  shield
-                </span>
+                <span class="material-symbols-outlined text-[16px] text-tertiary spin-icon">shield</span>
                 <span class="text-xs font-medium text-tertiary">Đang quét virus...</span>
               </div>
             </div>
@@ -303,15 +432,16 @@
           </div>
 
           <!-- Item 4: Lỗi -->
-          <div class="upload-item flex items-center gap-4 p-3 rounded-lg bg-error-container/20
-                      border border-error/5" data-status="error">
+          <div class="upload-item flex items-center gap-3 p-3 rounded-lg bg-error-container/20
+                      border border-error/5" data-status="error" data-doctype="private">
             <div class="w-10 h-10 flex-shrink-0 bg-error-container rounded flex items-center justify-center">
               <span class="material-symbols-outlined text-error text-xl">csv</span>
             </div>
             <div class="flex-1 min-w-0">
-              <div class="flex justify-between items-start mb-1">
+              <div class="flex items-center gap-2 mb-1">
                 <p class="text-sm font-medium text-on-surface truncate">Error_file.csv</p>
-                <p class="text-[10px] font-bold text-error/60 uppercase ml-2">0.5 MB</p>
+                <span class="badge-private shrink-0">Cá nhân</span>
+                <p class="text-[10px] font-bold text-error/60 uppercase ml-auto">0.5 MB</p>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-error">cancel</span>
@@ -416,7 +546,7 @@
     <!-- === Modal Footer === -->
     <footer class="p-6 border-t border-surface-container flex items-center justify-end gap-3
                    bg-surface-container-low/30 shrink-0">
-      <a href="man-hinh-4.html"
+      <a href="thu-vien-tai-lieu.html"
          class="px-5 py-2.5 rounded-lg text-sm font-semibold text-outline
                 hover:bg-surface-container transition-all active:scale-95">
         Hủy
@@ -447,6 +577,99 @@
      JAVASCRIPT
      ============================================================ -->
 <script>
+  // ================================================================
+  // USER & PERMISSIONS
+  // Lấy user hiện tại từ permissions.js; fallback cho chế độ chạy độc lập
+  // ================================================================
+  const uploadUser = (typeof getCurrentUser === 'function' && getCurrentUser())
+    || (typeof currentUser !== 'undefined' && currentUser)
+    || { id: 'user1', name: 'Người dùng', role: 'user' };
+  const uploadUserIsAdmin = typeof isAdmin === 'function'
+    ? isAdmin(uploadUser)
+    : uploadUser.role === 'admin';
+
+  const FOLDER_OPTIONS = [
+    { value: 'private',          label: '🔒 Cá nhân (riêng tôi)',       adminOnly: false },
+    { value: 'public/all',       label: '🌐 Công khai / Tất cả role',   adminOnly: true  },
+    { value: 'public/sales',     label: '📋 Công khai / Sales',          adminOnly: true  },
+    { value: 'public/ketoan',    label: '💼 Công khai / Kế toán',        adminOnly: true  },
+    { value: 'public/marketing', label: '📣 Công khai / Marketing',      adminOnly: true  },
+  ];
+
+  function resolveFolderType(folderValue) {
+    if (folderValue && folderValue.startsWith('public')) return 'public';
+    return folderValue;
+  }
+
+  function hasUploadPermission(folderValue, user) {
+    const folderType = resolveFolderType(folderValue);
+    if (typeof canUploadTo === 'function') {
+      return canUploadTo(folderType, user);
+    }
+    if (folderType === 'public') return uploadUserIsAdmin;
+    return folderType === 'private';
+  }
+
+  function canView(file, user) {
+    if (file.docType === 'private')  return file.ownerId === user.id;
+    if (file.docType === 'public')   return file.visibleRoles.includes('all') || file.visibleRoles.includes(user.role);
+    if (file.docType === 'shared')   return (file.sharedWith || []).includes(user.id) || (file.sharedWith || []).includes(user.role);
+    return false;
+  }
+
+  function initUploadUI() {
+    const sel = document.getElementById('destFolder');
+    sel.innerHTML = '';
+    FOLDER_OPTIONS.forEach(f => {
+      if (!f.adminOnly || uploadUserIsAdmin) {
+        const opt = document.createElement('option');
+        opt.value = f.value;
+        opt.textContent = f.label;
+        sel.appendChild(opt);
+      }
+    });
+
+    // Vô hiệu radio "Công khai" nếu không phải Admin
+    const optPublic = document.getElementById('opt-public');
+    if (optPublic) {
+      const radio = optPublic.querySelector('input');
+      if (!uploadUserIsAdmin) {
+        radio.disabled = true;
+        optPublic.title = 'Chỉ Admin mới có thể upload tài liệu Công khai';
+      }
+    }
+  }
+
+  // ================================================================
+  // RADIO: chọn loại tài liệu → hiện/ẩn section điều kiện
+  // ================================================================
+  function setCond(sectionId, show) {
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    el.classList.toggle('hidden-section', !show);
+    el.classList.toggle('shown-section',  show);
+  }
+
+  document.querySelectorAll('input[name="docType"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const val = radio.value;
+      setCond('section-public', val === 'public');
+      setCond('section-share',  val === 'shared');
+    });
+  });
+
+  // ================================================================
+  // SHARE CHIPS: xoá chip chia sẻ
+  // ================================================================
+  function removeChip(btn) {
+    const chip = btn.closest('span');
+    if (!chip) return;
+    chip.style.transition = 'opacity 0.15s, transform 0.15s';
+    chip.style.opacity    = '0';
+    chip.style.transform  = 'scale(0.85)';
+    setTimeout(() => chip.remove(), 160);
+  }
+
   // ================================================================
   // ACCORDION: Tùy chọn nâng cao
   // ================================================================
@@ -535,20 +758,31 @@
     });
   }
 
+  function getBadgeHTML(docType) {
+    switch (docType) {
+      case 'public':  return '<span class="badge-public  shrink-0">Công khai</span>';
+      case 'shared':  return '<span class="badge-shared  shrink-0">Chia sẻ</span>';
+      default:        return '<span class="badge-private shrink-0">Cá nhân</span>';
+    }
+  }
+
   function addUploadItem(name, size, status, errorMsg = '') {
     const list = document.getElementById('uploadList');
     const { icon, color, bg } = getFileIcon(name);
-    const id = 'item-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    const id      = 'item-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    const docType = document.querySelector('input[name="docType"]:checked')?.value || 'private';
+    const badge   = getBadgeHTML(docType);
 
     const statusHTML = buildStatusHTML(status, errorMsg);
 
     const div = document.createElement('div');
     div.id = id;
-    div.className = 'upload-item flex items-center gap-4 p-3 rounded-lg ' +
+    div.className = 'upload-item flex items-center gap-3 p-3 rounded-lg ' +
       (status === 'error'
         ? 'bg-error-container/20 border border-error/5'
         : 'bg-surface-container-low/50');
-    div.dataset.status = status;
+    div.dataset.status  = status;
+    div.dataset.doctype = docType;
 
     div.innerHTML = `
       <div class="w-10 h-10 flex-shrink-0 ${bg} rounded flex items-center justify-center">
@@ -556,9 +790,10 @@
               style="font-variation-settings: 'FILL' 1;">${icon}</span>
       </div>
       <div class="flex-1 min-w-0">
-        <div class="flex justify-between items-start mb-1">
+        <div class="flex items-center gap-2 mb-1">
           <p class="text-sm font-medium text-on-surface truncate">${escHtml(name)}</p>
-          <p class="text-[10px] font-bold text-outline uppercase ml-2">${size}</p>
+          ${badge}
+          <p class="text-[10px] font-bold text-outline uppercase ml-auto">${size}</p>
         </div>
         <div class="status-row flex items-center gap-1.5">${statusHTML}</div>
       </div>
@@ -652,6 +887,12 @@
   const uploadLabel   = document.getElementById('uploadBtnLabel');
 
   uploadChatBtn.addEventListener('click', () => {
+    const selectedFolder = document.getElementById('destFolder')?.value || 'private';
+    if (!hasUploadPermission(selectedFolder, uploadUser)) {
+      alert('Bạn không có quyền upload vào thư mục Công khai.');
+      return;
+    }
+
     uploadChatBtn.disabled = true;
     uploadLabel.textContent = 'Đang xử lý...';
 
@@ -665,7 +906,7 @@
       if (count >= total) {
         clearInterval(interval);
         setTimeout(() => {
-          window.location.href = 'man-hinh-1.html';
+          window.location.href = 'chat-tai-lieu.html';
         }, 700);
       }
     }, 700);
@@ -679,6 +920,9 @@
     d.appendChild(document.createTextNode(str));
     return d.innerHTML;
   }
+
+  // ── Khởi tạo khi tải trang ──────────────────────────────────────
+  initUploadUI();
 </script>
 
 </body>

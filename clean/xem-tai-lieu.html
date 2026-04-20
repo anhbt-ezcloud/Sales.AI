@@ -193,7 +193,16 @@
   <!-- ---- Drawer Header ---- -->
   <header class="h-16 flex items-center justify-between px-6 bg-white
                  border-b border-outline-variant/10 shrink-0">
-    <div class="flex items-center gap-4 min-w-0">
+    <!-- Nút quay lại thư viện -->
+    <a href="javascript:history.back()"
+       class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+              text-on-surface-variant hover:bg-surface-container-low hover:text-primary
+              text-sm font-medium transition-colors shrink-0">
+      <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+      <span>Quay lại</span>
+    </a>
+
+    <div class="flex items-center gap-4 min-w-0 flex-1">
       <div class="p-2 bg-primary-fixed rounded-lg shrink-0">
         <span class="material-symbols-outlined text-primary">description</span>
       </div>
@@ -209,7 +218,7 @@
 
     <!-- Action buttons -->
     <div class="flex items-center gap-1 shrink-0 ml-3">
-      <a href="man-hinh-1.html"
+      <a href="chat-tai-lieu.html"
          class="p-2 hover:bg-surface-container-low rounded-lg text-on-surface-variant hover:text-primary"
          title="Chat về tài liệu này">
         <span class="material-symbols-outlined">forum</span>
@@ -224,12 +233,6 @@
               title="Thêm tùy chọn">
         <span class="material-symbols-outlined">more_vert</span>
       </button>
-      <div class="w-px h-6 bg-outline-variant/30 mx-1"></div>
-      <a href="man-hinh-1.html"
-         class="p-2 hover:bg-error-container hover:text-on-error-container rounded-lg
-                text-on-surface-variant" title="Đóng">
-        <span class="material-symbols-outlined">close</span>
-      </a>
     </div>
   </header>
 

@@ -9,8 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-  <script src="js/permissions.js"></script>
-
   <style>
     /* ── Biến toàn cục ── */
     :root {
@@ -53,86 +51,7 @@
     }
     #sidebar.collapsed { width: 0; min-width: 0; }
 
-    /* ════════════════════════════════════════
-       ACCOUNT DROPDOWN
-    ════════════════════════════════════════ */
-    #account-menu {
-      position: relative;
-    }
-    #account-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      background: transparent;
-      border: 1px solid #e2e8f0;
-      cursor: pointer;
-      transition: background var(--tr), border-color var(--tr);
-      font-size: 12px;
-      font-weight: 500;
-      color: #334155;
-    }
-    #account-btn:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-    }
-    #account-dropdown {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 6px 0;
-      min-width: 200px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      display: none;
-      z-index: 100;
-    }
-    #account-dropdown.open {
-      display: block;
-      animation: dropdownIn 0.12s ease;
-    }
-    @keyframes dropdownIn {
-      from { opacity: 0; transform: translateY(-4px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0)   scale(1); }
-    }
-    .account-item {
-      padding: 8px 14px;
-      cursor: pointer;
-      color: #475569;
-      font-size: 12px;
-      transition: background var(--tr), color var(--tr);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .account-item:hover {
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-    .account-item.active {
-      background: #e0e7ff;
-      color: #4f46e5;
-      font-weight: 600;
-    }
-    .account-item-badge {
-      font-size: 9px;
-      padding: 1px 6px;
-      border-radius: 3px;
-      margin-left: auto;
-      font-weight: 700;
-      background: #fca5a5;
-      color: #7f1d1d;
-    }
-    .account-item.active .account-item-badge {
-      background: #c7d2fe;
-      color: #312e81;
-    }
-
-    /* ── Divider ── */
-    #sidebar { 
+    /* ── Vùng nav cuộn ── */
     #nav-scroll {
       flex: 1;
       overflow-y: auto;
@@ -455,26 +374,6 @@
     <span class="ml-0.5">chuyển màn hình</span>
   </div>
 
-  <!-- Account Switcher (Demo mode) -->
-  <div id="account-menu" class="relative shrink-0">
-    <button id="account-btn" title="Chuyển tài khoản (Demo)"
-            class="flex items-center gap-2 px-3 h-8 rounded-lg border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-slate-500 hover:text-[#3525cd] transition-all text-[11.5px] font-medium">
-      <span class="material-symbols-outlined" style="font-size:14px;">person</span>
-      <span id="account-label">Admin</span>
-      <span class="material-symbols-outlined" style="font-size:13px;">expand_more</span>
-    </button>
-    <div id="account-dropdown" class="absolute top-full mt-1 right-0 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
-      <!-- Items sẽ được render bởi JS -->
-    </div>
-  </div>
-
-  <!-- Nút quay lại thư mục cha (cho các file con) - HIDDEN BY DEFAULT -->
-  <button id="btn-back-to-library" onclick="goBackToLibrary()" title="Quay lại thư mục"
-          style="display:none;"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-indigo-50 text-[#3525cd] transition-colors shrink-0">
-    <span class="material-symbols-outlined" style="font-size:16px;">folder_open</span>
-  </button>
-
   <!-- Mở tab mới -->
   <a id="btn-link" href="clean/chat-tai-lieu.html" target="_blank" title="Mở tab mới"
      class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors shrink-0">
@@ -528,7 +427,7 @@
       </div>
       <div class="overflow-hidden">
         <p class="text-white font-bold text-[13px] leading-tight whitespace-nowrap">Quản gia AI</p>
-        <p class="text-white/38 text-[9px] uppercase tracking-wider whitespace-nowrap">Demo Shell · 13 màn hình</p>
+        <p class="text-white/38 text-[9px] uppercase tracking-wider whitespace-nowrap">Demo Shell · 14 màn hình</p>
       </div>
     </div>
 
@@ -586,10 +485,16 @@
             <span class="n-label">Upload tài liệu</span><span class="n-num">02</span>
           </div>
           <div class="nav-item nav-subitem" data-idx="3"
-               data-file="clean/context-menu.html" data-name="Tùy chọn nhanh"
+               data-file="clean/xem-tai-lieu.html" data-name="Xem tài liệu"
                data-grp="g1" data-sub="lib" onclick="loadScreen(this)">
-            <span class="material-symbols-outlined n-icon">bolt</span>
-            <span class="n-label">Tùy chọn nhanh</span><span class="n-num">03</span>
+            <span class="material-symbols-outlined n-icon">find_in_page</span>
+            <span class="n-label">Xem tài liệu</span><span class="n-num">03</span>
+          </div>
+          <div class="nav-item nav-subitem" data-idx="4"
+               data-file="clean/context-menu.html" data-name="Context Menu"
+               data-grp="g1" data-sub="lib" onclick="loadScreen(this)">
+            <span class="material-symbols-outlined n-icon">touch_app</span>
+            <span class="n-label">Context Menu</span><span class="n-num">04</span>
           </div>
         </div>
 
@@ -606,41 +511,41 @@
         <span class="material-symbols-outlined g-chevron">chevron_right</span>
       </button>
       <div class="group-sub" id="gs-g2">
-        <div class="nav-item" data-idx="4"  data-file="clean/crm-cong-viec.html"  data-name="Dashboard CRM"         data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="5"  data-file="clean/crm-cong-viec.html"  data-name="Dashboard CRM"         data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">dashboard</span>
-          <span class="n-label">Dashboard CRM</span><span class="n-num">04</span>
+          <span class="n-label">Dashboard CRM</span><span class="n-num">06</span>
         </div>
-        <div class="nav-item" data-idx="5"  data-file="clean/crm-dashboard.html"  data-name="CRM Hub"               data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="6"  data-file="clean/crm-dashboard.html"  data-name="CRM Hub"               data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">assignment</span>
-          <span class="n-label">CRM Hub</span><span class="n-num">05</span>
+          <span class="n-label">CRM Hub</span><span class="n-num">07</span>
         </div>
-        <div class="nav-item" data-idx="6"  data-file="clean/thong-bao-inbox.html"  data-name="Thông báo &amp; Inbox"  data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="7"  data-file="clean/thong-bao-inbox.html"  data-name="Thông báo &amp; Inbox"  data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">notifications</span>
-          <span class="n-label">Thông báo &amp; Inbox</span><span class="n-num">06</span>
+          <span class="n-label">Thông báo &amp; Inbox</span><span class="n-num">08</span>
         </div>
-        <div class="nav-item" data-idx="7"  data-file="clean/kanban-deals.html" data-name="Kanban Deals"           data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="8"  data-file="clean/kanban-deals.html" data-name="Kanban Deals"           data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">view_kanban</span>
-          <span class="n-label">Kanban Deals</span><span class="n-num">07</span>
+          <span class="n-label">Kanban Deals</span><span class="n-num">09</span>
         </div>
-        <div class="nav-item" data-idx="8"  data-file="clean/chat-hoi-dap-crm.html" data-name="Chat CRM"               data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="9"  data-file="clean/chat-hoi-dap-crm.html" data-name="Chat CRM"               data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">support_agent</span>
-          <span class="n-label">Chat CRM</span><span class="n-num">08</span>
+          <span class="n-label">Chat CRM</span><span class="n-num">10</span>
         </div>
-        <div class="nav-item" data-idx="9"  data-file="clean/ai-goi-y-hanh-dong.html" data-name="AI Gợi ý"               data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="10" data-file="clean/ai-goi-y-hanh-dong.html" data-name="AI Gợi ý"               data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">auto_awesome</span>
-          <span class="n-label">AI Gợi ý</span><span class="n-num">09</span>
+          <span class="n-label">AI Gợi ý</span><span class="n-num">11</span>
         </div>
-        <div class="nav-item" data-idx="10" data-file="clean/chi-tiet-deal.html" data-name="Chi tiết Deal"          data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="11" data-file="clean/chi-tiet-deal.html" data-name="Chi tiết Deal"          data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">article</span>
-          <span class="n-label">Chi tiết Deal</span><span class="n-num">10</span>
+          <span class="n-label">Chi tiết Deal</span><span class="n-num">12</span>
         </div>
-        <div class="nav-item" data-idx="11" data-file="clean/cap-nhat-nhanh.html" data-name="Quick Update"           data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="12" data-file="clean/cap-nhat-nhanh.html" data-name="Quick Update"           data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">edit_note</span>
-          <span class="n-label">Quick Update</span><span class="n-num">11</span>
+          <span class="n-label">Quick Update</span><span class="n-num">13</span>
         </div>
-        <div class="nav-item" data-idx="12" data-file="clean/cau-hinh-ket-noi-crm.html" data-name="Cấu hình CRM"           data-grp="g2" onclick="loadScreen(this)">
+        <div class="nav-item" data-idx="13" data-file="clean/cau-hinh-ket-noi-crm.html" data-name="Cấu hình CRM"           data-grp="g2" onclick="loadScreen(this)">
           <span class="material-symbols-outlined n-icon">settings_suggest</span>
-          <span class="n-label">Cấu hình CRM</span><span class="n-num">12</span>
+          <span class="n-label">Cấu hình CRM</span><span class="n-num">14</span>
         </div>
       </div>
 
@@ -649,9 +554,6 @@
 
     <!-- Footer: Cài đặt / Trợ giúp / Đăng xuất -->
     <div class="sidebar-footer">
-      <a href="quan-ly-tai-khoan.html" id="menu-admin-only" class="foot-item" style="display:none;">
-        <span class="material-symbols-outlined foot-icon">people</span>Quản lý tài khoản
-      </a>
       <a href="#" onclick="loadFooterLink('clean/cai-dat.html','Cài đặt hệ thống');return false;" class="foot-item">
         <span class="material-symbols-outlined foot-icon">settings</span>Cài đặt
       </a>
@@ -662,7 +564,7 @@
         <span class="material-symbols-outlined foot-icon">logout</span>Đăng xuất
       </a>
       <div class="px-4 pt-1 pb-0.5">
-        <p id="counter" class="text-white/28 text-[10px] whitespace-nowrap">Màn hình 1 / 13</p>
+        <p id="counter" class="text-white/28 text-[10px] whitespace-nowrap">Màn hình 1 / 15</p>
       </div>
     </div>
 
@@ -719,7 +621,7 @@
 <script>
   /* ── Trạng thái chung ────────────────────────────────────── */
   const navItems   = Array.from(document.querySelectorAll('.nav-item'));
-  const TOTAL      = 13; // cập nhật: 13 màn hình
+  const TOTAL      = navItems.length; // 14
   let currentIdx   = 0;
   let sidebarOpen  = true;
   let isFullscreen = false;
@@ -1199,82 +1101,7 @@
     openGroupNow('g1');
     navItems[0].classList.add('active');
     document.getElementById('counter').textContent = 'Màn hình 1 / ' + TOTAL;
-
-    /* ── Khởi tạo account dropdown ── */
-    initAccountDropdown();
-    updateUIForRole();
   })();
-
-  /* ════════════════════════════════════════
-     UPDATE UI BASED ON ROLE
-  ════════════════════════════════════════ */
-  function updateUIForRole() {
-    // Hiển thị "Quản lý tài khoản" chỉ cho admin
-    const adminMenu = document.getElementById('menu-admin-only');
-    if (isAdmin(currentUser)) {
-      adminMenu.style.display = '';
-      // Cập nhật label dropdown account
-      document.getElementById('account-label').textContent = 'Admin';
-      document.getElementById('account-label').style.color = '#9333ea';
-    } else {
-      adminMenu.style.display = 'none';
-      document.getElementById('account-label').textContent = 'User';
-      document.getElementById('account-label').style.color = '#0891b2';
-    }
-  }
-
-  /* ════════════════════════════════════════
-     ACCOUNT DROPDOWN — Demo mode
-  ════════════════════════════════════════ */
-  function initAccountDropdown() {
-    const dropdown = document.getElementById('account-dropdown');
-    const accounts = getAccountsList();
-    
-    dropdown.innerHTML = '';
-    accounts.forEach(function(acc) {
-      const item = document.createElement('div');
-      item.className = 'account-item' + (acc.id === currentUser.id ? ' active' : '');
-      item.innerHTML = 
-        '<span class="material-symbols-outlined" style="font-size:14px;">person</span>' +
-        '<div class="flex flex-col flex-1">' +
-          '<span class="font-semibold text-[12px]">' + acc.name + '</span>' +
-          '<span class="text-[10px] opacity-60">' + acc.email + '</span>' +
-        '</div>' +
-        (acc.role === 'admin' ? '<span class="account-item-badge">Admin</span>' : '<span class="account-item-badge">User</span>');
-      
-      item.onclick = function(e) {
-        e.stopPropagation();
-        setCurrentUser(acc.id);
-        document.getElementById('account-label').textContent = acc.role === 'admin' ? 'Admin' : 'User';
-        toggleAccountDropdown(); // đóng dropdown
-        
-        // Update UI
-        initAccountDropdown(); // re-render dropdown để cập nhật active status
-        updateUIForRole(); // Update role-based UI
-        showToast('Chuyển sang: ' + acc.name);
-      };
-      
-      dropdown.appendChild(item);
-    });
-  }
-
-  function toggleAccountDropdown() {
-    const dropdown = document.getElementById('account-dropdown');
-    dropdown.classList.toggle('open');
-  }
-
-  document.getElementById('account-btn').addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleAccountDropdown();
-  });
-
-  document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('account-dropdown');
-    const menu = document.getElementById('account-menu');
-    if (!menu.contains(e.target)) {
-      dropdown.classList.remove('open');
-    }
-  });
 </script>
 
 </body>

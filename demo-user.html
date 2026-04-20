@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Demo Shell — Quản gia AI</title>
+  <title>Demo User — Quản gia AI</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -1200,6 +1200,9 @@
     navItems[0].classList.add('active');
     document.getElementById('counter').textContent = 'Màn hình 1 / ' + TOTAL;
 
+    // USER MODE: Hard-code user1
+    setCurrentUser('user1');
+  
     /* ── Khởi tạo account dropdown ── */
     initAccountDropdown();
     updateUIForRole();

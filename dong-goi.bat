@@ -66,10 +66,10 @@ if not exist "clean\" (
     echo  [LỖI] Không tìm thấy thư mục clean\
     goto :cleanup
 )
-copy "clean\man-hinh-*.html" "%PACKAGE%\docs\file-thiet-ke\" >nul
+copy "clean\*.html" "%PACKAGE%\docs\file-thiet-ke\" >nul
 :: Đếm số file đã copy
 set COUNT=0
-for %%F in ("%PACKAGE%\docs\file-thiet-ke\man-hinh-*.html") do set /a COUNT+=1
+for %%F in ("%PACKAGE%\docs\file-thiet-ke\*.html") do set /a COUNT+=1
 echo     → Đã sao chép !COUNT! file màn hình
 
 :: ── Bước 5: Nén thành ZIP ───────────────────────────────────
@@ -100,7 +100,7 @@ if exist "%ZIPFILE%" (
     echo  ║    ├── stop-demo.bat                                ║
     echo  ║    ├── README.txt                                   ║
     echo  ║    ├── demo.html                                    ║
-    echo  ║    └── docs\file-thiet-ke\man-hinh-*.html          ║
+    echo  ║    └── docs\file-thiet-ke\*.html                   ║
     echo  ╚══════════════════════════════════════════════════════╝
     echo.
     echo  Kích thước: !SIZE! bytes
